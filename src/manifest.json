@@ -1,0 +1,108 @@
+{
+  "manifest_version": 3,
+  "name": "Kin - Translate & Read",
+  "version": "1.0.0",
+  "description": "Beyond Word. Into Meaning. — Elegant translation & reader for the web.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus",
+    "scripting",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://api.deepl.com/*",
+    "https://api-free.deepl.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "toggleTranslatePage": {
+      "description": "Toggle page translation",
+      "suggested_key": { "default": "Alt+A" }
+    },
+    "toggleTranslateMode": {
+      "description": "Toggle bilingual/translation-only",
+      "suggested_key": { "default": "Alt+S" }
+    },
+    "toggleReaderMode": {
+      "description": "Enter/exit reader mode",
+      "suggested_key": { "default": "Alt+R" }
+    },
+    "toggleHoverTranslate": {
+      "description": "Toggle hover translation"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": [
+        "styles/variables.css",
+        "styles/inject.css",
+        "styles/floatball.css",
+        "styles/hover.css",
+        "styles/selection.css"
+      ],
+      "js": [
+        "lib/dompurify.min.js",
+        "content/toast.js",
+        "content/masker.js",
+        "content/translator.js",
+        "content/hover.js",
+        "content/selection.js",
+        "content/floatball.js",
+        "content/index.js"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://*.bloomberg.com/*",
+        "https://*.wsj.com/*",
+        "https://*.nytimes.com/*",
+        "https://*.nyt.com/*",
+        "https://*.ft.com/*",
+        "https://*.economist.com/*",
+        "https://*.scmp.com/*",
+        "https://*.newyorker.com/*"
+      ],
+      "css": ["styles/content.css", "styles/reader.css"],
+      "js": [
+        "reader/adapters/base.js",
+        "reader/adapters/bloomberg.js",
+        "reader/adapters/wsj.js",
+        "reader/adapters/nytimes.js",
+        "reader/adapters/ft.js",
+        "reader/adapters/economist.js",
+        "reader/adapters/scmp.js",
+        "reader/adapters/newyorker.js",
+        "reader/renderer.js",
+        "lib/html2canvas.min.js",
+        "lib/jspdf.umd.min.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["styles/*", "icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

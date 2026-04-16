@@ -1,0 +1,216 @@
+/* Kin Translation Injection Styles — Hardened with !important */
+/* Core: bilingual display + themes + states + loading + error */
+
+/* ========== Loading Spinner ========== */
+.kin-loading-spinner {
+  display: inline-block !important;
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid rgba(212, 168, 67, 0.3) !important;
+  border-top-color: var(--kin-primary, #D4A843) !important;
+  border-radius: 50% !important;
+  animation: kin-spin 0.6s linear infinite !important;
+  margin-left: 4px !important;
+  vertical-align: middle !important;
+}
+
+@keyframes kin-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== Translation Block Wrapper ========== */
+.kin-translation-block-wrapper {
+  display: block !important;
+  margin: 4px 0 !important;
+  animation: kin-translation-appear 0.3s ease !important;
+}
+
+/* ========== Bilingual Layout ========== */
+[data-kin-state="dual"] .kin-original {
+  display: inline !important;
+}
+
+[data-kin-state="dual"] .kin-translation-block-wrapper {
+  display: block !important;
+  margin: 6px 0 !important;
+}
+
+/* ========== Translation-Only Mode ========== */
+[data-kin-state="translation"] .kin-original {
+  display: none !important;
+}
+
+[data-kin-state="translation"] .kin-translation-block-wrapper {
+  margin: 0 !important;
+}
+
+/* ========== Translation Text ========== */
+.kin-translation {
+  display: block !important;
+  font-style: normal !important;
+  line-height: 1.6 !important;
+  word-break: break-word !important;
+}
+
+/* ========== Theme: underline (default) ========== */
+.kin-translation-theme-underline .kin-translation {
+  border-bottom: 1px solid var(--kin-theme-underline-borderColor, #D4A843) !important;
+  padding-bottom: 1px !important;
+}
+
+/* ========== Theme: highlight ========== */
+.kin-translation-theme-highlight .kin-translation {
+  background-color: var(--kin-theme-highlight-backgroundColor, #F5ECD4) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px !important;
+}
+
+/* ========== Theme: dashed ========== */
+.kin-translation-theme-dashed .kin-translation {
+  border-bottom: 1px dashed var(--kin-theme-dashed-borderColor, #D4A843) !important;
+  padding-bottom: 1px !important;
+}
+
+/* ========== Theme: nativeUnderline ========== */
+.kin-translation-theme-nativeUnderline .kin-translation {
+  text-decoration: underline !important;
+  text-decoration-color: var(--kin-theme-nativeUnderline-borderColor, #D4A843) !important;
+  text-underline-offset: 2px !important;
+}
+
+/* ========== Theme: nativeDashed ========== */
+.kin-translation-theme-nativeDashed .kin-translation {
+  text-decoration: underline dashed !important;
+  text-decoration-color: var(--kin-theme-nativeDashed-borderColor, #D4A843) !important;
+  text-underline-offset: 2px !important;
+}
+
+/* ========== Theme: nativeDotted ========== */
+.kin-translation-theme-nativeDotted .kin-translation {
+  text-decoration: underline dotted !important;
+  text-decoration-color: var(--kin-theme-nativeDotted-borderColor, #D4A843) !important;
+  text-underline-offset: 2px !important;
+}
+
+/* ========== Theme: thinDashed ========== */
+.kin-translation-theme-thinDashed .kin-translation {
+  border-bottom: 1px dashed var(--kin-theme-thinDashed-borderColor, #D4A843) !important;
+  opacity: 0.7 !important;
+}
+
+/* ========== Theme: dotted ========== */
+.kin-translation-theme-dotted .kin-translation {
+  border-bottom: 1px dotted var(--kin-theme-dotted-borderColor, #C4A470) !important;
+  padding-bottom: 1px !important;
+}
+
+/* ========== Theme: wavy ========== */
+.kin-translation-theme-wavy .kin-translation {
+  text-decoration: underline wavy !important;
+  text-decoration-color: var(--kin-theme-wavy-borderColor, #D4A843) !important;
+  text-underline-offset: 3px !important;
+}
+
+/* ========== Theme: grey ========== */
+.kin-translation-theme-grey .kin-translation {
+  color: var(--kin-theme-grey-textColor, #4A4A4A) !important;
+}
+
+/* ========== Theme: weakening ========== */
+.kin-translation-theme-weakening .kin-translation {
+  opacity: 0.6 !important;
+}
+
+/* ========== Theme: italic ========== */
+.kin-translation-theme-italic .kin-translation {
+  font-style: italic !important;
+}
+
+/* ========== Theme: bold ========== */
+.kin-translation-theme-bold .kin-translation {
+  font-weight: 600 !important;
+}
+
+/* ========== Theme: paper ========== */
+.kin-translation-theme-paper .kin-translation {
+  background: #FFF8E7 !important;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  border: 1px solid #E8DCC8 !important;
+}
+
+/* ========== Theme: blockquote ========== */
+.kin-translation-theme-blockquote .kin-translation {
+  border-left: 3px solid var(--kin-theme-blockquote-borderColor, #D4A843) !important;
+  padding-left: 8px !important;
+  margin-left: 4px !important;
+}
+
+/* ========== Theme: marker (highlighter) ========== */
+.kin-translation-theme-marker .kin-translation {
+  background: linear-gradient(to bottom, transparent 55%, rgba(var(--kin-theme-marker-backgroundColor-rgb, 212,168,67), 0.4) 55%) !important;
+  padding: 0 2px !important;
+}
+
+/* ========== Theme: marker2 ========== */
+.kin-translation-theme-marker2 .kin-translation {
+  background: linear-gradient(to bottom, transparent 45%, rgba(var(--kin-theme-marker2-backgroundColor-rgb, 212,168,67), 0.35) 45%) !important;
+}
+
+/* ========== Theme: mask ========== */
+.kin-translation-theme-mask .kin-translation {
+  filter: blur(3px) !important;
+  transition: filter 0.3s !important;
+  cursor: pointer !important;
+}
+.kin-translation-theme-mask .kin-translation:hover {
+  filter: blur(0) !important;
+}
+
+/* ========== Theme: opacity ========== */
+.kin-translation-theme-opacity .kin-translation {
+  opacity: calc(var(--kin-theme-opacity-opacity, 10) / 100) !important;
+  transition: opacity 0.3s !important;
+}
+.kin-translation-theme-opacity .kin-translation:hover {
+  opacity: 1 !important;
+}
+
+/* ========== Theme: background ========== */
+.kin-translation-theme-background .kin-translation {
+  background: rgba(var(--kin-theme-background-backgroundColor-rgb, 212,168,67), calc(var(--kin-theme-background-backgroundOpacity, 12) / 100)) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px !important;
+}
+
+/* ========== Theme: dashedBorder ========== */
+.kin-translation-theme-dashedBorder .kin-translation {
+  border: 1px dashed var(--kin-theme-dashedBorder-borderColor, #C4A470) !important;
+  border-radius: var(--kin-theme-dashedBorder-borderRadius, 0) !important;
+  padding: 1px 4px !important;
+}
+
+/* ========== Theme: solidBorder ========== */
+.kin-translation-theme-solidBorder .kin-translation {
+  border: 1px solid var(--kin-theme-solidBorder-borderColor, #C4A470) !important;
+  border-radius: var(--kin-theme-solidBorder-borderRadius, 0) !important;
+  padding: 1px 4px !important;
+}
+
+/* ========== Theme: dividingLine ========== */
+.kin-translation-theme-dividingLine .kin-translation {
+  border-top: 1px solid var(--kin-theme-dividingLine-borderColor, #C4A470) !important;
+  padding-top: 4px !important;
+  margin-top: 4px !important;
+}
+
+/* ========== Error State ========== */
+[data-kin-translated="error"] {
+  opacity: 0.7 !important;
+}
+
+/* ========== Animation ========== */
+@keyframes kin-translation-appear {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,53 @@
+/* Kin Input Translation Styles */
+.kin-input-panel {
+  position: absolute;
+  z-index: 2147483580;
+  background: #FFFFFF;
+  border: 1px solid var(--kin-border, #E5E5E5);
+  border-radius: var(--kin-radius-md, 8px);
+  box-shadow: var(--kin-shadow-md, 0 4px 12px rgba(0,0,0,0.1));
+  overflow: hidden;
+  animation: kin-panel-appear 0.2s ease;
+}
+
+.kin-input-candidate {
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--kin-text, #1A1A1A);
+  cursor: default;
+}
+
+.kin-input-actions {
+  display: flex;
+  border-top: 1px solid var(--kin-border, #E5E5E5);
+}
+
+.kin-input-actions button {
+  flex: 1;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.kin-input-actions button:first-child {
+  border-right: 1px solid var(--kin-border, #E5E5E5);
+  color: var(--kin-primary, #D4A843);
+  font-weight: 500;
+}
+
+.kin-input-actions button:last-child {
+  color: var(--kin-text-secondary, #666);
+}
+
+.kin-input-actions button:hover {
+  background: var(--kin-primary-light, #F5ECD4);
+}
+
+@keyframes kin-panel-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

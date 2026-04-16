@@ -1,0 +1,486 @@
+/* Kin Float Ball — Compact popup style (Kin gold palette)
+   Pill button → hover gear → click gear: popup panel near the float ball
+*/
+
+/* ========== Float Container ========== */
+.kin-fb-container {
+  position: fixed !important;
+  padding: 0 !important;
+  top: 335px !important;
+  width: fit-content !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  direction: ltr !important;
+  background-color: transparent !important;
+  pointer-events: none !important;
+  right: 0 !important;
+  z-index: 2147483600 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* ========== Pill Button (logo) ========== */
+.kin-fb-btn {
+  cursor: pointer !important;
+  height: 36px !important;
+  background: #FFFFFF !important;
+  border-top-left-radius: 36px !important;
+  border-bottom-left-radius: 36px !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding-right: 3px !important;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.08) !important;
+  display: flex !important;
+  align-items: center !important;
+  pointer-events: all !important;
+  transition: transform 0.25s ease-out !important;
+}
+
+.kin-fb-btn-content {
+  height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  position: relative !important;
+  border-top-left-radius: 34px !important;
+  border-bottom-left-radius: 34px !important;
+}
+
+/* Logo circle inside pill */
+.kin-fb-logo {
+  width: 28px !important;
+  height: 28px !important;
+  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  margin: 0 5px !important;
+  flex-shrink: 0 !important;
+  line-height: 28px !important;
+  text-align: center !important;
+}
+
+/* ========== Gear Button (shown on hover) ========== */
+.kin-fb-side {
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  pointer-events: all !important;
+  position: relative !important;
+  margin: 0 !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.08) !important;
+  color: #666 !important;
+}
+.kin-fb-side:hover {
+  background: #f5f5f5 !important;
+  color: #D4A843 !important;
+}
+.kin-fb-side svg {
+  width: 24px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important;
+}
+
+/* More buttons container */
+.kin-fb-more-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+  right: 8px !important;
+  position: relative !important;
+}
+
+/* ========== Dragging ========== */
+.kin-fb-container.dragging .kin-fb-more-buttons,
+.kin-fb-container.dragging .kin-fb-side {
+  display: none !important;
+}
+.kin-fb-container.dragging .kin-fb-btn {
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  cursor: move !important;
+}
+.kin-fb-container.dragging .kin-fb-btn-content {
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  margin: 0 !important;
+}
+.kin-fb-container.dragging .kin-fb-logo {
+  margin: 0 !important;
+}
+
+/* ========== Popup Panel ========== */
+#kin-fb-panel {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  border-radius: 16px !important;
+  box-shadow: 2px 10px 24px 0 rgba(14, 18, 22, 0.08) !important;
+  border: 1px solid #f0f0f0 !important;
+  pointer-events: all !important;
+  overflow: hidden !important;
+  animation: kin-fb-popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+@keyframes kin-fb-popIn {
+  from { opacity: 0; transform: scale(0.95) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* --- Container --- */
+.kin-fb-popup-container {
+  font-size: 13px !important;
+  color: #666 !important;
+  background-color: #e8eaeb !important;
+  width: 240px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+/* --- Header (gold bar) --- */
+.kin-fb-popup-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  padding: 8px 10px !important;
+}
+.kin-fb-popup-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+.kin-fb-popup-logo {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  background: rgba(255,255,255,0.25) !important;
+  border-radius: 6px !important;
+  color: #FFFFFF !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 24px !important;
+  text-align: center !important;
+}
+.kin-fb-popup-name {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  letter-spacing: 0.5px !important;
+}
+.kin-fb-popup-close {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  background: rgba(255,255,255,0.15) !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  color: rgba(255,255,255,0.8) !important;
+  transition: all 0.15s !important;
+}
+.kin-fb-popup-close:hover {
+  background: rgba(255,255,255,0.3) !important;
+  color: #FFFFFF !important;
+}
+
+/* --- Content area (white) --- */
+.kin-fb-popup-content {
+  background-color: #ffffff !important;
+  padding: 8px 10px 10px !important;
+}
+
+/* --- Footer (gray bar) --- */
+.kin-fb-popup-footer {
+  background-color: #e8eaeb !important;
+  padding: 5px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 28px !important;
+  font-size: 11px !important;
+}
+
+/* ========== Language Row (source → arrow → target) ========== */
+.kin-fb-lang-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+.kin-fb-lang-container {
+  position: relative !important;
+  flex: 1 !important;
+  background-color: #f3f5f6 !important;
+  height: 48px !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+}
+.kin-fb-lang-container:hover {
+  background-color: #eaeced !important;
+}
+
+.kin-fb-lang-container select {
+  color: #333 !important;
+  font-size: 13px !important;
+  padding: 6px 16px 16px 12px !important;
+  position: absolute !important;
+  border-radius: 10px !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  outline: none !important;
+  font-family: inherit !important;
+}
+.kin-fb-lang-container label {
+  position: absolute !important;
+  bottom: 6px !important;
+  left: 12px !important;
+  font-size: 10px !important;
+  color: #999 !important;
+  line-height: 10px !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Swap arrow between languages */
+.kin-fb-swap-btn {
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  color: #999 !important;
+  border-radius: 50% !important;
+  margin: 0 2px !important;
+}
+.kin-fb-swap-btn:hover {
+  color: #D4A843 !important;
+  background: #fff8ed !important;
+}
+.kin-fb-swap-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* ========== Translation Service ========== */
+.kin-fb-service-container {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: 36px !important;
+  background-color: #f3f5f6 !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  margin-top: 6px !important;
+}
+.kin-fb-service-container:hover {
+  background-color: #eaeced !important;
+}
+.kin-fb-service-container select {
+  flex: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  font-family: inherit !important;
+  padding: 0 !important;
+  height: 36px !important;
+}
+
+/* ========== Translate Mode Toggle + Button Row ========== */
+.kin-fb-btn-row {
+  display: flex !important;
+  align-items: center !important;
+  margin-top: 5px !important;
+  gap: 6px !important;
+}
+
+.kin-fb-mode-btn {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+  background-color: #f3f5f6 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+  color: #666 !important;
+  transition: background-color 0.15s ease !important;
+}
+.kin-fb-mode-btn:hover {
+  background-color: #eaeced !important;
+  color: #D4A843 !important;
+}
+.kin-fb-mode-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Main translate button */
+.kin-fb-main-button {
+  flex: 1 !important;
+  font-size: 13px !important;
+  border-radius: 10px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  color: white !important;
+  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  border: none !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  transition: opacity 0.15s ease !important;
+}
+.kin-fb-main-button:hover { opacity: 0.9 !important; }
+.kin-fb-main-button:active { opacity: 0.8 !important; }
+
+/* ========== Settings Toggles ========== */
+.kin-fb-setting-section {
+  margin-top: 6px !important;
+  padding: 0 4px !important;
+}
+
+.kin-fb-setting-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: 4px !important;
+}
+.kin-fb-setting-row:first-child { margin-top: 0 !important; }
+
+.kin-fb-setting-label {
+  font-size: 12px !important;
+  color: #333 !important;
+}
+
+/* Hint text under hover toggle */
+.kin-fb-setting-hint {
+  font-size: 10px !important;
+  color: #aaa !important;
+  margin-top: 3px !important;
+  line-height: 1.4 !important;
+}
+
+/* Toggle switch */
+.kin-fb-toggle {
+  width: 28px !important;
+  height: 16px !important;
+  background-color: #ddd !important;
+  border-radius: 24px !important;
+  position: relative !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+.kin-fb-toggle.checked {
+  background-color: #D4A843 !important;
+}
+.kin-fb-toggle-dot {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: #fff !important;
+  border-radius: 50% !important;
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  transition: transform 0.2s ease !important;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1) !important;
+}
+.kin-fb-toggle.checked .kin-fb-toggle-dot {
+  transform: translateX(12px) !important;
+}
+
+/* ========== Footer Links ========== */
+.kin-fb-footer-link {
+  font-size: 11px !important;
+  color: #999 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+.kin-fb-footer-link:hover { color: #D4A843 !important; }
+.kin-fb-footer-link svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.kin-fb-footer-version {
+  font-size: 10px !important;
+  color: #bbb !important;
+}
+
+/* ========== Loading ========== */
+.kin-fb-loading {
+  animation: kin-fb-spin 0.6s linear infinite !important;
+}
+@keyframes kin-fb-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ========== Dark Mode ========== */
+@media (prefers-color-scheme: dark) {
+  .kin-fb-btn { background: #1E1E1E !important; }
+  .kin-fb-side { background: #1E1E1E !important; color: #b3b3b3 !important; }
+  .kin-fb-side:hover { background: #333 !important; color: #E8C86A !important; }
+
+  #kin-fb-panel {
+    background: #191919 !important;
+    border-color: #333 !important;
+    box-shadow: 2px 10px 24px 0 rgba(0,0,0,0.5) !important;
+  }
+  .kin-fb-popup-container { background-color: #0d0d0d !important; color: #999 !important; }
+  .kin-fb-popup-close { color: rgba(255,255,255,0.7) !important; }
+  .kin-fb-popup-close:hover { background: rgba(255,255,255,0.25) !important; color: #FFFFFF !important; }
+  .kin-fb-popup-content { background-color: #191919 !important; }
+  .kin-fb-popup-footer { background-color: #0d0d0d !important; }
+
+  .kin-fb-lang-container,
+  .kin-fb-service-container,
+  .kin-fb-mode-btn {
+    background-color: #272727 !important;
+  }
+  .kin-fb-lang-container:hover,
+  .kin-fb-service-container:hover,
+  .kin-fb-mode-btn:hover {
+    background-color: #333 !important;
+  }
+  .kin-fb-lang-container select,
+  .kin-fb-service-container select {
+    color: #E5E5E5 !important;
+  }
+  .kin-fb-setting-label { color: #E5E5E5 !important; }
+  .kin-fb-setting-hint { color: #666 !important; }
+  .kin-fb-footer-link { color: #666 !important; }
+  .kin-fb-footer-link:hover { color: #E8C86A !important; }
+  .kin-fb-footer-version { color: #555 !important; }
+}

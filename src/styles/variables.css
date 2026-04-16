@@ -1,0 +1,101 @@
+/* Kin Design Tokens */
+/* Brand: Kin (金) — Beyond Word. Into Meaning. */
+
+:root {
+  /* === Primary Gold === */
+  --kin-primary: #D4A843;
+  --kin-primary-hover: #C49A38;
+  --kin-primary-active: #B38D2F;
+  --kin-primary-light: #F5ECD4;
+  --kin-primary-weak: rgba(212, 168, 67, 0.15);
+  --kin-primary-rgb: 212, 168, 67;
+
+  /* === Neutral === */
+  --kin-bg: #FFFFFF;
+  --kin-bg-secondary: #F7F7F8;
+  --kin-bg-tertiary: #EFEFEF;
+  --kin-text: #1A1A1A;
+  --kin-text-secondary: #666666;
+  --kin-text-tertiary: #999999;
+  --kin-border: #E5E5E5;
+
+  /* === Semantic === */
+  --kin-success: #34C759;
+  --kin-error: #FF3B30;
+  --kin-warning: #FF9500;
+
+  /* === Typography === */
+  --kin-font: system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+  --kin-font-serif: 'Noto Serif SC', 'Source Serif Pro', Georgia, serif;
+  --kin-font-serif-cn: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif;
+  --kin-font-sans-cn: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* === Spacing === */
+  --kin-space-xs: 4px;
+  --kin-space-sm: 8px;
+  --kin-space-md: 12px;
+  --kin-space-lg: 16px;
+  --kin-space-xl: 24px;
+  --kin-space-2xl: 32px;
+
+  /* === Radius === */
+  --kin-radius-sm: 4px;
+  --kin-radius-md: 8px;
+  --kin-radius-lg: 12px;
+  --kin-radius-full: 9999px;
+
+  /* === Shadows === */
+  --kin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --kin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --kin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* === Transitions === */
+  --kin-transition-fast: 150ms ease;
+  --kin-transition-normal: 250ms ease;
+
+  /* === Translation Theme Variables (ported from Immersive Translate) === */
+  --kin-theme-underline-borderColor: #D4A843;
+  --kin-theme-nativeUnderline-borderColor: #D4A843;
+  --kin-theme-nativeDashed-borderColor: #D4A843;
+  --kin-theme-nativeDotted-borderColor: #D4A843;
+  --kin-theme-highlight-backgroundColor: #F5ECD4;
+  --kin-theme-dashed-borderColor: #D4A843;
+  --kin-theme-blockquote-borderColor: #D4A843;
+  --kin-theme-thinDashed-borderColor: #D4A843;
+  --kin-theme-dashedBorder-borderColor: #C4A470;
+  --kin-theme-dashedBorder-borderRadius: 0;
+  --kin-theme-solidBorder-borderColor: #C4A470;
+  --kin-theme-solidBorder-borderRadius: 0;
+  --kin-theme-dotted-borderColor: #C4A470;
+  --kin-theme-wavy-borderColor: #D4A843;
+  --kin-theme-dividingLine-borderColor: #C4A470;
+  --kin-theme-grey-textColor: #4A4A4A;
+  --kin-theme-marker-backgroundColor: #D4A843;
+  --kin-theme-marker-backgroundColor-rgb: 212, 168, 67;
+  --kin-theme-marker2-backgroundColor: #D4A843;
+  --kin-theme-background-backgroundColor: #D4A843;
+  --kin-theme-background-backgroundColor-rgb: 212, 168, 67;
+  --kin-theme-background-backgroundOpacity: 12;
+  --kin-theme-opacity-opacity: 10;
+}
+
+/* ========== Dark Mode ========== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --kin-bg: #1A1A1A;
+    --kin-bg-secondary: #242424;
+    --kin-bg-tertiary: #2C2C2C;
+    --kin-text: #F5F5F5;
+    --kin-text-secondary: #AAAAAA;
+    --kin-text-tertiary: #777777;
+    --kin-border: #3A3A3A;
+    --kin-primary: #E0B94E;
+    --kin-primary-hover: #E8C86A;
+    --kin-primary-active: #D4A843;
+    --kin-primary-light: rgba(224, 185, 78, 0.15);
+    --kin-primary-weak: rgba(224, 185, 78, 0.12);
+    --kin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --kin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --kin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+}
