@@ -7,17 +7,17 @@ const THEMES = {
     label: 'Kin',
     bg: '#FFF1E0',
     bgWarm: '#F8E8D0',
-    text: '#1c1917',
-    textSecondary: '#57534e',
-    textTertiary: '#a8a29e',
+    text: '#2d2d2d',
+    textSecondary: '#4a4a4a',
+    textTertiary: '#8a8a8a',
     accent: '#b8860b',
     accentHover: '#996515',
     border: '#e8e4df',
     radius: '10px',
     radiusSm: '8px',
-    fontSerif: "'Georgia', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif",
-    fontSans: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif",
-    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif",
+    fontSerif: "'Georgia', 'Noto Serif SC', 'SimSun', serif",
+    fontSans: "'Georgia', 'Noto Serif SC', 'SimSun', serif",
+    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif",
     blankThreshold: 20,
     blankSearchSpan: 0.25,
   },
@@ -935,7 +935,7 @@ const ReaderRenderer = {
       '.kin-r-heading': `font-size:22px;font-weight:600;margin:40px 0 18px;color:${theme.text};letter-spacing:-0.01em;display:block;font-family:${theme.fontSerif};line-height:1.35;`,
       '.kin-r-paragraph': `font-size:17.5px;line-height:1.85;margin:0 0 24px;color:${theme.textSecondary};letter-spacing:0.005em;`,
       '.kin-r-original': origDisplay + `color:${theme.textSecondary};margin-bottom:0;`,
-      '.kin-r-translation': `display:block;font-family:${theme.fontSans};font-size:17px;line-height:1.8;color:${theme.accentHover};margin-top:8px;`,
+      '.kin-r-translation': `display:block;font-family:${theme.fontSans};font-size:17px;line-height:1.8;color:${theme.textSecondary};margin-top:8px;`,
       '.kin-r-featured-image': `margin:0 -28px 36px;padding:0;`,
       '.kin-r-featured-image img': `width:100%;height:auto;display:block;border-radius:${theme.radius};`,
       '.kin-r-article-image': `margin:28px -14px;padding:0;`,
@@ -956,7 +956,7 @@ const ReaderRenderer = {
 
     // Title translation keeps title font/size/family
     clone.querySelectorAll('.kin-r-title .kin-r-translation').forEach(el => {
-      el.style.cssText = `display:block;font-size:36px;font-weight:700;line-height:1.3;font-family:${theme.fontTitleCn};letter-spacing:-0.015em;margin-top:10px;color:${theme.accentHover};`;
+      el.style.cssText = `display:block;font-size:36px;font-weight:700;line-height:1.3;font-family:${theme.fontTitleCn};letter-spacing:-0.015em;margin-top:10px;color:${theme.text};`;
     });
     clone.querySelectorAll('.kin-r-title .kin-r-original').forEach(el => {
       el.style.cssText = `display:block;font-size:36px;font-weight:700;line-height:1.3;font-family:${theme.fontTitleCn};letter-spacing:-0.015em;color:${theme.text};`;
@@ -967,7 +967,7 @@ const ReaderRenderer = {
       el.style.cssText = `display:block;font-size:20px;line-height:1.6;font-family:${theme.fontSerif};color:${theme.textSecondary};margin-top:0;font-style:italic;`;
     });
     clone.querySelectorAll('.kin-r-standfirst .kin-r-translation').forEach(el => {
-      el.style.cssText = `display:block;font-size:20px;line-height:1.6;font-family:${theme.fontSans};color:${theme.accentHover};margin-top:6px;font-style:italic;`;
+      el.style.cssText = `display:block;font-size:20px;line-height:1.6;font-family:${theme.fontSans};color:${theme.textSecondary};margin-top:6px;font-style:italic;`;
     });
 
     // Heading translation
@@ -975,7 +975,7 @@ const ReaderRenderer = {
       el.style.cssText = `display:block;font-size:22px;font-weight:600;line-height:1.35;font-family:${theme.fontSerif};margin-top:0;color:${theme.text};letter-spacing:-0.01em;`;
     });
     clone.querySelectorAll('.kin-r-heading .kin-r-translation').forEach(el => {
-      el.style.cssText = `display:block;font-size:22px;font-weight:600;line-height:1.35;font-family:${theme.fontSans};color:${theme.accentHover};margin-top:6px;`;
+      el.style.cssText = `display:block;font-size:22px;font-weight:600;line-height:1.35;font-family:${theme.fontSans};color:${theme.text};margin-top:6px;`;
     });
 
     // Target-only mode: translation blends into body

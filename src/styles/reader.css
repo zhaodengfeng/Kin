@@ -10,9 +10,9 @@
   --kin-r-bg: #FFF1E0;
   --kin-r-bg-warm: #F8E8D0;
   --kin-r-surface: #ffffff;
-  --kin-r-text: #1c1917;
-  --kin-r-text-secondary: #57534e;
-  --kin-r-text-tertiary: #a8a29e;
+  --kin-r-text: #2d2d2d;
+  --kin-r-text-secondary: #4a4a4a;
+  --kin-r-text-tertiary: #8a8a8a;
   --kin-r-accent: #b8860b;
   --kin-r-accent-hover: #996515;
   --kin-r-accent-light: rgba(184, 134, 11, 0.06);
@@ -24,9 +24,9 @@
   --kin-r-shadow-lg: 0 8px 32px rgba(28, 25, 23, 0.08);
   --kin-r-radius: 10px;
   --kin-r-radius-sm: 8px;
-  --kin-r-font-serif: 'Georgia', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
-  --kin-r-font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --kin-r-font-title-cn: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+  --kin-r-font-serif: 'Georgia', 'Noto Serif SC', 'SimSun', serif;
+  --kin-r-font-sans: 'Georgia', 'Noto Serif SC', 'SimSun', serif;
+  --kin-r-font-title-cn: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif;
   --kin-r-progress-bg: rgba(184, 134, 11, 0.30);
   --kin-r-toolbar-bg: rgba(255, 241, 224, 0.88);
   --kin-r-scrollbar-track: #f5f2ed;
@@ -426,7 +426,7 @@ body.kin-r-reader-active [id*="VideoPlayer"] {
   font-family: var(--font-sans);
   font-size: 17px;
   line-height: 1.8;
-  color: var(--accent-hover);
+  color: var(--text-secondary);
   margin-top: 8px;
   animation: translation-appear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -445,7 +445,7 @@ body.kin-r-reader-active [id*="VideoPlayer"] {
   animation: none;
 }
 .kin-r-title.kin-r-translated .kin-r-translation {
-  color: var(--accent-hover);
+  color: var(--text);
   margin-top: 10px;
 }
 
@@ -470,7 +470,7 @@ body.kin-r-reader-active [id*="VideoPlayer"] {
   animation: none;
 }
 .kin-r-standfirst.kin-r-translated .kin-r-translation {
-  color: var(--accent-hover);
+  color: var(--text-secondary);
   margin-top: 6px;
   font-style: italic;
 }
@@ -498,7 +498,7 @@ body.kin-r-reader-active [id*="VideoPlayer"] {
   animation: none;
 }
 .kin-r-heading.kin-r-translated .kin-r-translation {
-  color: var(--accent-hover);
+  color: var(--text);
   margin-top: 6px;
 }
 .kin-r-heading.kin-r-translated.kin-r-target-only .kin-r-translation {
