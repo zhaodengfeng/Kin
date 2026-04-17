@@ -121,28 +121,6 @@ body {
 
 .kin-nav-icon { flex-shrink: 0; }
 
-.kin-sidebar-footer {
-  padding-top: 16px;
-  border-top: 1px solid var(--kin-border, #E5E5E5);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.kin-sidebar-footer a {
-  font-size: 12px;
-  color: var(--kin-text-tertiary, #999);
-  text-decoration: none;
-  padding: 4px 12px;
-  border-radius: 6px;
-  transition: all 0.15s;
-}
-
-.kin-sidebar-footer a:hover {
-  background: var(--kin-bg, #FFFFFF);
-  color: var(--kin-primary, #D4A843);
-}
-
 /* ===== Content area ===== */
 .kin-content {
   flex: 1;
@@ -754,7 +732,6 @@ kbd {
   .kin-about-footer { border-color: #3A3A3A; }
   .kin-modal { background: #1A1A1A; }
   .kin-about-card { background: #242424; }
-  .kin-sidebar-footer { border-color: #3A3A3A; }
   .kin-version-tag { background: #242424; }
   .kin-radio-card-body { border-color: #3A3A3A; }
   .kin-radio-card input:checked + .kin-radio-card-body { background: rgba(212,168,67,0.15); border-color: #D4A843; }
@@ -776,7 +753,6 @@ kbd {
   .kin-sidebar-group { display: flex; gap: 4px; margin-bottom: 0; }
   .kin-sidebar-group-title { display: none; }
   .kin-nav-link { white-space: nowrap; flex-shrink: 0; width: auto; }
-  .kin-sidebar-footer { display: none; }
 }
 
 /* ===== Responsive: mobile ===== */
