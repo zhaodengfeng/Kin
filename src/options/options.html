@@ -13,10 +13,9 @@
     <header class="kin-options-header">
       <div class="kin-options-header-left">
         <span class="kin-options-icon">K</span>
-        <div>
-          <h1 class="kin-options-title">Kin 设置</h1>
-          <p class="kin-options-subtitle">Beyond Word. Into Meaning.</p>
-        </div>
+        <h1 class="kin-options-title">Kin</h1>
+        <span class="kin-options-divider">/</span>
+        <span class="kin-options-page">设置</span>
       </div>
       <div class="kin-options-header-right">
         <span class="kin-version-tag">v1.0.0</span>
@@ -229,13 +228,33 @@
             </div>
           </div>
 
+          <div class="kin-nav-row">
+            <div class="kin-nav-label">
+              <div class="kin-nav-title">关闭模型推理</div>
+              <div class="kin-nav-desc">对 LLM 翻译禁用思考/推理（Gemini、Qwen 等），更快速、省 Token、减少截断</div>
+            </div>
+            <div class="kin-nav-control">
+              <label class="kin-switch">
+                <input type="checkbox" id="optDisableReasoning">
+                <span class="kin-switch-slider"></span>
+              </label>
+            </div>
+          </div>
+
           <!-- Test Translation -->
           <div class="kin-section-divider"></div>
-          <div class="kin-section-title">测试翻译</div>
-          <div class="kin-test-box">
-            <input type="text" class="kin-input" id="testInput" placeholder="输入任意文字测试翻译效果...">
-            <button class="kin-btn-primary" id="btnTestTranslate">翻译</button>
-            <div class="kin-test-result" id="testResult"></div>
+          <div class="kin-test-card">
+            <div class="kin-test-header">
+              <span class="kin-test-label">测试翻译</span>
+              <button class="kin-btn-test" id="btnTestTranslate">测试</button>
+            </div>
+            <div class="kin-test-row">
+              <div class="kin-test-col">
+                <div class="kin-test-lang">English</div>
+                <div class="kin-test-source">The rapid advancement of artificial intelligence has sparked intense debate about the future of work.</div>
+              </div>
+            </div>
+            <div class="kin-test-result-inline" id="testResult"></div>
           </div>
         </section>
 

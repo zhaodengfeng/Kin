@@ -108,6 +108,7 @@ chrome.runtime.onInstalled.addListener(() => {
     hoverTranslate: true,
     hoverTrigger: 'direct',
     sensitiveMask: true,
+    disableReasoning: false,
     readerEnabled: true,
     readerTheme: 'default',
     exportImageFormat: 'jpeg',
@@ -187,7 +188,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         'translationStyle', 'customPrompt',
         'hoverTranslate', 'hoverTrigger',
         'selectionTranslate',
-        'sensitiveMask', 'readerEnabled', 'readerTheme',
+        'sensitiveMask', 'disableReasoning', 'readerEnabled', 'readerTheme',
         'exportImageFormat', 'exportQuality',
         'longArticleMultiImageExport',
         'alwaysTranslateUrls', 'neverTranslateUrls',
@@ -319,7 +320,7 @@ function arrayBufferToDataUrl(arrayBuffer, mime) {
 // Translation Router
 // ============================================
 async function handleTranslate({ texts, from, to, providerOverride, configOverride, context, contentType, cacheScope }) {
-  const settingsKeys = ['translationProvider', 'targetLang', 'translationStyle', 'customPrompt'];
+  const settingsKeys = ['translationProvider', 'targetLang', 'translationStyle', 'customPrompt', 'disableReasoning'];
   const allSettings = await chrome.storage.local.get(settingsKeys);
   const finalProvider = providerOverride || allSettings.translationProvider || 'google';
 
@@ -345,6 +346,7 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
   }
   const mergedConfigOverride = providerConfig && !configOverride ? providerConfig : configOverride;
   const targetLang = to || allSettings.targetLang || 'zh-CN';
+  const disableReasoning = allSettings.disableReasoning === true;
   const safeTexts = Array.isArray(texts) ? texts : [];
   const langName = LANG_NAMES[targetLang] || targetLang;
 
@@ -386,7 +388,8 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
         provider: finalProvider,
         configOverride: mergedConfigOverride,
         promptContext,
-        contentType
+        contentType,
+        disableReasoning
       })
     });
   } catch (error) {
@@ -396,7 +399,7 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
   }
 }
 
-async function translateProvider({ texts, targetLang, langName, provider, configOverride, promptContext, contentType }) {
+async function translateProvider({ texts, targetLang, langName, provider, configOverride, promptContext, contentType, disableReasoning }) {
   switch (provider) {
     case 'google':
       return googleTranslate(texts, targetLang);
@@ -406,9 +409,9 @@ async function translateProvider({ texts, targetLang, langName, provider, config
       return deeplTranslate(texts, targetLang, langName, provider, configOverride);
     case 'claude':
     case 'custom_claude':
-      return claudeTranslate(texts, targetLang, langName, provider, configOverride, promptContext, contentType);
+      return claudeTranslate(texts, targetLang, langName, provider, configOverride, promptContext, contentType, disableReasoning);
     default:
-      return openaiTranslate(texts, targetLang, langName, provider, configOverride, promptContext, contentType);
+      return openaiTranslate(texts, targetLang, langName, provider, configOverride, promptContext, contentType, disableReasoning);
   }
 }
 
@@ -754,6 +757,9 @@ function formatTranslationError(provider, error) {
   const lower = raw.toLowerCase();
 
   if (!raw) return `${providerName} 翻译失败，请稍后重试。`;
+  if (lower.includes('incomplete') || lower.includes('incomplete response')) {
+    return `${providerName} 翻译结果不完整，请重试或切换到其他翻译服务。`;
+  }
   if (provider === 'deepl' && lower.includes('deepl request failed')) {
     return '无法连接到 DeepL。请重载扩展后重试；如果你使用的是 Pro Key，请在设置页切换到 Pro API。';
   }
@@ -914,6 +920,16 @@ function parseLLMTranslations(rawContent, texts) {
     } catch {}
   }
   while (translations.length < texts.length) translations.push('');
+
+  // Detect incomplete translations — LLM may have truncated or returned partial results
+  // Always throw if any translation is empty; let the renderer handle retry/split
+  const nonEmptyCount = translations.slice(0, texts.length).filter(t => String(t).trim()).length;
+  if (nonEmptyCount < texts.length) {
+    const err = new Error(`LLM returned incomplete translations: ${nonEmptyCount}/${texts.length}`);
+    err.partial = true;
+    throw err;
+  }
+
   return translations.slice(0, texts.length);
 }
 
@@ -1035,7 +1051,7 @@ function supportsJsonMode(provider, model) {
   return false;
 }
 
-async function openaiTranslate(texts, targetLang, langName, provider, configOverride, context, contentType) {
+async function openaiTranslate(texts, targetLang, langName, provider, configOverride, context, contentType, disableReasoning) {
   const cfg = await loadProviderConfig(provider, configOverride);
   if (!cfg.apiKey) throw new Error('Please configure API Key in settings');
   if (!cfg.endpoint) throw new Error('Please configure API Endpoint in settings');
@@ -1053,6 +1069,26 @@ async function openaiTranslate(texts, targetLang, langName, provider, configOver
     max_tokens: Math.max(4096, Math.min(16384, texts.reduce((sum, t) => sum + String(t).length, 0) * 4))
   };
   if (supportsJsonMode(provider, model)) requestBody.response_format = { type: 'json_object' };
+
+  // Disable model reasoning for translation (faster, fewer tokens, less truncation)
+  if (disableReasoning) {
+    const m = model.toLowerCase();
+    switch (provider) {
+      case 'gemini':
+        // Gemini OpenAI-compatible endpoint: thinking is off by default, no param needed
+        break;
+      case 'qwen':
+        requestBody.enable_thinking = false;
+        break;
+      case 'openrouter':
+        if (m.includes('gemini') || m.includes('gem') || m.includes('reason')) {
+          requestBody.thinking = { type: 'disabled' };
+        }
+        break;
+      // OpenAI, DeepSeek, GLM, Kimi, custom_openai: no standardized thinking param
+      // in their OpenAI-compatible endpoints; default models have no reasoning enabled
+    }
+  }
 
   const fetchHeaders = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` };
   if (provider === 'openrouter') {
@@ -1085,7 +1121,7 @@ async function openaiTranslate(texts, targetLang, langName, provider, configOver
 // ============================================
 // Claude API Translate
 // ============================================
-async function claudeTranslate(texts, targetLang, langName, provider, configOverride, context, contentType) {
+async function claudeTranslate(texts, targetLang, langName, provider, configOverride, context, contentType, disableReasoning) {
   const cfg = await loadProviderConfig(provider, configOverride);
   if (!cfg.apiKey) throw new Error('Please configure API Key in settings');
   if (!cfg.endpoint) throw new Error('Please configure API Endpoint in settings');

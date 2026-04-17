@@ -217,6 +217,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ sensitiveMask: this.checked });
   });
 
+  document.getElementById('optDisableReasoning').addEventListener('change', function() {
+    saveSettings({ disableReasoning: this.checked });
+  });
+
   // Translation mode radio cards
   document.querySelectorAll('input[name="translationMode"]').forEach(radio => {
     radio.addEventListener('change', () => {
@@ -226,8 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Test translation
   document.getElementById('btnTestTranslate').addEventListener('click', async () => {
-    const text = document.getElementById('testInput').value.trim();
-    if (!text) return;
+    const text = 'The rapid advancement of artificial intelligence has sparked intense debate about the future of work.';
     const resultEl = document.getElementById('testResult');
     resultEl.textContent = '翻译中...';
     resultEl.style.color = '';
@@ -473,6 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.selectionTranslate !== undefined) document.getElementById('optSelectionTranslate').checked = s.selectionTranslate;
     if (s.hoverTrigger) document.querySelector(`input[name="hoverTrigger"][value="${s.hoverTrigger}"]`).checked = true;
     if (s.sensitiveMask !== undefined) document.getElementById('optSensitiveMask').checked = s.sensitiveMask;
+    if (s.disableReasoning !== undefined) document.getElementById('optDisableReasoning').checked = s.disableReasoning;
     if (s.translationMode) {
       const radio = document.querySelector(`input[name="translationMode"][value="${s.translationMode}"]`);
       if (radio) radio.checked = true;

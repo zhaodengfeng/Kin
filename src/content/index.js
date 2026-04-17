@@ -269,16 +269,10 @@
         KinFloatBall.setTranslated(false);
       }
     } else {
-      // If on a supported news site and reader is enabled in settings,
-      // open reader instead of doing inline page translation
+      // If on a supported news site, open reader instead of inline page translation
       if (currentAdapter) {
-        try {
-          const settings = await loadSettings();
-          if (settings.readerEnabled) {
-            openReader();
-            return;
-          }
-        } catch (e) { /* fall through to inline translation */ }
+        openReader();
+        return;
       }
 
       translating = true;
