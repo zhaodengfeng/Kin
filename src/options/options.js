@@ -1,22 +1,49 @@
-// Kin Options Page Script — Full rewrite
+// Kin Options Page Script — Hash routing + Immersive redesign
 document.addEventListener('DOMContentLoaded', async () => {
-  // ========== Tab Navigation ==========
-  const navBtns = document.querySelectorAll('.kin-nav-btn');
+  // ========== Hash-based Tab Navigation ==========
+  const navBtns = document.querySelectorAll('.kin-nav-link');
   const tabs = document.querySelectorAll('.kin-tab');
 
+  function activateTab(tabName) {
+    navBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+    tabs.forEach(t => t.classList.toggle('active', t.id === 'tab-' + tabName));
+  }
+
+  function getCurrentHash() {
+    return location.hash.replace('#', '') || 'translation';
+  }
+
+  // Nav button clicks update hash
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
-      tabs.forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      location.hash = btn.dataset.tab;
     });
   });
+
+  // Hash change activates tab
+  window.addEventListener('hashchange', () => {
+    activateTab(getCurrentHash());
+  });
+
+  // Initial activation from hash
+  activateTab(getCurrentHash());
 
   // ========== Load Settings ==========
   const settings = await new Promise(resolve => {
     chrome.runtime.sendMessage({ type: 'get_settings' }, resolve);
   }) || {};
+
+  // Theme names (moved before populateThemes call)
+  const THEME_NAMES = {
+    underline: '下划线', dashed: '虚线', nativeUnderline: '原生下划线',
+    nativeDashed: '原生虚线', dotted: '点线', nativeDotted: '原生点线',
+    thinDashed: '细虚线', wavy: '波浪线', highlight: '高亮',
+    marker: '马克笔', marker2: '马克笔2', grey: '灰色',
+    weakening: '淡化', italic: '斜体', bold: '粗体', paper: '纸片',
+    blockquote: '引用', mask: '模糊', opacity: '透明',
+    background: '背景色', dashedBorder: '虚线边框', solidBorder: '实线边框',
+    dividingLine: '分割线'
+  };
 
   populateSourceLanguages();
   populateTargetLanguages();
@@ -29,35 +56,91 @@ document.addEventListener('DOMContentLoaded', async () => {
   const optEngine = document.getElementById('optEngine');
   const providerConfig = document.getElementById('providerConfig');
   const engineHint = document.getElementById('engineHint');
+  const deeplAccountGroup = document.getElementById('deeplAccountGroup');
+  const deeplKeyGroup = document.getElementById('deeplKeyGroup');
+  const singleKeyGroup = document.getElementById('singleKeyGroup');
+  const modelGroup = document.getElementById('modelGroup');
+
+  function isDeepl(provider) { return provider === 'deepl'; }
+
+  function updateDeeplUI(provider, accountType) {
+    const isFree = accountType === 'free';
+    // Show/hide account type selector
+    deeplAccountGroup.style.display = isDeepl(provider) ? 'block' : 'none';
+    // Show/hide multi-key vs single key
+    deeplKeyGroup.style.display = isDeepl(provider) && isFree ? 'block' : 'none';
+    singleKeyGroup.style.display = isDeepl(provider) && isFree ? 'none' : 'block';
+    // Hide model for deepl
+    modelGroup.style.display = isDeepl(provider) ? 'none' : 'block';
+  }
 
   optEngine.addEventListener('change', () => {
     const provider = optEngine.value;
     const isFree = provider === 'google' || provider === 'microsoft';
-    providerConfig.style.display = isFree ? 'none' : '';
+    providerConfig.style.display = isFree ? 'none' : 'block';
     engineHint.textContent = isFree ? '免费引擎无需配置即可使用' : '需要配置 API Key 才能使用';
+
+    if (isDeepl(provider)) {
+      updateDeeplUI(provider, 'free');
+      // Load saved account type
+      chrome.storage.local.get('deeplAccount', d => {
+        const acc = d.deeplAccount || 'free';
+        document.querySelector(`input[name="deeplAccount"][value="${acc}"]`).checked = true;
+        updateDeeplUI(provider, acc);
+      });
+    } else {
+      updateDeeplUI(provider, '');
+    }
+
     if (!isFree) {
       loadProviderConfig(provider);
-      populateModelSelect(provider);
+      if (!isDeepl(provider)) populateModelSelect(provider);
       autoFillProviderDefaults(provider);
     }
     saveSettings({ translationProvider: provider });
   });
   optEngine.dispatchEvent(new Event('change'));
 
+  // DeepL account type change
+  document.querySelectorAll('input[name="deeplAccount"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const provider = optEngine.value;
+      updateDeeplUI(provider, this.value);
+      // Update endpoint
+      const info = typeof PROVIDERS !== 'undefined' ? PROVIDERS.deepl : null;
+      if (info?.endpoints) {
+        const endpoint = info.endpoints[this.value] || info.endpoints.free;
+        document.getElementById('optEndpoint').value = endpoint;
+        saveSettings({ deepl_endpoint: endpoint, deeplAccount: this.value });
+      }
+    });
+  });
+
   // Toggle API key visibility
   document.getElementById('btnToggleKey').addEventListener('click', () => {
-    const inp = document.getElementById('optApiKey');
+    const inp = document.getElementById('optApiKeySingle');
     inp.type = inp.type === 'password' ? 'text' : 'password';
   });
 
-  // Save API key
-  document.getElementById('optApiKey').addEventListener('change', async function() {
+  // Save API key (single key providers)
+  document.getElementById('optApiKeySingle').addEventListener('change', async function() {
     const provider = optEngine.value;
     const resp = await chrome.runtime.sendMessage({
       type: 'save_api_key',
       data: { provider, key: this.value }
     });
     if (resp?.ok) showToast('API Key 已保存', 'success');
+    else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
+  });
+
+  // Save DeepL multi-key
+  document.getElementById('optApiKey').addEventListener('change', async function() {
+    const keys = this.value.split('\n').map(k => k.trim()).filter(k => k);
+    const resp = await chrome.runtime.sendMessage({
+      type: 'save_api_key',
+      data: { provider: 'deepl', key: keys.join('\n') }
+    });
+    if (resp?.ok) showToast(`${keys.length} 个 API Key 已保存`, 'success');
     else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
   });
 
@@ -123,8 +206,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ selectionTranslate: this.checked });
   });
 
-  document.querySelector('input[name="hoverTrigger"]').addEventListener('change', function() {
-    saveSettings({ hoverTrigger: this.value });
+  // Fix: use querySelectorAll for all radio buttons
+  document.querySelectorAll('input[name="hoverTrigger"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      saveSettings({ hoverTrigger: this.value });
+    });
   });
 
   document.getElementById('optSensitiveMask').addEventListener('change', function() {
@@ -279,18 +365,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     select.appendChild(custom);
   }
 
-  // Theme grid with visual names
-  const THEME_NAMES = {
-    underline: '下划线', dashed: '虚线', nativeUnderline: '原生下划线',
-    nativeDashed: '原生虚线', dotted: '点线', nativeDotted: '原生点线',
-    thinDashed: '细虚线', wavy: '波浪线', highlight: '高亮',
-    marker: '马克笔', marker2: '马克笔2', grey: '灰色',
-    weakening: '淡化', italic: '斜体', bold: '粗体', paper: '纸片',
-    blockquote: '引用', mask: '模糊', opacity: '透明',
-    background: '背景色', dashedBorder: '虚线边框', solidBorder: '实线边框',
-    dividingLine: '分割线'
-  };
-
   function populateThemes() {
     const grid = document.getElementById('themeGrid');
     Object.entries(THEME_NAMES).forEach(([id, name]) => {
@@ -317,7 +391,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateThemePreview(themeId) {
     const preview = document.querySelector('.kin-preview-translation');
     if (!preview) return;
-    // Remove all theme classes
     Object.keys(THEME_NAMES).forEach(t => preview.classList.remove(`kin-theme-${t}`));
     preview.classList.add(`kin-theme-${themeId}`);
   }
@@ -332,7 +405,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resp = await chrome.runtime.sendMessage({ type: 'get_api_key', data: { provider } });
       apiKey = resp?.key || '';
     }
-    document.getElementById('optApiKey').value = apiKey;
+
+    if (isDeepl(provider)) {
+      // DeepL uses textarea for multi-key
+      document.getElementById('optApiKey').value = apiKey;
+    } else {
+      document.getElementById('optApiKeySingle').value = apiKey;
+    }
 
     const savedEndpoint = data[`${provider}_endpoint`] || '';
     const endpointInput = document.getElementById('optEndpoint');
@@ -340,9 +419,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     endpointInput.value = savedEndpoint || defaultEndpoint || '';
     endpointInput.placeholder = defaultEndpoint || '自定义端点';
 
-    const savedModel = data[`${provider}_model`] || '';
-    const defaultModel = typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider]?.model : '';
-    document.getElementById('optModel').value = savedModel || defaultModel || '';
+    if (!isDeepl(provider)) {
+      const savedModel = data[`${provider}_model`] || '';
+      const defaultModel = typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider]?.model : '';
+      document.getElementById('optModel').value = savedModel || defaultModel || '';
+    }
   }
 
   function autoFillProviderDefaults(provider) {
@@ -350,7 +431,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!info) return;
 
     const endpointInput = document.getElementById('optEndpoint');
-    const modelSelect = document.getElementById('optModel');
 
     if (!endpointInput.value && info.endpoint) {
       endpointInput.value = info.endpoint;
@@ -358,6 +438,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (info.endpoint) endpointInput.placeholder = info.endpoint;
 
+    // Skip model for DeepL
+    if (isDeepl(provider)) return;
+
+    const modelSelect = document.getElementById('optModel');
     if (info.model && modelSelect.options.length > 0) {
       let found = false;
       for (const opt of modelSelect.options) {
@@ -403,6 +487,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.translationTheme) {
       const item = document.querySelector(`.kin-theme-item[data-theme="${s.translationTheme}"]`);
       if (item) { item.classList.add('active'); updateThemePreview(s.translationTheme); }
+    }
+    // DeepL account type
+    if (s.deeplAccount) {
+      const radio = document.querySelector(`input[name="deeplAccount"][value="${s.deeplAccount}"]`);
+      if (radio) radio.checked = true;
+      updateDeeplUI(s.translationProvider || 'deepl', s.deeplAccount);
     }
   }
 
@@ -479,6 +569,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     'longArticleMultiImageExport',
     'alwaysTranslateUrls', 'neverTranslateUrls',
     'floatBallPosY',
+    'deeplAccount',
   ];
 
   async function deriveBackupKey(password, salt) {

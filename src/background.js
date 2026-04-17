@@ -1132,25 +1132,35 @@ async function claudeTranslate(texts, targetLang, langName, provider, configOver
 }
 
 // ============================================
-// DeepL API Translate
+// DeepL API Translate (multi-key rotation)
 // ============================================
 async function deeplTranslate(texts, targetLang, langName, provider, configOverride) {
   const cfg = await loadProviderConfig(provider, configOverride);
   if (!cfg.apiKey) throw new Error('Please configure DeepL API Key in settings');
 
+  // Parse multi-key (newline-separated) for free accounts
+  const keys = cfg.apiKey.split('\n').map(k => k.trim()).filter(k => k);
   const endpoint = cfg.endpoint || PROVIDERS.deepl.endpoint;
   const deeplLang = targetLang === 'zh-CN' ? 'ZH-HANS' : targetLang === 'zh-TW' ? 'ZH-HANT' : targetLang.toUpperCase();
   const params = new URLSearchParams();
   texts.forEach(t => params.append('text', t));
   params.append('target_lang', deeplLang);
 
-  for (let attempt = 0; attempt <= 3; attempt++) {
+  // Get current key index from in-memory state or storage
+  const keyState = await chrome.storage.local.get('deeplKeyIndex');
+  let keyIndex = (keyState.deeplKeyIndex || 0) % Math.max(keys.length, 1);
+
+  const maxAttempts = keys.length > 1 ? keys.length * 2 : 4;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const currentKey = keys.length > 1 ? keys[keyIndex % keys.length] : cfg.apiKey.trim();
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), LLM_FETCH_TIMEOUT_MS);
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `DeepL-Auth-Key ${cfg.apiKey}` },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `DeepL-Auth-Key ${currentKey}` },
         body: params.toString(),
         signal: controller.signal
       });
@@ -1161,11 +1171,19 @@ async function deeplTranslate(texts, targetLang, langName, provider, configOverr
         return { translations };
       }
       const errText = await response.text();
+      // 456 = quota exceeded, rotate to next key
+      if (response.status === 456 && keys.length > 1) {
+        keyIndex = (keyIndex + 1) % keys.length;
+        await chrome.storage.local.set({ deeplKeyIndex: keyIndex });
+        // Don't retry immediately, short delay then try next key
+        await new Promise(r => setTimeout(r, 500));
+        continue;
+      }
       const isRetryable = response.status === 429 || response.status === 503 || response.status === 529;
-      if (attempt < 3 && isRetryable) { await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt) + Math.random() * 1000)); continue; }
+      if (attempt < maxAttempts - 1 && isRetryable) { await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt) + Math.random() * 1000)); continue; }
       throw new Error(`DeepL error ${response.status}: ${errText.substring(0, 200)}`);
     } catch (err) {
-      if (err.name === 'AbortError') { if (attempt < 3) { await new Promise(r => setTimeout(r, 1000)); continue; } throw new Error('DeepL request timed out'); }
+      if (err.name === 'AbortError') { if (attempt < maxAttempts - 1) { await new Promise(r => setTimeout(r, 1000)); continue; } throw new Error('DeepL request timed out'); }
       if (err.message?.includes('DeepL error')) throw err;
       throw new Error('DeepL request failed. If you use a Pro key, set the endpoint to https://api.deepl.com/v2/translate in settings.');
     } finally { clearTimeout(timeoutId); }

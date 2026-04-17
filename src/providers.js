@@ -171,7 +171,11 @@ ProviderRegistry.register('claude', {
 ProviderRegistry.register('deepl', {
   name: 'DeepL',
   type: 'deepl',
-  endpoint: 'https://api-free.deepl.com/v2/translate'
+  endpoint: 'https://api-free.deepl.com/v2/translate',
+  endpoints: {
+    free: 'https://api-free.deepl.com/v2/translate',
+    pro: 'https://api.deepl.com/v2/translate'
+  }
 });
 
 // --- Custom providers ---
