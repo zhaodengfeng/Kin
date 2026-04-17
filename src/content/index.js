@@ -302,9 +302,46 @@
   }
 
   // ========== Reader ==========
-  function openReader() {
+  async function openReader() {
     if (!currentAdapter) return;
-    if (typeof ReaderRenderer !== 'undefined') ReaderRenderer.open(currentAdapter);
+    if (typeof ReaderRenderer === 'undefined') return;
+    if (ReaderRenderer.active) return;
+
+    // Stale overlay cleanup
+    const staleOverlay = document.getElementById('kin-reader');
+    if (staleOverlay) staleOverlay.remove();
+    ReaderRenderer.active = false;
+    ReaderRenderer.translated = false;
+    ReaderRenderer.overlay = null;
+
+    let paragraphs;
+    try {
+      paragraphs = currentAdapter.getParagraphs();
+    } catch (e) {
+      if (typeof KinToast !== 'undefined') KinToast.error('Failed to extract article: ' + e.message);
+      return;
+    }
+
+    if (!paragraphs || paragraphs.length === 0) {
+      if (typeof KinToast !== 'undefined') KinToast.warning('Failed to extract article content');
+      return;
+    }
+
+    try {
+      await ReaderRenderer._loadTheme();
+      ReaderRenderer.render({
+        title: currentAdapter.getTitle(),
+        standfirst: currentAdapter.getStandfirst(),
+        author: currentAdapter.getAuthor(),
+        date: currentAdapter.getPublishDate(),
+        source: currentAdapter.name,
+        url: currentAdapter.getURL(),
+        featuredImage: currentAdapter.getFeaturedImage(),
+        paragraphs: paragraphs,
+      });
+    } catch (e) {
+      if (typeof KinToast !== 'undefined') KinToast.error('Reader failed: ' + e.message);
+    }
   }
 
   // ========== Boot ==========
