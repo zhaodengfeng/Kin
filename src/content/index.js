@@ -269,6 +269,13 @@
         KinFloatBall.setTranslated(false);
       }
     } else {
+      // If reader mode is enabled and on a supported news site,
+      // open reader instead of doing inline page translation
+      if (readerEnabled && currentAdapter) {
+        openReader();
+        return;
+      }
+
       translating = true;
       if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslating(true);
       try {
