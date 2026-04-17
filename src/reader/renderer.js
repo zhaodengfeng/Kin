@@ -1,37 +1,41 @@
 // Reader Renderer - 渲染阅读模式 UI
 // Theme support: Kin Default · Classic
 
-// Theme definitions — SINGLE SOURCE OF TRUTH
+// Theme definitions — SINGLE SOURCE OF TRUTH for export clone
 const THEMES = {
   default: {
     label: 'Kin',
-    bg: '#faf8f5',
-    bgWarm: '#f5f2ed',
-    text: '#1a1815',
-    textSecondary: '#5a5651',
-    accent: '#D4A843',
-    accentHover: '#C49A38',
+    bg: '#FFF1E0',
+    bgWarm: '#F8E8D0',
+    text: '#1c1917',
+    textSecondary: '#57534e',
+    textTertiary: '#a8a29e',
+    accent: '#b8860b',
+    accentHover: '#996515',
     border: '#e8e4df',
-    fontSerif: "'Source Serif 4', Georgia, 'Noto Serif SC', serif",
-    fontSans: "'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif",
-    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif",
-    toolbarBg: 'rgba(250, 248, 245, 0.92)',
+    radius: '10px',
+    radiusSm: '8px',
+    fontSerif: "'Georgia', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif",
+    fontSans: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif",
     blankThreshold: 20,
     blankSearchSpan: 0.25,
   },
   classic: {
     label: 'Classic',
-    bg: '#ffffff',
-    bgWarm: '#f6f6f5',
-    text: '#000000',
-    textSecondary: '#000000',
-    accent: '#000000',
-    accentHover: '#333333',
-    border: '#e0e0e0',
-    fontSerif: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif",
-    fontSans: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif",
-    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif",
-    toolbarBg: 'rgba(255, 255, 255, 0.95)',
+    bg: '#fafafa',
+    bgWarm: '#f0f0f0',
+    text: '#111111',
+    textSecondary: '#333333',
+    textTertiary: '#666666',
+    accent: '#111111',
+    accentHover: '#222222',
+    border: '#cccccc',
+    radius: '8px',
+    radiusSm: '6px',
+    fontSerif: "'Georgia', 'Noto Serif SC', 'SimSun', serif",
+    fontSans: "'Georgia', 'Noto Serif SC', 'SimSun', serif",
+    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif",
     blankThreshold: 20,
     blankSearchSpan: 0.25,
   },
@@ -924,20 +928,20 @@ const ReaderRenderer = {
     const origDisplay = mode === 'target' ? 'display:none;' : 'display:block;';
 
     const styleMap = {
-      '.kin-r-title': `font-size:${theme.titleSize || '38px'};font-weight:${theme.titleWeight || '700'};line-height:1.2;margin:0 0 24px;color:${theme.text};letter-spacing:-0.5px;font-family:${theme.fontTitleCn};`,
-      '.kin-r-standfirst': `font-size:24px;line-height:1.55;margin:0 0 32px;color:${theme.textSecondary};font-family:${theme.fontSerif};`,
-      '.kin-r-meta': `display:flex;align-items:center;gap:20px;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid ${theme.border};`,
-      '.kin-r-author': `font-family:${theme.fontSans};font-size:14px;font-weight:500;color:${theme.textSecondary};`,
-      '.kin-r-heading': `font-size:24px;font-weight:600;margin:44px 0 20px;color:${theme.text};letter-spacing:-0.2px;display:block;font-family:${theme.fontSerif};`,
-      '.kin-r-paragraph': `font-size:18px;line-height:1.9;margin:0 0 28px;color:${theme.textSecondary};`,
+      '.kin-r-title': `font-size:36px;font-weight:700;line-height:1.3;margin:0 0 20px;color:${theme.text};letter-spacing:-0.015em;font-family:${theme.fontTitleCn};`,
+      '.kin-r-standfirst': `font-size:20px;line-height:1.6;margin:0 0 28px;color:${theme.textSecondary};font-family:${theme.fontSerif};font-style:italic;`,
+      '.kin-r-meta': `display:flex;align-items:center;gap:16px;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid ${theme.border};`,
+      '.kin-r-author': `font-family:${theme.fontSans};font-size:13.5px;font-weight:500;color:${theme.textSecondary};`,
+      '.kin-r-heading': `font-size:22px;font-weight:600;margin:40px 0 18px;color:${theme.text};letter-spacing:-0.01em;display:block;font-family:${theme.fontSerif};line-height:1.35;`,
+      '.kin-r-paragraph': `font-size:17.5px;line-height:1.85;margin:0 0 24px;color:${theme.textSecondary};letter-spacing:0.005em;`,
       '.kin-r-original': origDisplay + `color:${theme.textSecondary};margin-bottom:0;`,
-      '.kin-r-translation': `display:block;font-family:${theme.fontSans};font-size:18px;line-height:1.9;color:${theme.accentHover};margin-top:10px;`,
-      '.kin-r-featured-image': 'margin:0 -32px 40px;padding:0;',
-      '.kin-r-featured-image img': 'width:100%;height:auto;display:block;border-radius:12px;',
-      '.kin-r-article-image': 'margin:32px -16px;padding:0;',
-      '.kin-r-article-image img': 'width:100%;height:auto;display:block;border-radius:8px;',
-      '.kin-r-article-image figcaption': `font-family:${theme.fontSans};font-size:13px;color:${theme.textSecondary};margin-top:10px;padding:0 16px;line-height:1.5;opacity:0.7;`,
-      '.kin-r-body': 'margin-top:32px;',
+      '.kin-r-translation': `display:block;font-family:${theme.fontSans};font-size:17px;line-height:1.8;color:${theme.accentHover};margin-top:8px;`,
+      '.kin-r-featured-image': `margin:0 -28px 36px;padding:0;`,
+      '.kin-r-featured-image img': `width:100%;height:auto;display:block;border-radius:${theme.radius};`,
+      '.kin-r-article-image': `margin:28px -14px;padding:0;`,
+      '.kin-r-article-image img': `width:100%;height:auto;display:block;border-radius:${theme.radiusSm};`,
+      '.kin-r-article-image figcaption': `font-family:${theme.fontSans};font-size:12.5px;color:${theme.textTertiary || theme.textSecondary};margin-top:8px;padding:0 14px;line-height:1.5;font-style:italic;opacity:0.7;`,
+      '.kin-r-body': 'margin-top:28px;',
     };
 
     for (const [selector, styles] of Object.entries(styleMap)) {
@@ -952,38 +956,38 @@ const ReaderRenderer = {
 
     // Title translation keeps title font/size/family
     clone.querySelectorAll('.kin-r-title .kin-r-translation').forEach(el => {
-      el.style.cssText = `display:block;font-size:${theme.titleSize || '38px'};font-weight:${theme.titleWeight || '700'};line-height:1.2;font-family:${theme.fontTitleCn};letter-spacing:-0.5px;margin-top:12px;color:${theme.accentHover};`;
+      el.style.cssText = `display:block;font-size:36px;font-weight:700;line-height:1.3;font-family:${theme.fontTitleCn};letter-spacing:-0.015em;margin-top:10px;color:${theme.accentHover};`;
     });
     clone.querySelectorAll('.kin-r-title .kin-r-original').forEach(el => {
-      el.style.cssText = `display:block;font-size:${theme.titleSize || '38px'};font-weight:${theme.titleWeight || '700'};line-height:1.2;font-family:${theme.fontTitleCn};letter-spacing:-0.5px;color:${theme.text};`;
+      el.style.cssText = `display:block;font-size:36px;font-weight:700;line-height:1.3;font-family:${theme.fontTitleCn};letter-spacing:-0.015em;color:${theme.text};`;
     });
 
     // Standfirst translation
     clone.querySelectorAll('.kin-r-standfirst .kin-r-original').forEach(el => {
-      el.style.cssText = `display:block;font-size:24px;line-height:1.55;font-family:${theme.fontSerif};color:${theme.textSecondary};margin-top:0;`;
+      el.style.cssText = `display:block;font-size:20px;line-height:1.6;font-family:${theme.fontSerif};color:${theme.textSecondary};margin-top:0;font-style:italic;`;
     });
     clone.querySelectorAll('.kin-r-standfirst .kin-r-translation').forEach(el => {
-      el.style.cssText = `display:block;font-size:24px;line-height:1.55;font-family:${theme.fontSans};color:${theme.accentHover};margin-top:8px;`;
+      el.style.cssText = `display:block;font-size:20px;line-height:1.6;font-family:${theme.fontSans};color:${theme.accentHover};margin-top:6px;font-style:italic;`;
     });
 
     // Heading translation
     clone.querySelectorAll('.kin-r-heading .kin-r-original').forEach(el => {
-      el.style.cssText = `display:block;font-size:24px;font-weight:600;line-height:1.3;font-family:${theme.fontSerif};margin-top:0;color:${theme.text};`;
+      el.style.cssText = `display:block;font-size:22px;font-weight:600;line-height:1.35;font-family:${theme.fontSerif};margin-top:0;color:${theme.text};letter-spacing:-0.01em;`;
     });
     clone.querySelectorAll('.kin-r-heading .kin-r-translation').forEach(el => {
-      el.style.cssText = `display:block;font-size:24px;font-weight:600;line-height:1.3;font-family:${theme.fontSans};color:${theme.accentHover};margin-top:8px;`;
+      el.style.cssText = `display:block;font-size:22px;font-weight:600;line-height:1.35;font-family:${theme.fontSans};color:${theme.accentHover};margin-top:6px;`;
     });
 
     // Target-only mode: translation blends into body
     if (mode === 'target') {
       clone.querySelectorAll('.kin-r-paragraph .kin-r-translation').forEach(el => {
-        el.style.cssText = `display:block;font-size:18px;line-height:1.9;color:${theme.textSecondary};margin-top:0;`;
+        el.style.cssText = `display:block;font-size:17.5px;line-height:1.85;color:${theme.textSecondary};margin-top:0;font-family:${theme.fontSans};`;
       });
       clone.querySelectorAll('.kin-r-title .kin-r-translation').forEach(el => {
         el.style.color = theme.text;
       });
       clone.querySelectorAll('.kin-r-standfirst .kin-r-translation').forEach(el => {
-        el.style.cssText = `display:block;font-size:24px;line-height:1.55;color:${theme.textSecondary};margin-top:0;`;
+        el.style.cssText = `display:block;font-size:20px;line-height:1.6;color:${theme.textSecondary};margin-top:0;font-style:italic;`;
       });
       clone.querySelectorAll('.kin-r-heading .kin-r-translation').forEach(el => {
         el.style.color = theme.text;

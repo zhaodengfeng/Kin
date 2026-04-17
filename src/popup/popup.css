@@ -2,7 +2,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  width: 360px;
+  width: 300px;
   min-height: auto;
   font-family: var(--kin-font, system-ui, -apple-system, sans-serif);
   color: var(--kin-text, #1A1A1A);

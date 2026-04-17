@@ -1,7 +1,15 @@
 // Kin Content Script — Entry Point
 // Dual-mode: Universal page translation + optional Reader mode for news sites
+// CACHE_BREAK: 2026-04-17T23:00:00Z - REMOVE THIS LINE AFTER CONFIRMING NEW CODE LOADS
+console.log('@@@ KIN v1.0.1 LOADED @@@ BaseAdapter:', typeof BaseAdapter,
+  '| BloombergAdapter:', typeof BloombergAdapter,
+  '| ReaderRenderer:', typeof ReaderRenderer);
 (function() {
   'use strict';
+
+  console.log('[Kin] content/index.js LOADED — BaseAdapter:', typeof BaseAdapter,
+    '| BloombergAdapter:', typeof BloombergAdapter,
+    '| ReaderRenderer:', typeof ReaderRenderer);
 
   // ========== Global State ==========
   let pageTranslated = false;
@@ -42,20 +50,34 @@
 
   // ========== Adapter Management ==========
   function createAdapters() {
-    if (typeof BaseAdapter === 'undefined') return;
-    const classes = [
-      'BloombergAdapter', 'WSJAdapter', 'NYTimesAdapter', 'FTAdapter',
-      'EconomistAdapter', 'SCMPAdapter', 'NewYorkerAdapter'
-    ];
-    adapters = classes
-      .map(name => typeof window[name] !== 'undefined' ? new window[name]() : null)
-      .filter(Boolean);
+    if (typeof BaseAdapter === 'undefined') {
+      console.warn('[Kin] createAdapters: BaseAdapter is undefined');
+      return;
+    }
+    const adaptersList = [];
+    try { if (typeof BloombergAdapter !== 'undefined') adaptersList.push(new BloombergAdapter()); } catch(e) { console.warn('[Kin] BloombergAdapter failed:', e.message); }
+    try { if (typeof WSJAdapter !== 'undefined') adaptersList.push(new WSJAdapter()); } catch(e) { console.warn('[Kin] WSJAdapter failed:', e.message); }
+    try { if (typeof NYTimesAdapter !== 'undefined') adaptersList.push(new NYTimesAdapter()); } catch(e) { console.warn('[Kin] NYTimesAdapter failed:', e.message); }
+    try { if (typeof FTAdapter !== 'undefined') adaptersList.push(new FTAdapter()); } catch(e) { console.warn('[Kin] FTAdapter failed:', e.message); }
+    try { if (typeof EconomistAdapter !== 'undefined') adaptersList.push(new EconomistAdapter()); } catch(e) { console.warn('[Kin] EconomistAdapter failed:', e.message); }
+    try { if (typeof SCMPAdapter !== 'undefined') adaptersList.push(new SCMPAdapter()); } catch(e) { console.warn('[Kin] SCMPAdapter failed:', e.message); }
+    try { if (typeof NewYorkerAdapter !== 'undefined') adaptersList.push(new NewYorkerAdapter()); } catch(e) { console.warn('[Kin] NewYorkerAdapter failed:', e.message); }
+    adapters = adaptersList;
+    console.log('[Kin] createAdapters: created', adapters.length, 'adapters:', adapters.map(a => a.name).join(', '));
   }
 
   function selectAdapter(url) {
     currentAdapter = null;
+    console.log('[Kin] selectAdapter: checking URL:', url, 'against', adapters.length, 'adapters');
     for (const adapter of adapters) {
-      if (adapter.matches(url)) { currentAdapter = adapter; break; }
+      if (adapter.matches(url)) {
+        currentAdapter = adapter;
+        console.log('[Kin] selectAdapter: MATCHED', adapter.name);
+        break;
+      }
+    }
+    if (!currentAdapter) {
+      console.log('[Kin] selectAdapter: NO match found');
     }
   }
 
@@ -142,6 +164,7 @@
   function installActionRouter() {
     window.addEventListener('kin-action', (e) => {
       const action = e.detail?.action;
+      console.log('[Kin] kin-action received:', action, '| currentAdapter:', currentAdapter?.name || 'null', '| adapters:', adapters.length);
       switch (action) {
         case 'toggle_translate':
           togglePageTranslation();
@@ -177,10 +200,33 @@
     readerEnabled = settings.readerEnabled === true;
     currentMode = settings.translationMode || 'dual';
 
-    // Detect news site adapters
+    // Detect news site adapters — poll until the second content script loads them
+    console.log('[Kin] init: BaseAdapter defined?', typeof BaseAdapter !== 'undefined', '| URL:', location.href);
     if (typeof BaseAdapter !== 'undefined') {
       createAdapters();
       selectAdapter(location.href);
+    } else {
+      let adapterAttempts = 0;
+      const waitForAdapters = () => {
+        console.log('[Kin] waitForAdapters attempt', adapterAttempts, '— BaseAdapter?', typeof BaseAdapter !== 'undefined');
+        if (typeof BaseAdapter !== 'undefined') {
+          createAdapters();
+          selectAdapter(location.href);
+          console.log('[Kin] adapters loaded:', adapters.length, 'total | currentAdapter:', currentAdapter?.name || 'none');
+          if (typeof KinFloatBall !== 'undefined') {
+            KinFloatBall.updateState({
+              isNewsSite: !!currentAdapter,
+              isArticle: currentAdapter?.isArticlePage() || false,
+              readerEnabled: readerEnabled
+            });
+          }
+          return;
+        }
+        adapterAttempts++;
+        if (adapterAttempts < 50) setTimeout(waitForAdapters, 200);
+        else console.log('[Kin] BaseAdapter never loaded after 10s, adapters:', adapters.length);
+      };
+      waitForAdapters();
     }
 
     // Init float ball FIRST — always visible even if other modules fail
@@ -222,6 +268,7 @@
   function handleMessage(msg, sender, sendResponse) {
     switch (msg.type) {
       case 'ping':
+        console.log('[Kin] ping — isArticle:', currentAdapter?.isArticlePage(), 'adapter:', currentAdapter?.name, 'readerEnabled:', readerEnabled);
         sendResponse({
           ok: true,
           isArticle: currentAdapter?.isArticlePage() || false,
@@ -233,6 +280,7 @@
         return;
 
       case 'toggle_translate':
+        console.log('[Kin] toggle_translate received — currentAdapter:', currentAdapter?.name);
         togglePageTranslation().then(() => sendResponse({ ok: true }));
         return true;
 
@@ -269,11 +317,14 @@
         KinFloatBall.setTranslated(false);
       }
     } else {
+      console.log('[Kin] togglePageTranslation: currentAdapter=', currentAdapter?.name || 'null', '| adapters.length=', adapters.length);
       // If on a supported news site, open reader instead of inline page translation
       if (currentAdapter) {
+        console.log('[Kin] on news site, opening reader — adapter:', currentAdapter.name);
         openReader();
         return;
       }
+      console.log('[Kin] not on news site, doing inline translation');
 
       translating = true;
       if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslating(true);
@@ -302,9 +353,11 @@
 
   // ========== Reader ==========
   async function openReader() {
-    if (!currentAdapter) return;
-    if (typeof ReaderRenderer === 'undefined') return;
-    if (ReaderRenderer.active) return;
+    console.log('[Kin] openReader called — adapter:', currentAdapter?.name, 'ReaderRenderer:', typeof ReaderRenderer);
+    if (!currentAdapter) { console.log('[Kin] openReader: no adapter'); return; }
+    if (typeof ReaderRenderer === 'undefined') { console.log('[Kin] openReader: ReaderRenderer undefined'); return; }
+    if (ReaderRenderer.active) { console.log('[Kin] openReader: already active'); return; }
+    console.log('[Kin] openReader: proceeding to extract paragraphs');
 
     // Stale overlay cleanup
     const staleOverlay = document.getElementById('kin-reader');
@@ -322,9 +375,11 @@
     }
 
     if (!paragraphs || paragraphs.length === 0) {
+      console.log('[Kin] openReader: no paragraphs extracted');
       if (typeof KinToast !== 'undefined') KinToast.warning('Failed to extract article content');
       return;
     }
+    console.log('[Kin] openReader: extracted', paragraphs.length, 'paragraphs, calling render');
 
     try {
       await ReaderRenderer._loadTheme();
@@ -339,8 +394,10 @@
         paragraphs: paragraphs,
       });
     } catch (e) {
+      console.log('[Kin] openReader: render error:', e.message);
       if (typeof KinToast !== 'undefined') KinToast.error('Reader failed: ' + e.message);
     }
+    console.log('[Kin] openReader: done, ReaderRenderer.active:', ReaderRenderer.active);
   }
 
   // ========== Boot ==========
