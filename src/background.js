@@ -215,6 +215,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case 'article_opened':
       chrome.storage.local.get('history', (data) => {
         const history = data.history || [];
+        const existing = history.findIndex(h => h.url === msg.data.url);
+        if (existing !== -1) history.splice(existing, 1);
         history.unshift({ ...msg.data, timestamp: Date.now() });
         if (history.length > 200) history.length = 200;
         chrome.storage.local.set({ history });
@@ -226,6 +228,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ history: data.history || [] });
       });
       return true;
+
+    case 'get_available_providers': {
+      const allProviders = typeof ProviderRegistry !== 'undefined' ? ProviderRegistry.list() : [];
+      const freeList = allProviders.filter(p => p.type === 'free');
+      const apiList = allProviders.filter(p => p.type !== 'free');
+      const apiKeyNames = apiList.map(p => `${p.id}_apiKey`);
+      chrome.storage.local.get(apiKeyNames, async (stored) => {
+        const results = await Promise.all(apiList.map(async p => {
+          const encrypted = stored[`${p.id}_apiKey`];
+          if (!encrypted) return null;
+          try {
+            const key = await decryptApiKey(encrypted);
+            return key.trim() ? p : null;
+          } catch { return null; }
+        }));
+        sendResponse({ providers: [...freeList, ...results.filter(Boolean)] });
+      });
+      return true;
+    }
 
     case 'clear_history':
       chrome.storage.local.set({ history: [] });
@@ -617,8 +638,14 @@ async function loadProviderConfig(provider, override = {}) {
   const keys = [`${provider}_apiKey`, `${provider}_model`, `${provider}_endpoint`];
   const data = await chrome.storage.local.get(keys);
   const rawKey = Object.prototype.hasOwnProperty.call(override, 'apiKey') ? (override.apiKey || '') : (data[`${provider}_apiKey`] || '');
-  // Decrypt key if it's encrypted
-  const apiKey = rawKey ? await decryptApiKey(rawKey) : '';
+  let apiKey = '';
+  if (rawKey) {
+    if (override.isPlaintext === true) {
+      apiKey = rawKey;
+    } else {
+      apiKey = await decryptApiKey(rawKey);
+    }
+  }
   return {
     apiKey,
     model: Object.prototype.hasOwnProperty.call(override, 'model') ? (override.model || '') : (data[`${provider}_model`] || ''),

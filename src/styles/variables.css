@@ -1,34 +1,37 @@
-/* Kin Design Tokens */
+/* Kin Design Tokens — Claude Style */
 /* Brand: Kin (金) — Beyond Word. Into Meaning. */
 
 :root {
-  /* === Primary Gold === */
-  --kin-primary: #D4A843;
-  --kin-primary-hover: #C49A38;
-  --kin-primary-active: #B38D2F;
-  --kin-primary-light: #F5ECD4;
-  --kin-primary-weak: rgba(212, 168, 67, 0.15);
-  --kin-primary-rgb: 212, 168, 67;
+  /* === Primary: Terracotta === */
+  --kin-primary: #D97559;
+  --kin-primary-hover: #C86748;
+  --kin-primary-active: #B55A3D;
+  --kin-primary-light: #FBF0EB;
+  --kin-primary-weak: rgba(217, 117, 89, 0.12);
+  --kin-primary-rgb: 217, 117, 89;
 
-  /* === Neutral === */
-  --kin-bg: #FFFFFF;
-  --kin-bg-secondary: #F7F7F8;
-  --kin-bg-tertiary: #EFEFEF;
-  --kin-text: #1A1A1A;
-  --kin-text-secondary: #666666;
-  --kin-text-tertiary: #999999;
-  --kin-border: #E5E5E5;
+  /* === Neutral: Warm Cream === */
+  --kin-bg: #FAF9F7;
+  --kin-bg-secondary: #F2F0ED;
+  --kin-bg-tertiary: #E8E5E0;
+  --kin-text: #1C1917;
+  --kin-text-secondary: #6B6560;
+  --kin-text-tertiary: #9E9891;
+  --kin-border: #DDD9D4;
+  --kin-border-light: #EAE7E2;
 
   /* === Semantic === */
-  --kin-success: #34C759;
-  --kin-error: #FF3B30;
-  --kin-warning: #FF9500;
+  --kin-success: #2DB87A;
+  --kin-error: #E5484D;
+  --kin-warning: #F07D3B;
 
   /* === Typography === */
-  --kin-font: system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+  --kin-font: 'DM Sans', system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+  --kin-font-display: 'DM Serif Display', 'Palatino Linotype', Georgia, serif;
   --kin-font-serif: 'Noto Serif SC', 'Source Serif Pro', Georgia, serif;
   --kin-font-serif-cn: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif;
   --kin-font-sans-cn: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --kin-font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 
   /* === Spacing === */
   --kin-space-xs: 4px;
@@ -39,63 +42,67 @@
   --kin-space-2xl: 32px;
 
   /* === Radius === */
-  --kin-radius-sm: 4px;
-  --kin-radius-md: 8px;
-  --kin-radius-lg: 12px;
+  --kin-radius-sm: 6px;
+  --kin-radius-md: 10px;
+  --kin-radius-lg: 14px;
   --kin-radius-full: 9999px;
 
   /* === Shadows === */
-  --kin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --kin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --kin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --kin-shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --kin-shadow-md: 0 4px 12px rgba(28, 25, 23, 0.08), 0 2px 4px rgba(28, 25, 23, 0.04);
+  --kin-shadow-lg: 0 8px 32px rgba(28, 25, 23, 0.10), 0 4px 8px rgba(28, 25, 23, 0.06);
 
   /* === Transitions === */
-  --kin-transition-fast: 150ms ease;
-  --kin-transition-normal: 250ms ease;
+  --kin-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --kin-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --kin-transition-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  --kin-transition-normal: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --kin-transition-slow: 350ms cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* === Translation Theme Variables (ported from Immersive Translate) === */
-  --kin-theme-underline-borderColor: #D4A843;
-  --kin-theme-nativeUnderline-borderColor: #D4A843;
-  --kin-theme-nativeDashed-borderColor: #D4A843;
-  --kin-theme-nativeDotted-borderColor: #D4A843;
-  --kin-theme-highlight-backgroundColor: #F5ECD4;
-  --kin-theme-dashed-borderColor: #D4A843;
-  --kin-theme-blockquote-borderColor: #D4A843;
-  --kin-theme-thinDashed-borderColor: #D4A843;
-  --kin-theme-dashedBorder-borderColor: #C4A470;
+  /* === Translation Theme Variables === */
+  --kin-theme-underline-borderColor: #D97559;
+  --kin-theme-nativeUnderline-borderColor: #D97559;
+  --kin-theme-nativeDashed-borderColor: #D97559;
+  --kin-theme-nativeDotted-borderColor: #D97559;
+  --kin-theme-highlight-backgroundColor: #FBF0EB;
+  --kin-theme-dashed-borderColor: #D97559;
+  --kin-theme-blockquote-borderColor: #D97559;
+  --kin-theme-thinDashed-borderColor: #D97559;
+  --kin-theme-dashedBorder-borderColor: #C86748;
   --kin-theme-dashedBorder-borderRadius: 0;
-  --kin-theme-solidBorder-borderColor: #C4A470;
+  --kin-theme-solidBorder-borderColor: #C86748;
   --kin-theme-solidBorder-borderRadius: 0;
-  --kin-theme-dotted-borderColor: #C4A470;
-  --kin-theme-wavy-borderColor: #D4A843;
-  --kin-theme-dividingLine-borderColor: #C4A470;
+  --kin-theme-dotted-borderColor: #C86748;
+  --kin-theme-wavy-borderColor: #D97559;
+  --kin-theme-dividingLine-borderColor: #C86748;
   --kin-theme-grey-textColor: #4A4A4A;
-  --kin-theme-marker-backgroundColor: #D4A843;
-  --kin-theme-marker-backgroundColor-rgb: 212, 168, 67;
-  --kin-theme-marker2-backgroundColor: #D4A843;
-  --kin-theme-background-backgroundColor: #D4A843;
-  --kin-theme-background-backgroundColor-rgb: 212, 168, 67;
-  --kin-theme-background-backgroundOpacity: 12;
+  --kin-theme-marker-backgroundColor: #D97559;
+  --kin-theme-marker-backgroundColor-rgb: 217, 117, 89;
+  --kin-theme-marker2-backgroundColor: #D97559;
+  --kin-theme-background-backgroundColor: #D97559;
+  --kin-theme-background-backgroundColor-rgb: 217, 117, 89;
+  --kin-theme-background-backgroundOpacity: 10;
   --kin-theme-opacity-opacity: 10;
 }
 
 /* ========== Dark Mode ========== */
 @media (prefers-color-scheme: dark) {
   :root {
-    --kin-bg: #1A1A1A;
-    --kin-bg-secondary: #242424;
-    --kin-bg-tertiary: #2C2C2C;
-    --kin-text: #F5F5F5;
-    --kin-text-secondary: #AAAAAA;
-    --kin-text-tertiary: #777777;
-    --kin-border: #3A3A3A;
-    --kin-primary: #E0B94E;
-    --kin-primary-hover: #E8C86A;
-    --kin-primary-active: #D4A843;
-    --kin-primary-light: rgba(224, 185, 78, 0.15);
-    --kin-primary-weak: rgba(224, 185, 78, 0.12);
-    --kin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --kin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --kin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --kin-bg: #0E1117;
+    --kin-bg-secondary: #161B24;
+    --kin-bg-tertiary: #1E2433;
+    --kin-text: #F0EDE8;
+    --kin-text-secondary: #9E9891;
+    --kin-text-tertiary: #635E58;
+    --kin-border: rgba(240, 237, 232, 0.10);
+    --kin-border-light: rgba(240, 237, 232, 0.06);
+    --kin-primary: #E68B6D;
+    --kin-primary-hover: #EC9E84;
+    --kin-primary-active: #D97559;
+    --kin-primary-light: rgba(230, 139, 109, 0.15);
+    --kin-primary-weak: rgba(230, 139, 109, 0.10);
+    --kin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
+    --kin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.40);
+    --kin-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.50);
   }
 }

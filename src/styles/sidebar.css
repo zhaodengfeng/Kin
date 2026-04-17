@@ -1,4 +1,4 @@
-/* Kin Sidebar — Compact floating card panel */
+/* Kin Sidebar — Compact floating card panel (Claude terracotta palette) */
 
 .kin-sidebar {
   position: fixed !important;
@@ -10,22 +10,22 @@
   max-height: 520px !important;
   transform: translateY(-50%) translateX(calc(100% + 40px)) !important;
   opacity: 0 !important;
-  background: #FFFFFF !important;
+  background: #FAF9F7 !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 8px 40px rgba(28, 25, 23, 0.12), 0 0 0 1px rgba(28, 25, 23, 0.06) !important;
   z-index: 2147483620 !important;
   display: flex !important;
   flex-direction: column !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13px !important;
-  color: #1A1A1A !important;
+  color: #1C1917 !important;
   pointer-events: auto !important;
   visibility: visible !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
   overflow: hidden !important;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.25s ease !important;
 }
 
@@ -34,14 +34,14 @@
   opacity: 1 !important;
 }
 
-/* ========== Header ========== */
+/* ========== Header (dark) ========== */
 .kin-sidebar-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   padding: 0 !important;
   flex-shrink: 0 !important;
-  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  background: linear-gradient(160deg, #1C1917, #2A1F1A) !important;
   border-radius: 16px 16px 0 0 !important;
 }
 
@@ -58,20 +58,20 @@
   justify-content: center !important;
   width: 28px !important;
   height: 28px !important;
-  background: rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.12) !important;
   border-radius: 8px !important;
   color: #FFFFFF !important;
   font-size: 14px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   line-height: 28px !important;
   text-align: center !important;
 }
 
 .kin-sidebar-title {
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  color: #FFFFFF !important;
-  letter-spacing: 0.5px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #F0EDE8 !important;
+  letter-spacing: 0.2px !important;
 }
 
 .kin-sidebar-close {
@@ -81,18 +81,18 @@
   width: 28px !important;
   height: 28px !important;
   border: none !important;
-  background: rgba(255,255,255,0.15) !important;
+  background: rgba(255,255,255,0.08) !important;
   border-radius: 8px !important;
   cursor: pointer !important;
-  color: rgba(255,255,255,0.8) !important;
+  color: rgba(240,237,232,0.65) !important;
   transition: all 0.15s !important;
   padding: 0 !important;
   margin: 12px 16px 12px 0 !important;
 }
 
 .kin-sidebar-close:hover {
-  background: rgba(255,255,255,0.3) !important;
-  color: #FFFFFF !important;
+  background: rgba(255,255,255,0.18) !important;
+  color: #F0EDE8 !important;
 }
 
 /* ========== Body ========== */
@@ -106,7 +106,7 @@
 }
 
 .kin-sidebar-body::-webkit-scrollbar { width: 4px !important; }
-.kin-sidebar-body::-webkit-scrollbar-thumb { background: #DDD !important; border-radius: 2px !important; }
+.kin-sidebar-body::-webkit-scrollbar-thumb { background: #DDD9D4 !important; border-radius: 2px !important; }
 
 /* ========== Action Buttons Row ========== */
 .kin-sidebar-actions-row {
@@ -123,19 +123,20 @@
   padding: 10px 12px !important;
   border: none !important;
   border-radius: 10px !important;
-  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  background: #D97559 !important;
   color: #FFFFFF !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.2s !important;
+  transition: background 0.15s !important;
   font-family: inherit !important;
   line-height: 1 !important;
+  box-shadow: 0 1px 4px rgba(217, 117, 89, 0.30) !important;
 }
 
 .kin-sidebar-primary-btn:hover {
-  box-shadow: 0 3px 12px rgba(212, 168, 67, 0.4) !important;
-  filter: brightness(1.05) !important;
+  background: #C86748 !important;
+  box-shadow: 0 3px 10px rgba(217, 117, 89, 0.38) !important;
 }
 
 .kin-sidebar-secondary-btn {
@@ -144,23 +145,23 @@
   justify-content: center !important;
   gap: 5px !important;
   padding: 10px 12px !important;
-  border: 1px solid #E5E5E5 !important;
+  border: 1px solid #DDD9D4 !important;
   border-radius: 10px !important;
-  background: #FFFFFF !important;
-  color: #555 !important;
+  background: #FAF9F7 !important;
+  color: #6B6560 !important;
   font-size: 13px !important;
   font-weight: 500 !important;
   cursor: pointer !important;
-  transition: all 0.2s !important;
+  transition: all 0.15s !important;
   font-family: inherit !important;
   line-height: 1 !important;
   white-space: nowrap !important;
 }
 
 .kin-sidebar-secondary-btn:hover {
-  background: #FAFAFA !important;
-  border-color: #D4A843 !important;
-  color: #D4A843 !important;
+  background: #F2F0ED !important;
+  border-color: #D97559 !important;
+  color: #D97559 !important;
 }
 
 /* ========== Divider ========== */
@@ -170,7 +171,7 @@
   gap: 8px !important;
   margin: 4px 0 2px !important;
   font-size: 11px !important;
-  color: #AAA !important;
+  color: #9E9891 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
 }
@@ -180,7 +181,7 @@
   content: '' !important;
   flex: 1 !important;
   height: 1px !important;
-  background: #EEE !important;
+  background: #DDD9D4 !important;
 }
 
 /* ========== Quick Translate Box ========== */
@@ -193,7 +194,7 @@
 .kin-sidebar-input {
   width: 100% !important;
   padding: 8px 10px !important;
-  border: 1px solid #E5E5E5 !important;
+  border: 1px solid #DDD9D4 !important;
   border-radius: 8px !important;
   font-size: 13px !important;
   line-height: 1.5 !important;
@@ -202,15 +203,17 @@
   max-height: 100px !important;
   outline: none !important;
   font-family: inherit !important;
-  color: #1A1A1A !important;
-  background: #FAFAFA !important;
+  color: #1C1917 !important;
+  background: #F2F0ED !important;
   box-sizing: border-box !important;
   margin: 0 !important;
+  transition: border-color 0.12s !important;
 }
 
 .kin-sidebar-input:focus {
-  border-color: #D4A843 !important;
-  background: #FFFFFF !important;
+  border-color: #D97559 !important;
+  background: #FAF9F7 !important;
+  box-shadow: 0 0 0 3px rgba(217,117,89,0.10) !important;
 }
 
 .kin-sidebar-translate-row {
@@ -220,35 +223,42 @@
 }
 
 .kin-sidebar-mini-select {
-  flex: 1 !important;
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
   padding: 5px 8px !important;
-  border: 1px solid #E5E5E5 !important;
+  border: 1px solid #DDD9D4 !important;
   border-radius: 6px !important;
   font-size: 12px !important;
   outline: none !important;
-  background: #FAFAFA !important;
-  color: #1A1A1A !important;
+  background: #F2F0ED !important;
+  color: #1C1917 !important;
   cursor: pointer !important;
   font-family: inherit !important;
   margin: 0 !important;
   height: 30px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   -webkit-appearance: menulist !important;
 }
 
-.kin-sidebar-mini-select:focus {
-  border-color: #D4A843 !important;
+.kin-sidebar-mini-select:focus,
+.kin-sidebar-mini-select:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .kin-sidebar-go-btn {
   padding: 5px 14px !important;
   border: none !important;
   border-radius: 6px !important;
-  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  background: #D97559 !important;
   color: #FFFFFF !important;
   font-size: 12px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.15s !important;
+  transition: background 0.12s !important;
   font-family: inherit !important;
   height: 30px !important;
   margin: 0 !important;
@@ -257,14 +267,15 @@
 }
 
 .kin-sidebar-go-btn:hover {
-  filter: brightness(1.05) !important;
+  background: #C86748 !important;
 }
 
 /* Result */
 .kin-sidebar-result {
-  background: #F7F7F8 !important;
+  background: #F2F0ED !important;
   border-radius: 8px !important;
   padding: 10px !important;
+  border: 1px solid #DDD9D4 !important;
   animation: kin-sidebar-fadein 0.2s ease !important;
 }
 
@@ -277,7 +288,7 @@
   font-size: 13px !important;
   line-height: 1.6 !important;
   word-break: break-word !important;
-  color: #1A1A1A !important;
+  color: #1C1917 !important;
 }
 
 .kin-sidebar-copy-btn {
@@ -287,17 +298,17 @@
   margin-top: 6px !important;
   border: none !important;
   background: transparent !important;
-  color: #D4A843 !important;
+  color: #D97559 !important;
   font-size: 11px !important;
   cursor: pointer !important;
   padding: 2px 6px !important;
   border-radius: 4px !important;
-  transition: all 0.15s !important;
+  transition: all 0.12s !important;
   font-family: inherit !important;
 }
 
 .kin-sidebar-copy-btn:hover {
-  background: #F5ECD4 !important;
+  background: #FBF0EB !important;
 }
 
 /* ========== Settings Grid ========== */
@@ -305,6 +316,8 @@
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 6px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 .kin-sidebar-field {
@@ -315,7 +328,7 @@
 
 .kin-sidebar-field label {
   font-size: 11px !important;
-  color: #999 !important;
+  color: #9E9891 !important;
   font-weight: 500 !important;
 }
 
@@ -326,54 +339,57 @@
   justify-content: center !important;
   gap: 4px !important;
   padding-top: 6px !important;
-  border-top: 1px solid #F0F0F0 !important;
+  border-top: 1px solid #E8E5E0 !important;
 }
 
 .kin-sidebar-link-btn {
   border: none !important;
   background: transparent !important;
-  color: #999 !important;
+  color: #9E9891 !important;
   font-size: 12px !important;
   cursor: pointer !important;
   padding: 4px 8px !important;
   border-radius: 4px !important;
-  transition: all 0.15s !important;
+  transition: all 0.12s !important;
   font-family: inherit !important;
   margin: 0 !important;
 }
 
 .kin-sidebar-link-btn:hover {
-  color: #D4A843 !important;
-  background: #F5ECD4 !important;
+  color: #D97559 !important;
+  background: #FBF0EB !important;
 }
 
 .kin-sidebar-dot {
-  color: #DDD !important;
+  color: #DDD9D4 !important;
   font-size: 14px !important;
 }
 
 /* ========== Dark Mode ========== */
 @media (prefers-color-scheme: dark) {
   .kin-sidebar {
-    background: #1E1E1E !important;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
-    color: #E5E5E5 !important;
+    background: #0E1117 !important;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+    color: #F0EDE8 !important;
   }
-  .kin-sidebar-close { color: rgba(255,255,255,0.7) !important; }
-  .kin-sidebar-close:hover { background: rgba(255,255,255,0.25) !important; color: #FFFFFF !important; }
-  .kin-sidebar-input { background: #2A2A2A !important; border-color: #3A3A3A !important; color: #E5E5E5 !important; }
-  .kin-sidebar-input:focus { background: #2A2A2A !important; border-color: #D4A843 !important; }
-  .kin-sidebar-mini-select { background: #2A2A2A !important; border-color: #3A3A3A !important; color: #E5E5E5 !important; }
-  .kin-sidebar-secondary-btn { background: #2A2A2A !important; border-color: #3A3A3A !important; color: #CCC !important; }
-  .kin-sidebar-secondary-btn:hover { border-color: #D4A843 !important; color: #D4A843 !important; }
-  .kin-sidebar-result { background: #2A2A2A !important; }
-  .kin-sidebar-result-text { color: #E5E5E5 !important; }
-  .kin-sidebar-divider { color: #666 !important; }
-  .kin-sidebar-divider::before, .kin-sidebar-divider::after { background: #3A3A3A !important; }
-  .kin-sidebar-field label { color: #777 !important; }
-  .kin-sidebar-footer { border-top-color: #333 !important; }
-  .kin-sidebar-link-btn { color: #777 !important; }
-  .kin-sidebar-link-btn:hover { color: #E8C86A !important; background: #2E2A1E !important; }
-  .kin-sidebar-dot { color: #444 !important; }
-  .kin-sidebar-body::-webkit-scrollbar-thumb { background: #444 !important; }
+  .kin-sidebar-header {
+    background: linear-gradient(160deg, #0A0806, #150F0B) !important;
+  }
+  .kin-sidebar-close { color: rgba(240,237,232,0.55) !important; }
+  .kin-sidebar-close:hover { background: rgba(255,255,255,0.15) !important; color: #F0EDE8 !important; }
+  .kin-sidebar-input { background: #161B24 !important; border-color: rgba(240,237,232,0.10) !important; color: #F0EDE8 !important; }
+  .kin-sidebar-input:focus { background: #161B24 !important; border-color: #E68B6D !important; }
+  .kin-sidebar-mini-select { background: #161B24 !important; border-color: rgba(240,237,232,0.10) !important; color: #F0EDE8 !important; }
+  .kin-sidebar-secondary-btn { background: #161B24 !important; border-color: rgba(240,237,232,0.10) !important; color: #9E9891 !important; }
+  .kin-sidebar-secondary-btn:hover { border-color: #E68B6D !important; color: #E68B6D !important; }
+  .kin-sidebar-result { background: #161B24 !important; border-color: rgba(240,237,232,0.08) !important; }
+  .kin-sidebar-result-text { color: #F0EDE8 !important; }
+  .kin-sidebar-divider { color: #635E58 !important; }
+  .kin-sidebar-divider::before, .kin-sidebar-divider::after { background: rgba(240,237,232,0.10) !important; }
+  .kin-sidebar-field label { color: #635E58 !important; }
+  .kin-sidebar-footer { border-top-color: rgba(240,237,232,0.08) !important; }
+  .kin-sidebar-link-btn { color: #635E58 !important; }
+  .kin-sidebar-link-btn:hover { color: #E68B6D !important; background: rgba(230,139,109,0.12) !important; }
+  .kin-sidebar-dot { color: rgba(240,237,232,0.12) !important; }
+  .kin-sidebar-body::-webkit-scrollbar-thumb { background: rgba(240,237,232,0.15) !important; }
 }

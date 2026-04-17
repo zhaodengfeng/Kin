@@ -11,10 +11,10 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #D4A843;
+  background: linear-gradient(145deg, #E68B6D, #D97559, #C86748);
   box-shadow:
-    0 2px 12px rgba(196, 93, 62, 0.3),
-    0 0 0 1px rgba(196, 93, 62, 0.1);
+    0 2px 12px rgba(217, 117, 89, 0.35),
+    0 0 0 1px rgba(217, 117, 89, 0.12);
   cursor: pointer;
   z-index: 2147483600 !important;
   display: flex !important;
@@ -44,8 +44,8 @@
 .kin-r-float-icon:hover {
   transform: scale(1.08) translateY(-2px);
   box-shadow:
-    0 6px 20px rgba(196, 93, 62, 0.2),
-    0 0 0 1px rgba(196, 93, 62, 0.15);
+    0 6px 20px rgba(217, 117, 89, 0.40),
+    0 0 0 1px rgba(217, 117, 89, 0.18);
 }
 
 .kin-r-float-icon:active {

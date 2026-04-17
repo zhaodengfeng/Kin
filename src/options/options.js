@@ -122,26 +122,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     inp.type = inp.type === 'password' ? 'text' : 'password';
   });
 
-  // Save API key (single key providers)
-  document.getElementById('optApiKeySingle').addEventListener('change', async function() {
+  // Save API key (single key providers) — save immediately on input
+  let _keySaveTimer = null;
+  document.getElementById('optApiKeySingle').addEventListener('input', function() {
     const provider = optEngine.value;
-    const resp = await chrome.runtime.sendMessage({
-      type: 'save_api_key',
-      data: { provider, key: this.value }
-    });
-    if (resp?.ok) showToast('API Key 已保存', 'success');
-    else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
+    const key = this.value;
+    clearTimeout(_keySaveTimer);
+    _keySaveTimer = setTimeout(async () => {
+      const resp = await chrome.runtime.sendMessage({
+        type: 'save_api_key',
+        data: { provider, key }
+      });
+      if (resp?.ok) showToast('API Key 已保存', 'success');
+      else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
+    }, 500);
   });
 
-  // Save DeepL multi-key
-  document.getElementById('optApiKey').addEventListener('change', async function() {
+  // Save DeepL multi-key — save immediately on input
+  document.getElementById('optApiKey').addEventListener('input', function() {
     const keys = this.value.split('\n').map(k => k.trim()).filter(k => k);
-    const resp = await chrome.runtime.sendMessage({
-      type: 'save_api_key',
-      data: { provider: 'deepl', key: keys.join('\n') }
-    });
-    if (resp?.ok) showToast(`${keys.length} 个 API Key 已保存`, 'success');
-    else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
+    clearTimeout(_keySaveTimer);
+    _keySaveTimer = setTimeout(async () => {
+      const resp = await chrome.runtime.sendMessage({
+        type: 'save_api_key',
+        data: { provider: 'deepl', key: keys.join('\n') }
+      });
+      if (resp?.ok) showToast(`${keys.length} 个 API Key 已保存`, 'success');
+      else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
+    }, 500);
   });
 
   document.getElementById('optEndpoint').addEventListener('change', function() {
@@ -173,15 +181,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ customPrompt: this.value });
   });
 
-  // Test API connection
+  // Test API connection — pass key directly via configOverride, no storage dependency
   document.getElementById('btnTestApi').addEventListener('click', async () => {
     const status = document.getElementById('apiTestStatus');
     status.textContent = '测试中...';
     status.style.color = 'var(--kin-text-tertiary)';
+    const provider = optEngine.value;
+    const keyEl = provider === 'deepl'
+      ? document.getElementById('optApiKey')
+      : document.getElementById('optApiKeySingle');
+    const currentKey = keyEl?.value || '';
+    const configOverride = { isPlaintext: true };
+    if (currentKey) configOverride.apiKey = currentKey;
+    const endpointEl = document.getElementById('optEndpoint');
+    if (endpointEl?.value) configOverride.endpoint = endpointEl.value;
+    const modelEl = document.getElementById('optModel');
+    if (modelEl?.value) configOverride.model = modelEl.value;
     try {
       const resp = await chrome.runtime.sendMessage({
         type: 'translate',
-        data: { texts: ['Hello'], to: 'zh-CN' }
+        data: { texts: ['Hello'], to: 'zh-CN', configOverride }
       });
       if (resp?.translations?.[0]) {
         status.textContent = '连接成功';

@@ -1,6 +1,4 @@
-/* Kin Float Ball — Compact popup style (Kin gold palette)
-   Pill button → hover gear → click gear: popup panel near the float ball
-*/
+/* Kin Float Ball — Compact popup style (Claude terracotta palette) */
 
 /* ========== Float Container ========== */
 .kin-fb-container {
@@ -50,7 +48,7 @@
 .kin-fb-logo {
   width: 28px !important;
   height: 28px !important;
-  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  background: linear-gradient(145deg, #E68B6D, #D97559, #C86748) !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
@@ -107,7 +105,7 @@
 }
 .kin-fb-side:hover {
   background: #f5f5f5 !important;
-  color: #D4A843 !important;
+  color: #D97559 !important;
 }
 .kin-fb-side svg {
   width: 24px !important;
@@ -167,12 +165,12 @@
   overflow: hidden !important;
 }
 
-/* --- Header (gold bar) --- */
+/* --- Header (dark terracotta) --- */
 .kin-fb-popup-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  background: linear-gradient(160deg, #1C1917, #2A1F1A) !important;
   padding: 8px 10px !important;
 }
 .kin-fb-popup-brand {
@@ -296,8 +294,8 @@
   margin: 0 2px !important;
 }
 .kin-fb-swap-btn:hover {
-  color: #D4A843 !important;
-  background: #fff8ed !important;
+  color: #D97559 !important;
+  background: #FBF0EB !important;
 }
 .kin-fb-swap-btn svg {
   width: 14px !important;
@@ -356,7 +354,7 @@
 }
 .kin-fb-mode-btn:hover {
   background-color: #eaeced !important;
-  color: #D4A843 !important;
+  color: #D97559 !important;
 }
 .kin-fb-mode-btn svg {
   width: 20px !important;
@@ -373,14 +371,15 @@
   text-align: center !important;
   cursor: pointer !important;
   color: white !important;
-  background: linear-gradient(135deg, #E8C86A, #D4A843) !important;
+  background: #D97559 !important;
   border: none !important;
   font-family: inherit !important;
   font-weight: 500 !important;
-  transition: opacity 0.15s ease !important;
+  transition: background 0.15s ease !important;
+  box-shadow: 0 1px 4px rgba(217, 117, 89, 0.30) !important;
 }
-.kin-fb-main-button:hover { opacity: 0.9 !important; }
-.kin-fb-main-button:active { opacity: 0.8 !important; }
+.kin-fb-main-button:hover { background: #C86748 !important; }
+.kin-fb-main-button:active { background: #B55A3D !important; }
 
 /* ========== Settings Toggles ========== */
 .kin-fb-setting-section {
@@ -421,7 +420,7 @@
   flex-shrink: 0 !important;
 }
 .kin-fb-toggle.checked {
-  background-color: #D4A843 !important;
+  background-color: #D97559 !important;
 }
 .kin-fb-toggle-dot {
   width: 12px !important;
@@ -447,7 +446,7 @@
   align-items: center !important;
   gap: 3px !important;
 }
-.kin-fb-footer-link:hover { color: #D4A843 !important; }
+.kin-fb-footer-link:hover { color: #D97559 !important; }
 .kin-fb-footer-link svg {
   width: 12px !important;
   height: 12px !important;
@@ -490,7 +489,7 @@
 @media (prefers-color-scheme: dark) {
   .kin-fb-btn { background: #1E1E1E !important; }
   .kin-fb-side { background: #1E1E1E !important; color: #b3b3b3 !important; }
-  .kin-fb-side:hover { background: #333 !important; color: #E8C86A !important; }
+  .kin-fb-side:hover { background: #333 !important; color: #E68B6D !important; }
 
   #kin-fb-panel {
     background: #191919 !important;
@@ -520,6 +519,6 @@
   .kin-fb-setting-label { color: #E5E5E5 !important; }
   .kin-fb-setting-hint { color: #666 !important; }
   .kin-fb-footer-link { color: #666 !important; }
-  .kin-fb-footer-link:hover { color: #E8C86A !important; }
+  .kin-fb-footer-link:hover { color: #E68B6D !important; }
   .kin-fb-footer-version { color: #555 !important; }
 }

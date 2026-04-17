@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--kin-primary, #D4A843);
+  color: var(--kin-primary, #D97559);
   box-shadow: var(--kin-shadow-md, 0 4px 12px rgba(0,0,0,0.1));
   z-index: 2147483570;
   transition: all 0.15s ease;
@@ -20,8 +20,8 @@
 }
 
 .kin-selection-icon:hover {
-  background: var(--kin-primary-light, #F5ECD4);
-  border-color: var(--kin-primary, #D4A843);
+  background: var(--kin-primary-light, #FBF0EB);
+  border-color: var(--kin-primary, #D97559);
   transform: scale(1.1);
 }
 
@@ -80,7 +80,7 @@
   width: 12px;
   height: 12px;
   border: 2px solid rgba(212, 168, 67, 0.3);
-  border-top-color: var(--kin-primary, #D4A843);
+  border-top-color: var(--kin-primary, #D97559);
   border-radius: 50%;
   animation: kin-sel-spin 0.6s linear infinite;
 }
@@ -114,8 +114,8 @@
 }
 
 .kin-selection-actions button:hover {
-  background: var(--kin-primary-light, #F5ECD4);
-  color: var(--kin-primary, #D4A843);
+  background: var(--kin-primary-light, #FBF0EB);
+  color: var(--kin-primary, #D97559);
 }
 
 @keyframes kin-sel-icon-in {

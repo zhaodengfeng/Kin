@@ -180,13 +180,7 @@ const KinFloatBall = {
 
         <!-- Service -->
         <div class="kin-fb-service-container">
-          <select id="kin-fb-engine">
-            <option value="google" ${prov==='google'?'selected':''}>Google 翻译</option>
-            <option value="microsoft" ${prov==='microsoft'?'selected':''}>微软翻译</option>
-            <option value="deepl" ${prov==='deepl'?'selected':''}>DeepL</option>
-            <option value="openai" ${prov==='openai'?'selected':''}>ChatGPT</option>
-            <option value="deeplx" ${prov==='deeplx'?'selected':''}>DeepLX</option>
-          </select>
+          <select id="kin-fb-engine"></select>
         </div>
 
         <!-- Mode toggle + Translate button -->
@@ -231,6 +225,29 @@ const KinFloatBall = {
     this.panel = panel;
     this._positionPanel();
     this._bindPanel();
+
+    // Populate engine list: free providers + configured API providers only
+    chrome.runtime.sendMessage({ type: 'get_available_providers' }, (resp) => {
+      const engineSel = this.panel?.querySelector('#kin-fb-engine');
+      if (!engineSel) return;
+      const list = resp?.providers || [
+        { id: 'google', name: 'Google 翻译' },
+        { id: 'microsoft', name: '微软翻译' }
+      ];
+      engineSel.innerHTML = '';
+      list.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (p.id === prov) opt.selected = true;
+        engineSel.appendChild(opt);
+      });
+      if (!list.find(p => p.id === prov) && list.length > 0) {
+        engineSel.value = list[0].id;
+        this.settings.translationProvider = list[0].id;
+        this._save({ translationProvider: list[0].id });
+      }
+    });
 
     // Keep gear visible when panel is open
     if (wrapper) wrapper.classList.add('kin-fb-panel-open');

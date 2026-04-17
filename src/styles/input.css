@@ -35,7 +35,7 @@
 
 .kin-input-actions button:first-child {
   border-right: 1px solid var(--kin-border, #E5E5E5);
-  color: var(--kin-primary, #D4A843);
+  color: var(--kin-primary, #D97559);
   font-weight: 500;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .kin-input-actions button:hover {
-  background: var(--kin-primary-light, #F5ECD4);
+  background: var(--kin-primary-light, #FBF0EB);
 }
 
 @keyframes kin-panel-appear {

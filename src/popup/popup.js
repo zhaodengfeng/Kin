@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Populate dropdowns
   populateLanguages();
-  populateEngines();
+  await populateEngines();
 
   // Get current tab
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -170,22 +170,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function populateEngines() {
-    const freeGroup = document.getElementById('freeOptgroup');
-    const apiGroup = document.getElementById('apiOptgroup');
-    const providers = typeof ProviderRegistry !== 'undefined'
-      ? ProviderRegistry.list()
-      : [
-          { id: 'google', name: 'Google Translate', type: 'free' },
-          { id: 'microsoft', name: 'Microsoft Translator', type: 'free' },
-          { id: 'openai', name: 'OpenAI', type: 'openai' },
-          { id: 'claude', name: 'Claude', type: 'claude' },
-          { id: 'deepl', name: 'DeepL', type: 'deepl' },
-        ];
-    providers.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id; opt.textContent = p.name;
-      if (p.type === 'free') freeGroup.appendChild(opt);
-      else apiGroup.appendChild(opt);
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'get_available_providers' }, (resp) => {
+        const freeGroup = document.getElementById('freeOptgroup');
+        const apiGroup = document.getElementById('apiOptgroup');
+        const providers = resp?.providers || (typeof ProviderRegistry !== 'undefined'
+          ? ProviderRegistry.freeProviders()
+          : [{ id: 'google', name: 'Google Translate', type: 'free' }, { id: 'microsoft', name: 'Microsoft Translator', type: 'free' }]);
+        freeGroup.innerHTML = '';
+        apiGroup.innerHTML = '';
+        let hasApi = false;
+        providers.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id; opt.textContent = p.name;
+          if (p.type === 'free') freeGroup.appendChild(opt);
+          else { apiGroup.appendChild(opt); hasApi = true; }
+        });
+        // Hide the API optgroup label if no configured providers
+        const apiLabel = apiGroup.closest('select')?.querySelectorAll('optgroup')[1];
+        if (apiGroup) apiGroup.style.display = hasApi ? '' : 'none';
+        resolve();
+      });
     });
   }
 

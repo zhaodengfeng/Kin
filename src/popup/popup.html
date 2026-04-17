@@ -4,89 +4,113 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/variables.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="kin-popup">
-    <!-- Header -->
+
+    <!-- Header (dark) -->
     <div class="kin-header">
-      <div class="kin-header-left">
-        <span class="kin-header-icon">K</span>
-        <div class="kin-header-brand">
-          <span class="kin-logo-text">Kin</span>
-          <span class="kin-slogan">Beyond Word. Into Meaning.</span>
+      <div class="kin-header-inner">
+        <div class="kin-header-left">
+          <!-- Logo icon -->
+          <svg class="kin-logo-icon" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="30" height="30" rx="8" fill="url(#kinLogoGrad)"/>
+            <path d="M9.5 7.5L9.5 22.5M9.5 15L20 7.5M9.5 15L20 22.5"
+                  stroke="rgba(255,255,255,0.95)" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="kinLogoGrad" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#E68B6D"/>
+                <stop offset="100%" stop-color="#C86748"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="kin-header-brand">
+            <span class="kin-logo-text">Kin</span>
+            <span class="kin-slogan">Beyond Word. Into Meaning.</span>
+          </div>
+        </div>
+        <button class="kin-header-btn" id="btnSettings" title="设置">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+      <!-- Status indicator inside header -->
+      <div class="kin-status" id="statusBar">
+        <span class="kin-status-dot" id="statusDot"></span>
+        <span class="kin-status-text" id="statusText">准备就绪</span>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="kin-popup-body">
+
+      <!-- Main translate button -->
+      <button class="kin-btn-translate" id="btnTranslate">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>
+        <span id="btnTranslateText">翻译此页面</span>
+      </button>
+
+      <!-- Quick input translate -->
+      <div class="kin-quick-input">
+        <input type="text" id="quickInput" placeholder="输入文字快速翻译…">
+        <button class="kin-quick-input-btn" id="btnQuickTranslate" title="翻译">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+      <div class="kin-quick-result" id="quickResult" style="display:none"></div>
+
+      <!-- Reader entry (news sites only) -->
+      <button class="kin-btn-reader" id="btnReader" style="display:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>进入阅读模式</span>
+      </button>
+
+      <!-- Divider -->
+      <div class="kin-divider"></div>
+
+      <!-- Language card -->
+      <div class="kin-lang-card">
+        <div class="kin-lang-row">
+          <select class="kin-select" id="sourceLang">
+            <option value="auto">自动检测</option>
+          </select>
+          <button class="kin-swap-btn" id="btnSwapLang" title="交换语言">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16l-4-4 4-4"/><path d="M17 8l4 4-4 4"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+          </button>
+          <select class="kin-select" id="targetLang"></select>
         </div>
       </div>
-      <button class="kin-icon-btn" id="btnSettings" title="设置">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-    </div>
 
-    <!-- Status indicator -->
-    <div class="kin-status" id="statusBar">
-      <span class="kin-status-dot" id="statusDot"></span>
-      <span class="kin-status-text" id="statusText">准备就绪</span>
-    </div>
-
-    <!-- Main translate button -->
-    <button class="kin-btn-translate" id="btnTranslate">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>
-      <span id="btnTranslateText">翻译此页面</span>
-    </button>
-
-    <!-- Quick input translate -->
-    <div class="kin-quick-input">
-      <input type="text" id="quickInput" placeholder="输入文字快速翻译...">
-      <button class="kin-quick-input-btn" id="btnQuickTranslate" title="翻译">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-      </button>
-    </div>
-    <div class="kin-quick-result" id="quickResult" style="display:none"></div>
-
-    <!-- Reader entry (news sites only) -->
-    <button class="kin-btn-reader" id="btnReader" style="display:none">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-      <span>进入阅读模式</span>
-    </button>
-
-    <!-- Divider -->
-    <div class="kin-divider"></div>
-
-    <!-- Language selector row -->
-    <div class="kin-lang-row">
-      <select class="kin-select" id="sourceLang">
-        <option value="auto">自动检测</option>
-      </select>
-      <button class="kin-swap-btn" id="btnSwapLang" title="交换语言">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16l-4-4 4-4"/><path d="M17 8l4 4-4 4"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
-      </button>
-      <select class="kin-select" id="targetLang"></select>
-    </div>
-
-    <!-- Engine selector -->
-    <div class="kin-engine-row">
-      <select class="kin-select" id="engineSelect">
-        <optgroup label="免费 (无需配置)" id="freeOptgroup"></optgroup>
-        <optgroup label="API 引擎" id="apiOptgroup"></optgroup>
-      </select>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="kin-toolbar">
-      <div class="kin-mode-toggle">
-        <button class="kin-mode-btn active" data-mode="dual" id="btnDual">双语对照</button>
-        <button class="kin-mode-btn" data-mode="translation" id="btnTransOnly">仅译文</button>
+      <!-- Engine selector -->
+      <div class="kin-engine-row">
+        <select class="kin-select" id="engineSelect">
+          <optgroup label="免费 (无需配置)" id="freeOptgroup"></optgroup>
+          <optgroup label="API 引擎" id="apiOptgroup"></optgroup>
+        </select>
       </div>
-    </div>
 
-    <!-- History (news sites only) -->
-    <div class="kin-history" id="historySection" style="display:none">
-      <div class="kin-history-title">最近阅读</div>
-      <div id="historyList"></div>
-    </div>
+      <!-- Toolbar: mode toggle -->
+      <div class="kin-toolbar">
+        <div class="kin-mode-toggle">
+          <button class="kin-mode-btn active" data-mode="dual" id="btnDual">双语对照</button>
+          <button class="kin-mode-btn" data-mode="translation" id="btnTransOnly">仅译文</button>
+        </div>
+      </div>
+
+      <!-- History (news sites only) -->
+      <div class="kin-history" id="historySection" style="display:none">
+        <div class="kin-history-title">最近阅读</div>
+        <div id="historyList"></div>
+      </div>
+
+    </div><!-- /.kin-popup-body -->
   </div>
 
-  <!-- Load shared providers first -->
   <script src="../providers.js"></script>
   <script src="popup.js"></script>
 </body>

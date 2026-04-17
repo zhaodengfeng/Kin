@@ -1,17 +1,26 @@
 <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E8C86A"/>
-      <stop offset="100%" stop-color="#D4A843"/>
+    <linearGradient id="terra" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E68B6D"/>
+      <stop offset="50%" stop-color="#D97559"/>
+      <stop offset="100%" stop-color="#C86748"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="26" fill="url(#gold)"/>
-  <!-- Geometric 金 character -->
-  <path d="M64 26 L42 54 L86 54 Z" fill="white" opacity="0.95"/>
-  <rect x="32" y="58" width="64" height="7" rx="3.5" fill="white" opacity="0.95"/>
-  <rect x="44" y="71" width="8" height="26" rx="3" fill="white" opacity="0.95"/>
-  <rect x="74" y="71" width="8" height="26" rx="3" fill="white" opacity="0.95"/>
-  <rect x="52" y="79" width="22" height="7" rx="3" fill="white" opacity="0.9"/>
-  <circle cx="44" cy="100" r="5" fill="white" opacity="0.8"/>
-  <circle cx="82" cy="100" r="5" fill="white" opacity="0.8"/>
+  <!-- Background rounded rect -->
+  <rect width="128" height="128" rx="26" fill="url(#terra)"/>
+  <!-- Inner glow overlay -->
+  <rect width="128" height="128" rx="26" fill="rgba(255,255,255,0.06)"/>
+  <!-- Letter K — serif-inspired strokes -->
+  <!-- Vertical stem -->
+  <line x1="38" y1="28" x2="38" y2="100"
+        stroke="rgba(255,255,255,0.96)" stroke-width="11"
+        stroke-linecap="round"/>
+  <!-- Upper diagonal -->
+  <line x1="38" y1="64" x2="92" y2="28"
+        stroke="rgba(255,255,255,0.96)" stroke-width="10"
+        stroke-linecap="round"/>
+  <!-- Lower diagonal -->
+  <line x1="38" y1="64" x2="92" y2="100"
+        stroke="rgba(255,255,255,0.96)" stroke-width="10"
+        stroke-linecap="round"/>
 </svg>

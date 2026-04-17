@@ -7,7 +7,7 @@
   width: 12px !important;
   height: 12px !important;
   border: 2px solid rgba(212, 168, 67, 0.3) !important;
-  border-top-color: var(--kin-primary, #D4A843) !important;
+  border-top-color: var(--kin-primary, #D97559) !important;
   border-radius: 50% !important;
   animation: kin-spin 0.6s linear infinite !important;
   margin-left: 4px !important;
@@ -63,47 +63,47 @@
 
 /* ========== Theme: underline (default) ========== */
 .kin-translation-theme-underline .kin-translation {
-  border-bottom: 1px solid var(--kin-theme-underline-borderColor, #D4A843) !important;
+  border-bottom: 1px solid var(--kin-theme-underline-borderColor, #D97559) !important;
   padding-bottom: 1px !important;
 }
 
 /* ========== Theme: highlight ========== */
 .kin-translation-theme-highlight .kin-translation {
-  background-color: var(--kin-theme-highlight-backgroundColor, #F5ECD4) !important;
+  background-color: var(--kin-theme-highlight-backgroundColor, #FBF0EB) !important;
   padding: 1px 4px !important;
   border-radius: 2px !important;
 }
 
 /* ========== Theme: dashed ========== */
 .kin-translation-theme-dashed .kin-translation {
-  border-bottom: 1px dashed var(--kin-theme-dashed-borderColor, #D4A843) !important;
+  border-bottom: 1px dashed var(--kin-theme-dashed-borderColor, #D97559) !important;
   padding-bottom: 1px !important;
 }
 
 /* ========== Theme: nativeUnderline ========== */
 .kin-translation-theme-nativeUnderline .kin-translation {
   text-decoration: underline !important;
-  text-decoration-color: var(--kin-theme-nativeUnderline-borderColor, #D4A843) !important;
+  text-decoration-color: var(--kin-theme-nativeUnderline-borderColor, #D97559) !important;
   text-underline-offset: 2px !important;
 }
 
 /* ========== Theme: nativeDashed ========== */
 .kin-translation-theme-nativeDashed .kin-translation {
   text-decoration: underline dashed !important;
-  text-decoration-color: var(--kin-theme-nativeDashed-borderColor, #D4A843) !important;
+  text-decoration-color: var(--kin-theme-nativeDashed-borderColor, #D97559) !important;
   text-underline-offset: 2px !important;
 }
 
 /* ========== Theme: nativeDotted ========== */
 .kin-translation-theme-nativeDotted .kin-translation {
   text-decoration: underline dotted !important;
-  text-decoration-color: var(--kin-theme-nativeDotted-borderColor, #D4A843) !important;
+  text-decoration-color: var(--kin-theme-nativeDotted-borderColor, #D97559) !important;
   text-underline-offset: 2px !important;
 }
 
 /* ========== Theme: thinDashed ========== */
 .kin-translation-theme-thinDashed .kin-translation {
-  border-bottom: 1px dashed var(--kin-theme-thinDashed-borderColor, #D4A843) !important;
+  border-bottom: 1px dashed var(--kin-theme-thinDashed-borderColor, #D97559) !important;
   opacity: 0.7 !important;
 }
 
@@ -116,7 +116,7 @@
 /* ========== Theme: wavy ========== */
 .kin-translation-theme-wavy .kin-translation {
   text-decoration: underline wavy !important;
-  text-decoration-color: var(--kin-theme-wavy-borderColor, #D4A843) !important;
+  text-decoration-color: var(--kin-theme-wavy-borderColor, #D97559) !important;
   text-underline-offset: 3px !important;
 }
 
@@ -150,7 +150,7 @@
 
 /* ========== Theme: blockquote ========== */
 .kin-translation-theme-blockquote .kin-translation {
-  border-left: 3px solid var(--kin-theme-blockquote-borderColor, #D4A843) !important;
+  border-left: 3px solid var(--kin-theme-blockquote-borderColor, #D97559) !important;
   padding-left: 8px !important;
   margin-left: 4px !important;
 }

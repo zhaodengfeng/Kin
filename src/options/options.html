@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kin 设置</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/variables.css">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
@@ -12,7 +16,18 @@
     <!-- Sticky Header -->
     <header class="kin-options-header">
       <div class="kin-options-header-left">
-        <span class="kin-options-icon">K</span>
+        <svg class="kin-options-icon" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="30" height="30" rx="8" fill="url(#optLogoGrad)"/>
+            <path d="M9.5 7.5L9.5 22.5M9.5 15L20 7.5M9.5 15L20 22.5"
+                  stroke="rgba(255,255,255,0.95)" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="optLogoGrad" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#E68B6D"/>
+                <stop offset="100%" stop-color="#C86748"/>
+              </linearGradient>
+            </defs>
+          </svg>
         <h1 class="kin-options-title">Kin</h1>
         <span class="kin-options-divider">/</span>
         <span class="kin-options-page">设置</span>
@@ -413,7 +428,18 @@
         <section class="kin-tab" id="tab-about">
 
           <div class="kin-about-card">
-            <span class="kin-about-icon">K</span>
+            <svg class="kin-about-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="44" height="44" rx="11" fill="url(#aboutLogoGrad)"/>
+              <path d="M14 10L14 34M14 22L30 10M14 22L30 34"
+                    stroke="rgba(255,255,255,0.95)" stroke-width="3.2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="aboutLogoGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#E68B6D"/>
+                  <stop offset="100%" stop-color="#C86748"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <div>
               <strong>Kin (金)</strong>
               <p>Beyond Word. Into Meaning. — v1.0.0</p>

@@ -3,22 +3,22 @@
 */
 
 /* ============================================
-   Kin — Warm paper, golden accent, modern editorial
+   Kin — Warm paper, terracotta accent, modern editorial
    ============================================ */
 :root,
 .kin-r-theme-default {
-  --kin-r-bg: #FFF1E0;
-  --kin-r-bg-warm: #F8E8D0;
+  --kin-r-bg: #FAF6F1;
+  --kin-r-bg-warm: #F2EDE6;
   --kin-r-surface: #ffffff;
-  --kin-r-text: #2d2d2d;
-  --kin-r-text-secondary: #4a4a4a;
-  --kin-r-text-tertiary: #8a8a8a;
-  --kin-r-accent: #b8860b;
-  --kin-r-accent-hover: #996515;
-  --kin-r-accent-light: rgba(184, 134, 11, 0.06);
-  --kin-r-accent-glow: rgba(184, 134, 11, 0.12);
-  --kin-r-border: #e8e4df;
-  --kin-r-border-subtle: #f0ece7;
+  --kin-r-text: #1C1917;
+  --kin-r-text-secondary: #4A4744;
+  --kin-r-text-tertiary: #9E9891;
+  --kin-r-accent: #C86748;
+  --kin-r-accent-hover: #B55A3D;
+  --kin-r-accent-light: rgba(200, 103, 72, 0.07);
+  --kin-r-accent-glow: rgba(200, 103, 72, 0.14);
+  --kin-r-border: #E2DDD7;
+  --kin-r-border-subtle: #EDE9E4;
   --kin-r-shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.04);
   --kin-r-shadow: 0 2px 12px rgba(28, 25, 23, 0.06);
   --kin-r-shadow-lg: 0 8px 32px rgba(28, 25, 23, 0.08);
@@ -27,14 +27,14 @@
   --kin-r-font-serif: 'Georgia', 'Noto Serif SC', 'SimSun', serif;
   --kin-r-font-sans: 'Georgia', 'Noto Serif SC', 'SimSun', serif;
   --kin-r-font-title-cn: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif;
-  --kin-r-progress-bg: rgba(184, 134, 11, 0.30);
-  --kin-r-toolbar-bg: rgba(255, 241, 224, 0.88);
-  --kin-r-scrollbar-track: #f5f2ed;
-  --kin-r-scrollbar-thumb: #d4cfc8;
-  --kin-r-btn-translate-bg: #b8860b;
-  --kin-r-btn-translate-shadow: rgba(184, 134, 11, 0.22);
-  --kin-r-btn-translate-hover-bg: #996515;
-  --kin-r-btn-translate-hover-shadow: rgba(184, 134, 11, 0.28);
+  --kin-r-progress-bg: rgba(200, 103, 72, 0.25);
+  --kin-r-toolbar-bg: rgba(250, 246, 241, 0.90);
+  --kin-r-scrollbar-track: #f0ece7;
+  --kin-r-scrollbar-thumb: #D5CEC7;
+  --kin-r-btn-translate-bg: #C86748;
+  --kin-r-btn-translate-shadow: rgba(200, 103, 72, 0.22);
+  --kin-r-btn-translate-hover-bg: #B55A3D;
+  --kin-r-btn-translate-hover-shadow: rgba(200, 103, 72, 0.28);
   --kin-r-divider-style: solid;
 }
 

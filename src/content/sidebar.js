@@ -185,16 +185,26 @@ const KinSidebar = {
       });
     }
 
-    // Engines
+    // Engines — only free providers + API providers with a saved key
     const engineSelect = this.panel?.querySelector('#kin-sidebar-engine');
-    if (engineSelect && typeof PROVIDERS !== 'undefined') {
-      const list = typeof ProviderRegistry !== 'undefined' ? ProviderRegistry.list() :
-        (Array.isArray(PROVIDERS) ? PROVIDERS : []);
-      list.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id; opt.textContent = p.name;
-        if (p.id === (this.settings?.translationProvider || 'google')) opt.selected = true;
-        engineSelect.appendChild(opt);
+    if (engineSelect) {
+      const currentProvider = this.settings?.translationProvider || 'google';
+      chrome.runtime.sendMessage({ type: 'get_available_providers' }, (resp) => {
+        if (!this.panel) return;
+        const list = resp?.providers || (typeof ProviderRegistry !== 'undefined'
+          ? ProviderRegistry.freeProviders()
+          : [{ id: 'google', name: 'Google Translate' }, { id: 'microsoft', name: 'Microsoft Translator' }]);
+        engineSelect.innerHTML = '';
+        list.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id; opt.textContent = p.name;
+          if (p.id === currentProvider) opt.selected = true;
+          engineSelect.appendChild(opt);
+        });
+        // If current provider not in list, fall back to first
+        if (!list.find(p => p.id === currentProvider) && list.length > 0) {
+          engineSelect.value = list[0].id;
+        }
       });
     }
 
