@@ -108,7 +108,7 @@ chrome.runtime.onInstalled.addListener(() => {
     hoverTranslate: true,
     hoverTrigger: 'direct',
     sensitiveMask: true,
-    readerEnabled: false,
+    readerEnabled: true,
     readerTheme: 'default',
     exportImageFormat: 'jpeg',
     exportQuality: 'balanced',

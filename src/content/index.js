@@ -250,8 +250,8 @@
         return;
 
       case 'open_reader':
-        if (readerEnabled && currentAdapter) openReader();
-        else if (!readerEnabled) KinToast.warning('深度阅读模式未启用，请在设置中开启');
+        if (currentAdapter) openReader();
+        else KinToast.warning('当前页面不支持阅读模式');
         sendResponse({ ok: true });
         return;
     }
@@ -269,11 +269,16 @@
         KinFloatBall.setTranslated(false);
       }
     } else {
-      // If reader mode is enabled and on a supported news site,
+      // If on a supported news site and reader is enabled in settings,
       // open reader instead of doing inline page translation
-      if (readerEnabled && currentAdapter) {
-        openReader();
-        return;
+      if (currentAdapter) {
+        try {
+          const settings = await loadSettings();
+          if (settings.readerEnabled) {
+            openReader();
+            return;
+          }
+        } catch (e) { /* fall through to inline translation */ }
       }
 
       translating = true;
