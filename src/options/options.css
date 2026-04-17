@@ -463,13 +463,16 @@ body {
 .kin-preview-original {
   display: block;
   color: var(--kin-text, #1A1A1A);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .kin-preview-translation {
   display: block;
   color: var(--kin-text-secondary, #666);
+  margin-bottom: 16px;
 }
+
+.kin-preview-translation:last-child { margin-bottom: 0; }
 
 /* Theme classes for preview */
 .kin-theme-underline { border-bottom: 1px solid var(--kin-primary, #D4A843); padding-bottom: 1px; }
