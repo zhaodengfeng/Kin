@@ -196,11 +196,9 @@ const KinTranslator = {
     this.originalNodes.set(kinId, fragment);
     this.originalTexts.set(kinId, originalText);
 
-    // Loading spinner
-    const spinner = document.createElement('span');
-    spinner.className = 'kin-loading-spinner';
-    spinner.dataset.kinSpinner = '1';
-    el.appendChild(spinner);
+    // CRITICAL: Restore original content IMMEDIATELY — no spinner, no blank.
+    // The original DOM structure must stay visible while we wait for the API.
+    el.appendChild(fragment.cloneNode(true));
 
     try {
       // Mask sensitive info

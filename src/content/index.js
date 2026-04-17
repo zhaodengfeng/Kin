@@ -111,6 +111,10 @@
       KinTranslator.restore();
       pageTranslated = false;
       translating = false;
+      if (typeof KinFloatBall !== 'undefined') {
+        KinFloatBall.setTranslating(false);
+        KinFloatBall.setTranslated(false);
+      }
     }
 
     if (adapters.length) {
@@ -260,13 +264,17 @@
     if (pageTranslated) {
       KinTranslator.restore();
       pageTranslated = false;
-      if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslating(false);
+      if (typeof KinFloatBall !== 'undefined') {
+        KinFloatBall.setTranslating(false);
+        KinFloatBall.setTranslated(false);
+      }
     } else {
       translating = true;
       if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslating(true);
       try {
         await KinTranslator.translatePage();
         pageTranslated = true;
+        if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslated(true);
       } catch (e) {
         KinToast.error('翻译失败: ' + (e.message || '未知错误'));
       }

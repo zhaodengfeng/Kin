@@ -447,6 +447,25 @@
   to   { transform: rotate(360deg); }
 }
 
+/* ========== Translated (green indicator dot) ========== */
+.kin-fb-indicator {
+  position: absolute !important;
+  top: 4px !important;
+  right: 0 !important;
+  width: 9px !important;
+  height: 9px !important;
+  background: #34C759 !important;
+  border-radius: 50% !important;
+  border: 1.5px solid #FFFFFF !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25) !important;
+  animation: kin-fb-pulse 0.3s ease-out !important;
+}
+
+@keyframes kin-fb-pulse {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
 /* ========== Dark Mode ========== */
 @media (prefers-color-scheme: dark) {
   .kin-fb-btn { background: #1E1E1E !important; }

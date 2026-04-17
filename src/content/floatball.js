@@ -49,6 +49,7 @@ const KinFloatBall = {
             <div class="kin-fb-logo" id="kin-fb-logo">K</div>
           </div>
         </div>
+        <div class="kin-fb-indicator" id="kin-fb-indicator" style="display:none"></div>
       </div>`;
 
     document.documentElement.appendChild(c);
@@ -369,8 +370,19 @@ const KinFloatBall = {
   setTranslating(on) {
     const logo = this.el?.querySelector('#kin-fb-logo');
     if (!logo) return;
-    if (on) { logo.innerHTML = this.svg.loading; logo.classList.add('kin-fb-loading'); }
-    else { logo.textContent = 'K'; logo.classList.remove('kin-fb-loading'); }
+    if (on) {
+      logo.innerHTML = this.svg.loading;
+      logo.classList.add('kin-fb-loading');
+      logo.classList.remove('kin-fb-done');
+    } else {
+      logo.textContent = 'K';
+      logo.classList.remove('kin-fb-loading', 'kin-fb-done');
+    }
+  },
+
+  setTranslated(on) {
+    const indicator = this.el?.querySelector('#kin-fb-indicator');
+    if (indicator) indicator.style.display = on ? 'block' : 'none';
   },
 
   loadPosition() {

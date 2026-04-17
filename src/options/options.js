@@ -367,6 +367,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function populateThemes() {
     const grid = document.getElementById('themeGrid');
+    const previewText = '这是一个翻译效果的预览示例文本，用于展示不同主题的样式差异。';
     Object.entries(THEME_NAMES).forEach(([id, name]) => {
       const item = document.createElement('div');
       item.className = 'kin-theme-item';
@@ -374,7 +375,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       item.innerHTML = `
         <div class="kin-theme-name">${name}</div>
-        <span class="kin-theme-preview-line kin-theme-${id}">译文预览</span>
+        <span class="kin-theme-preview-line kin-theme-${id}">${previewText}</span>
       `;
 
       item.addEventListener('click', () => {
