@@ -2,7 +2,7 @@
 
 > Beyond Word. Into Meaning.
 
-A Chrome MV3 extension for elegant page translation and immersive reading — inspired by 沉浸式翻译, built for clarity and speed.
+A Chrome MV3 extension for elegant page translation and immersive reading.
 
 ## Features
 
