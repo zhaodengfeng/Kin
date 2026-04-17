@@ -46,10 +46,19 @@
 
 /* ========== Translation Text ========== */
 .kin-translation {
-  display: block !important;
   font-style: normal !important;
-  line-height: 1.6 !important;
   word-break: break-word !important;
+}
+
+/* Block wrapper: display block inside the original element */
+.kin-translation-block-wrapper {
+  display: block !important;
+  animation: kin-translation-appear 0.3s ease !important;
+}
+
+/* Dual mode spacing for block translations */
+[data-kin-state="dual"] .kin-translation-block-wrapper {
+  margin: 8px 0 !important;
 }
 
 /* ========== Theme: underline (default) ========== */

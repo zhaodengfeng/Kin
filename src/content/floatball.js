@@ -40,10 +40,8 @@ const KinFloatBall = {
     c.style.setProperty('top', this.posY + 'px', 'important');
 
     c.innerHTML = `
-      <div class="kin-fb-more-buttons" id="kin-fb-more">
+      <div class="kin-fb-pill-wrapper">
         <div class="kin-fb-side" id="kin-fb-gear" title="设置">${this.svg.gear}</div>
-      </div>
-      <div style="position:relative">
         <div class="kin-fb-btn" id="kin-fb-pill">
           <div class="kin-fb-btn-content">
             <div class="kin-fb-logo" id="kin-fb-logo">K</div>
@@ -60,23 +58,10 @@ const KinFloatBall = {
   // ========== Float Ball Events ==========
   _bindFloatEvents() {
     const pill = this.el.querySelector('#kin-fb-pill');
-    const more = this.el.querySelector('#kin-fb-more');
     const gear = this.el.querySelector('#kin-fb-gear');
+    const wrapper = this.el.querySelector('.kin-fb-pill-wrapper');
 
-    // Hover show gear
-    this.el.addEventListener('mouseenter', () => {
-      more.style.opacity = '1';
-      more.style.transform = 'translateX(0)';
-      more.style.pointerEvents = 'all';
-    });
-    this.el.addEventListener('mouseleave', () => {
-      if (!this.panelVisible) {
-        more.style.opacity = '0';
-        more.style.transform = 'translateX(10px)';
-        more.style.pointerEvents = 'none';
-      }
-    });
-
+    // Hover on wrapper → CSS handles gear visibility
     // Click pill → translate
     pill.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -247,9 +232,8 @@ const KinFloatBall = {
     this._positionPanel();
     this._bindPanel();
 
-    // Keep gear visible
-    const more = this.el.querySelector('#kin-fb-more');
-    if (more) { more.style.opacity = '1'; more.style.transform = 'translateX(0)'; more.style.pointerEvents = 'all'; }
+    // Keep gear visible when panel is open
+    if (wrapper) wrapper.classList.add('kin-fb-panel-open');
   },
 
   _positionPanel() {
@@ -267,8 +251,7 @@ const KinFloatBall = {
     if (!this.panelVisible) return;
     this.panelVisible = false;
     if (this.panel) { this.panel.remove(); this.panel = null; }
-    const more = this.el?.querySelector('#kin-fb-more');
-    if (more) { more.style.opacity = '0'; more.style.transform = 'translateX(10px)'; more.style.pointerEvents = 'none'; }
+    if (wrapper) wrapper.classList.remove('kin-fb-panel-open');
   },
 
   // ========== Panel Events ==========

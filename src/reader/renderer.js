@@ -323,6 +323,22 @@ const ReaderRenderer = {
     document.addEventListener('keydown', this._escHandler);
   },
 
+  open(adapter) {
+    const article = {
+      title: adapter.getTitle(),
+      standfirst: adapter.getStandfirst(),
+      author: adapter.getAuthor(),
+      date: adapter.getPublishDate(),
+      source: adapter.name,
+      url: adapter.getURL(),
+      featuredImage: adapter.getFeaturedImage(),
+      paragraphs: adapter.getParagraphs().map(p =>
+        p.type === 'text' ? { ...p, type: 'paragraph' } : p
+      ),
+    };
+    this.render(article);
+  },
+
   close() {
     this._sessionId++;
     this._translationRunId++;

@@ -24,7 +24,8 @@ const KinTranslator = {
     'MAIN', 'UL', 'OL', 'LI', 'DL', 'DT', 'DD',
     'BLOCKQUOTE', 'FIGURE', 'FIGCAPTION', 'TABLE', 'THEAD',
     'TBODY', 'TFOOT', 'TR', 'TD', 'TH', 'FORM', 'FIELDSET',
-    'DETAILS', 'SUMMARY', 'ADDRESS', 'HR', 'PRE'
+    'DETAILS', 'SUMMARY', 'ADDRESS', 'HR', 'PRE',
+    'HEADER', 'FOOTER', 'NAV', 'ASIDE'
   ]),
 
   // Skip entirely during DOM walk — no recurse into these
@@ -32,7 +33,6 @@ const KinTranslator = {
     'SCRIPT', 'STYLE', 'NOSCRIPT', 'PRE', 'SVG', 'MATH',
     'TEXTAREA', 'INPUT', 'SELECT', 'BUTTON',
     'IFRAME', 'OBJECT', 'IMG', 'VIDEO', 'AUDIO', 'CANVAS',
-    'FOOTER', 'NAV', 'ASIDE', 'HEADER',
     'FORM', 'FIELDSET', 'DIALOG', 'MENU', 'METER', 'PROGRESS',
     'DETAILS', 'SUMMARY', 'TIME', 'DATA', 'OUTPUT'
   ]),
@@ -257,11 +257,17 @@ const KinTranslator = {
 
   // ========== Inject Translation (XSS-safe) ==========
   _injectTranslation(el, kinId, translation) {
-    // Remove spinner
     const spinner = el.querySelector('[data-kin-spinner]');
     if (spinner) spinner.remove();
 
     const originalFragment = this.originalNodes.get(kinId);
+    const theme = this.settings.translationTheme || 'underline';
+
+    // ========== Translation Injection ==========
+    // Same approach as Immersive Translate:
+    // - Wrap original content in .kin-original span (inside the element)
+    // - Append translation as .kin-translation span (also inside the element)
+    // - The translation inherits parent font styles naturally via CSS inheritance
 
     // Original span — clone original content from saved fragment
     const originalSpan = document.createElement('span');
@@ -278,7 +284,6 @@ const KinTranslator = {
     // Wrapper with theme class
     const wrapper = document.createElement('span');
     wrapper.className = 'kin-translation-block-wrapper';
-    const theme = this.settings.translationTheme || 'underline';
     wrapper.classList.add(`kin-translation-theme-${theme}`);
     wrapper.appendChild(translationSpan);
 
