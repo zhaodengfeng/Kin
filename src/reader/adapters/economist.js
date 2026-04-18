@@ -210,6 +210,16 @@ class EconomistAdapter extends BaseAdapter {
 
       // 图片
       if (tagName === 'img' || tagName === 'figure') {
+        // Skip images that precede crossword/quiz headings
+        let skipImage = false;
+        for (let j = i + 1; j < Math.min(i + 5, elements.length); j++) {
+          const jt = elements[j].tagName.toLowerCase();
+          if (/^h[234]$/.test(jt)) {
+            if (/^mini crossword|\bwinners of the week\b/i.test(elements[j].innerText || '')) skipImage = true;
+            break;
+          }
+        }
+        if (skipImage) continue;
         const img = tagName === 'img' ? el : el.querySelector('img');
         const src = this._resolveImageSrc(img);
         if (!src || seen.has(src)) continue;
