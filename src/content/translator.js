@@ -1,5 +1,6 @@
 // Kin Universal Page Translator
 // DOM traversal, chunked translation, bilingual injection, viewport priority
+// v2: MutationObserver, inline variable placeholders, notranslate, error UI
 const KinTranslator = {
   settings: {},
   translatedRefs: [],
@@ -11,10 +12,10 @@ const KinTranslator = {
   _totalCount: 0,
   _resolveDone: null,
 
-  // Batch translation config — same approach as Immersive Translate
-  BATCH_SIZE: 10,           // paragraphs per API request
-  CONCURRENT_BATCHES: 2,    // max parallel API requests
-  VIEWPORT_MARGIN: 800,     // px margin for "in viewport" detection
+  // Batch translation config
+  BATCH_SIZE: 10,
+  CONCURRENT_BATCHES: 5,      // increased from 2 for faster large-page translation
+  VIEWPORT_MARGIN: 800,
 
   // Block elements that can serve as translation units
   TRANSLATABLE: new Set([
@@ -41,6 +42,18 @@ const KinTranslator = {
     'FORM', 'FIELDSET', 'DIALOG', 'MENU', 'METER', 'PROGRESS',
     'DETAILS', 'SUMMARY', 'TIME', 'DATA', 'OUTPUT'
   ]),
+
+  // Inline elements preserved as {k0} placeholders during translation
+  INLINE_VARS: new Set([
+    'CODE', 'TT', 'IMG', 'SUP', 'SUB', 'SAMP', 'KBD', 'VAR'
+  ]),
+
+  // MutationObserver for dynamic content (SPA, infinite scroll, AJAX)
+  _dynamicObserver: null,
+  _mutationQueue: [],
+  _mutationTimer: null,
+  _isDynamicTranslation: false,
+  MUTATION_DEBOUNCE: 600,
 
   init(settings) {
     this.settings = settings;
@@ -97,6 +110,9 @@ const KinTranslator = {
     await this._translateBatches(batches, this.CONCURRENT_BATCHES);
 
     await new Promise((resolve) => { this._resolveDone = resolve; });
+
+    // Start watching for dynamic content changes after initial translation
+    this._startDynamicObserver();
   },
 
   // ========== Concurrent Batch Queue ==========
@@ -122,7 +138,7 @@ const KinTranslator = {
 
     await Promise.all(workers);
 
-    if (errors.length > 0 && typeof KinToast !== 'undefined') {
+    if (errors.length > 0 && !this._isDynamicTranslation && typeof KinToast !== 'undefined') {
       KinToast.warning(`${errors.length} 批翻译失败`);
     }
   },
@@ -131,14 +147,15 @@ const KinTranslator = {
   async _translateBatch(elements) {
     const items = [];
 
-    // 1. Prepare all elements: save originals, assign kinId
+    // 1. Prepare all elements: save originals, assign kinId, extract variables
     for (const el of elements) {
       if (el.dataset.kinTranslated === 'done' || el.dataset.kinTranslated === 'loading') {
         this._onElementDone();
         continue;
       }
 
-      const originalText = this._getVisibleText(el);
+      // Extract text with inline variable placeholders
+      const { text: originalText, vars } = this._extractTextWithVars(el);
       if (!originalText || originalText.length < 2) {
         el.dataset.kinTranslated = 'skip';
         this._onElementDone();
@@ -160,7 +177,7 @@ const KinTranslator = {
       // Restore original content immediately so user sees no blank
       el.appendChild(fragment.cloneNode(true));
 
-      items.push({ el, kinId, text: originalText });
+      items.push({ el, kinId, text: originalText, vars });
     }
 
     if (!items.length) return;
@@ -200,11 +217,8 @@ const KinTranslator = {
         let translation = translations[i] || '';
 
         if (!translation) {
-          // Empty translation — keep original
-          item.el.dataset.kinTranslated = 'error';
-          while (item.el.firstChild) item.el.firstChild.remove();
-          const frag = this.originalNodes.get(item.kinId);
-          if (frag) item.el.appendChild(frag.cloneNode(true));
+          // Empty translation — restore original + show error hint
+          this._showErrorHint(item.el, item.kinId, '翻译结果为空');
           this._onElementDone();
           continue;
         }
@@ -214,7 +228,7 @@ const KinTranslator = {
           translation = KinMasker.restore(translation, maskMaps[i]);
         }
 
-        this._injectTranslation(item.el, item.kinId, translation);
+        this._injectTranslation(item.el, item.kinId, translation, item.vars);
         item.el.dataset.kinTranslated = 'done';
         this.translatedRefs.push(new WeakRef(item.el));
         if (this.translatedRefs.length > 100) this._cleanupRefs();
@@ -223,12 +237,10 @@ const KinTranslator = {
       }
 
     } catch (e) {
-      // Batch failed — restore all originals
+      // Batch failed — restore all originals with error hints
+      const errorMsg = e.message || '翻译失败';
       for (const item of items) {
-        item.el.dataset.kinTranslated = 'error';
-        while (item.el.firstChild) item.el.firstChild.remove();
-        const frag = this.originalNodes.get(item.kinId);
-        if (frag) item.el.appendChild(frag.cloneNode(true));
+        this._showErrorHint(item.el, item.kinId, errorMsg);
         this._onElementDone();
       }
       console.warn('[Kin] Batch translation failed:', e.message);
@@ -237,6 +249,7 @@ const KinTranslator = {
   },
 
   _onElementDone() {
+    if (this._isDynamicTranslation) return;
     this._pendingCount--;
     if (this._pendingCount <= 0 && this._resolveDone) {
       this._resolveDone();
@@ -263,6 +276,15 @@ const KinTranslator = {
       if (this.SKIP.has(tag)) return;
       if (node.dataset.kinTranslated) return;
       if (node.id && node.id.startsWith('kin-')) return;
+
+      // notranslate recognition
+      if (this._isNoTranslate(node)) return;
+
+      // Skip our own injected elements
+      if (node.classList?.contains('kin-original')) return;
+      if (node.classList?.contains('kin-translation-block-wrapper')) return;
+      if (node.classList?.contains('kin-translation')) return;
+      if (node.classList?.contains('kin-error-hint')) return;
 
       // Shadow DOM support
       if (node.shadowRoot) {
@@ -296,6 +318,301 @@ const KinTranslator = {
     return true;
   },
 
+  // ========== notranslate Detection ==========
+  _isNoTranslate(el) {
+    if (el.getAttribute && el.getAttribute('translate') === 'no') return true;
+    if (el.classList && el.classList.contains('notranslate')) return true;
+    return false;
+  },
+
+  // ========== Inline Variable Placeholder System ==========
+  _extractTextWithVars(el) {
+    const vars = [];
+    let text = '';
+
+    const walk = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.textContent;
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return;
+        if (tag === 'BR') { text += '\n'; return; }
+
+        // Replace inline code-like elements with placeholders
+        if (this.INLINE_VARS.has(tag)) {
+          const idx = vars.length;
+          vars.push(node.cloneNode(true));
+          text += `{k${idx}}`;
+          return;
+        }
+
+        for (const child of node.childNodes) walk(child);
+      }
+    };
+
+    for (const child of el.childNodes) walk(child);
+    return { text: text.trim(), vars };
+  },
+
+  // Build translation DOM with restored inline variable elements
+  _buildTranslationDom(translationText, vars) {
+    if (!vars || !vars.length) {
+      const span = document.createElement('span');
+      span.textContent = translationText;
+      return span;
+    }
+
+    const fragment = document.createDocumentFragment();
+    const parts = translationText.split(/\{k(\d+)\}/);
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 === 0) {
+        if (parts[i]) fragment.appendChild(document.createTextNode(parts[i]));
+      } else {
+        const varIdx = parseInt(parts[i]);
+        if (varIdx < vars.length) {
+          fragment.appendChild(vars[varIdx].cloneNode(true));
+        }
+      }
+    }
+    return fragment;
+  },
+
+  // ========== Inject Translation (XSS-safe) ==========
+  _injectTranslation(el, kinId, translation, vars) {
+    const spinner = el.querySelector('[data-kin-spinner]');
+    if (spinner) spinner.remove();
+
+    const originalFragment = this.originalNodes.get(kinId);
+    const theme = this.settings.translationTheme || 'underline';
+
+    const originalSpan = document.createElement('span');
+    originalSpan.className = 'kin-original';
+    if (originalFragment) {
+      originalSpan.appendChild(originalFragment.cloneNode(true));
+    }
+
+    const wrapper = document.createElement('span');
+    wrapper.className = 'kin-translation-block-wrapper';
+    wrapper.classList.add(`kin-translation-theme-${theme}`);
+
+    // Build translation content with variable restoration
+    const translationContent = this._buildTranslationDom(translation, vars);
+    wrapper.appendChild(translationContent);
+
+    el.appendChild(originalSpan);
+    el.appendChild(wrapper);
+  },
+
+  // ========== Error Hint ==========
+  _showErrorHint(el, kinId, errorMsg) {
+    el.dataset.kinTranslated = 'error';
+
+    // Remove any existing spinner
+    const spinner = el.querySelector('[data-kin-spinner]');
+    if (spinner) spinner.remove();
+
+    // Restore original content
+    const fragment = this.originalNodes.get(kinId);
+    if (fragment) {
+      while (el.firstChild) el.firstChild.remove();
+      el.appendChild(fragment.cloneNode(true));
+    }
+
+    // Add error hint after element
+    const existingHint = el.querySelector('.kin-error-hint');
+    if (existingHint) existingHint.remove();
+
+    const hint = document.createElement('span');
+    hint.className = 'kin-error-hint';
+    hint.title = errorMsg;
+    hint.textContent = '⚠';
+    el.appendChild(hint);
+  },
+
+  // ========== MutationObserver for Dynamic Content ==========
+  _startDynamicObserver() {
+    if (this._dynamicObserver) return;
+
+    this._dynamicObserver = new MutationObserver((mutations) => {
+      this._handleMutations(mutations);
+    });
+
+    this._dynamicObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  },
+
+  _stopDynamicObserver() {
+    if (this._dynamicObserver) {
+      this._dynamicObserver.disconnect();
+      this._dynamicObserver = null;
+    }
+    clearTimeout(this._mutationTimer);
+    this._mutationTimer = null;
+    this._mutationQueue = [];
+  },
+
+  _handleMutations(mutations) {
+    // Collect added nodes, filtering out our own DOM changes
+    let hasNewContent = false;
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (this._isOurNode(node)) continue;
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          hasNewContent = true;
+          break;
+        }
+      }
+      if (hasNewContent) break;
+    }
+    if (!hasNewContent) return;
+
+    this._mutationQueue.push(...mutations);
+    clearTimeout(this._mutationTimer);
+    this._mutationTimer = setTimeout(() => this._processMutations(), this.MUTATION_DEBOUNCE);
+  },
+
+  _isOurNode(node) {
+    if (node.nodeType !== Node.ELEMENT_NODE) return false;
+    if (node.id?.startsWith('kin-')) return true;
+    if (node.classList?.contains('kin-original')) return true;
+    if (node.classList?.contains('kin-translation-block-wrapper')) return true;
+    if (node.classList?.contains('kin-translation')) return true;
+    if (node.classList?.contains('kin-error-hint')) return true;
+    if (node.classList?.contains('kin-loading-spinner')) return true;
+    if (node.dataset?.kinTranslated) return true;
+    return false;
+  },
+
+  _processMutations() {
+    const pending = this._mutationQueue;
+    this._mutationQueue = [];
+
+    if (!pending.length) return;
+
+    // Collect all new element nodes
+    const newRoots = [];
+    for (const mutation of pending) {
+      for (const node of mutation.addedNodes) {
+        if (this._isOurNode(node)) continue;
+        if (node.nodeType === Node.ELEMENT_NODE && node.isConnected) {
+          newRoots.push(node);
+        }
+      }
+    }
+
+    if (!newRoots.length) return;
+
+    // Find translatable elements within new nodes
+    const newElements = [];
+    for (const root of newRoots) {
+      this._collectFromSubtree(root, newElements);
+    }
+
+    if (!newElements.length) return;
+
+    // Sort by document order
+    newElements.sort((a, b) => {
+      const pos = a.compareDocumentPosition(b);
+      return (pos & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+    });
+
+    this._translateDynamicElements(newElements);
+  },
+
+  // Collect translatable elements from a subtree (reuses same logic as collectTranslatableElements)
+  _collectFromSubtree(root, results) {
+    const walk = (node) => {
+      if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+      if (!node.isConnected) return;
+      const tag = node.tagName;
+      if (this.SKIP.has(tag)) return;
+      if (node.dataset.kinTranslated) return;
+      if (node.id && node.id.startsWith('kin-')) return;
+      if (this._isNoTranslate(node)) return;
+      if (node.classList?.contains('kin-original')) return;
+      if (node.classList?.contains('kin-translation-block-wrapper')) return;
+      if (node.classList?.contains('kin-error-hint')) return;
+
+      if (node.shadowRoot) {
+        for (const child of node.shadowRoot.children) walk(child);
+      }
+
+      if (this.TRANSLATABLE.has(tag) && this._isLeafBlock(node)) {
+        const text = this._getVisibleText(node);
+        if (text && text.length >= 4 && !/^\d+$/.test(text) && !/^[^\w]+$/.test(text)) {
+          if (tag === 'DIV' && this._isNavLike(node, text)) return;
+          results.push(node);
+          return;
+        }
+      }
+
+      for (const child of node.children) walk(child);
+    };
+
+    // Check the root itself
+    walk(root);
+  },
+
+  async _translateDynamicElements(elements) {
+    if (!elements.length) return;
+
+    this._isDynamicTranslation = true;
+    elements.forEach(el => { el.dataset.kinTranslated = 'pending'; });
+
+    const batches = [];
+    for (let i = 0; i < elements.length; i += this.BATCH_SIZE) {
+      batches.push(elements.slice(i, i + this.BATCH_SIZE));
+    }
+
+    try {
+      await this._translateBatches(batches, Math.min(this.CONCURRENT_BATCHES, 2));
+    } finally {
+      this._isDynamicTranslation = false;
+    }
+  },
+
+  // ========== Restore Original Content ==========
+  restore() {
+    // Stop dynamic observer
+    this._stopDynamicObserver();
+
+    document.querySelectorAll(
+      '[data-kin-translated="done"], [data-kin-translated="error"], ' +
+      '[data-kin-translated="loading"], [data-kin-translated="pending"]'
+    ).forEach(el => {
+      const kinId = el.dataset.kinId;
+      if (kinId !== undefined) {
+        const id = parseInt(kinId);
+        const fragment = this.originalNodes.get(id);
+        if (fragment) {
+          while (el.firstChild) el.firstChild.remove();
+          el.appendChild(fragment.cloneNode(true));
+        }
+      }
+      delete el.dataset.kinTranslated;
+      delete el.dataset.kinId;
+    });
+
+    // Remove error hints
+    document.querySelectorAll('.kin-error-hint').forEach(el => el.remove());
+
+    document.body.dataset.kinState = '';
+    this.translatedRefs = [];
+    this.originalNodes.clear();
+    this.originalTexts.clear();
+    this._nextId = 0;
+    this._pendingCount = 0;
+    this._totalCount = 0;
+
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+  },
+
+  // ========== Helpers ==========
   _isNavLike(el, text) {
     const anchors = el.querySelectorAll('a');
     if (anchors.length === 0) return false;
@@ -333,67 +650,6 @@ const KinTranslator = {
     return text.trim();
   },
 
-  // ========== Inject Translation (XSS-safe) ==========
-  _injectTranslation(el, kinId, translation) {
-    const spinner = el.querySelector('[data-kin-spinner]');
-    if (spinner) spinner.remove();
-
-    const originalFragment = this.originalNodes.get(kinId);
-    const theme = this.settings.translationTheme || 'underline';
-
-    const originalSpan = document.createElement('span');
-    originalSpan.className = 'kin-original';
-    if (originalFragment) {
-      originalSpan.appendChild(originalFragment.cloneNode(true));
-    }
-
-    const translationSpan = document.createElement('span');
-    translationSpan.className = 'kin-translation';
-    translationSpan.textContent = translation;
-
-    const wrapper = document.createElement('span');
-    wrapper.className = 'kin-translation-block-wrapper';
-    wrapper.classList.add(`kin-translation-theme-${theme}`);
-    wrapper.appendChild(translationSpan);
-
-    el.appendChild(originalSpan);
-    el.appendChild(wrapper);
-  },
-
-  // ========== Restore Original Content ==========
-  restore() {
-    document.querySelectorAll(
-      '[data-kin-translated="done"], [data-kin-translated="error"], ' +
-      '[data-kin-translated="loading"], [data-kin-translated="pending"]'
-    ).forEach(el => {
-      const kinId = el.dataset.kinId;
-      if (kinId !== undefined) {
-        const id = parseInt(kinId);
-        const fragment = this.originalNodes.get(id);
-        if (fragment) {
-          while (el.firstChild) el.firstChild.remove();
-          el.appendChild(fragment.cloneNode(true));
-        }
-      }
-      delete el.dataset.kinTranslated;
-      delete el.dataset.kinId;
-    });
-
-    document.body.dataset.kinState = '';
-    this.translatedRefs = [];
-    this.originalNodes.clear();
-    this.originalTexts.clear();
-    this._nextId = 0;
-    this._pendingCount = 0;
-    this._totalCount = 0;
-
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
-  },
-
-  // ========== Helpers ==========
   _getContentType(el) {
     const tag = el.tagName.toUpperCase();
     if (tag === 'H1') return 'headline';

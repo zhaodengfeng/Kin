@@ -113,6 +113,7 @@
 
     // If page was translated and URL changed (SPA navigation), restore first
     if (pageTranslated && typeof KinTranslator !== 'undefined') {
+      KinTranslator._stopDynamicObserver();
       KinTranslator.restore();
       pageTranslated = false;
       translating = false;
