@@ -242,6 +242,8 @@ class EconomistAdapter extends BaseAdapter {
       text = text.replace(/^([A-Za-z])\s([a-z])/, '$1$2');
       if (seen.has(text)) continue;
 
+      if (/^mini crossword/i.test(text)) break;
+      if (/^the winners of the week/i.test(text)) break;
       if (/^more from \w+/i.test(text)) break;
       if (/^explore more/i.test(text)) break;
       if (text.length < 15) continue;
