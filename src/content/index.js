@@ -293,8 +293,8 @@
         KinFloatBall.setTranslated(false);
       }
     } else {
-      // If on a supported news site, open reader instead of inline page translation
-      if (currentAdapter) {
+      // If on a supported news site and reader mode is enabled, open reader instead of inline page translation
+      if (currentAdapter && readerEnabled) {
         openReader();
         return;
       }
