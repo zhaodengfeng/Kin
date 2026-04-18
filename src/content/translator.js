@@ -11,6 +11,11 @@ const KinTranslator = {
   _totalCount: 0,
   _resolveDone: null,
 
+  // Batch translation config — same approach as Immersive Translate
+  BATCH_SIZE: 10,           // paragraphs per API request
+  CONCURRENT_BATCHES: 2,    // max parallel API requests
+  VIEWPORT_MARGIN: 800,     // px margin for "in viewport" detection
+
   // Block elements that can serve as translation units
   TRANSLATABLE: new Set([
     'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
@@ -54,33 +59,198 @@ const KinTranslator = {
     document.body.dataset.kinTheme = this.settings.translationTheme || 'underline';
     document.body.dataset.kinState = this.settings.translationMode || 'dual';
 
+    // Sort by document order to ensure top-to-bottom translation
+    elements.sort((a, b) => {
+      const pos = a.compareDocumentPosition(b);
+      return (pos & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+    });
+
+    // Mark all as pending
+    elements.forEach(el => {
+      el.dataset.kinTranslated = 'pending';
+    });
+
+    // Split into viewport-first groups
+    const viewportEls = [];
+    const belowEls = [];
+    for (const el of elements) {
+      if (this._isInViewport(el, this.VIEWPORT_MARGIN)) {
+        viewportEls.push(el);
+      } else {
+        belowEls.push(el);
+      }
+    }
+
+    // Preserve document order within each group
+    const orderedElements = [...viewportEls, ...belowEls];
+
+    // Build batches
+    const batches = [];
+    for (let i = 0; i < orderedElements.length; i += this.BATCH_SIZE) {
+      batches.push(orderedElements.slice(i, i + this.BATCH_SIZE));
+    }
+
     this._totalCount = elements.length;
     this._pendingCount = elements.length;
 
-    // IntersectionObserver: translate viewport elements first
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          this.translateElement(entry.target);
-          this.observer.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '500px' });
-
-    elements.forEach(el => {
-      el.dataset.kinTranslated = 'pending';
-      this.observer.observe(el);
-    });
-
-    // Fallback: translate any remaining off-screen elements after 3s
-    setTimeout(() => {
-      document.querySelectorAll('[data-kin-translated="pending"]').forEach(el => {
-        if (this.observer) this.observer.unobserve(el);
-        this.translateElement(el);
-      });
-    }, 3000);
+    // Translate with concurrency control
+    await this._translateBatches(batches, this.CONCURRENT_BATCHES);
 
     await new Promise((resolve) => { this._resolveDone = resolve; });
+  },
+
+  // ========== Concurrent Batch Queue ==========
+  async _translateBatches(batches, concurrency) {
+    let index = 0;
+    const errors = [];
+
+    const runNext = async () => {
+      if (index >= batches.length) return;
+      const batch = batches[index++];
+      try {
+        await this._translateBatch(batch);
+      } catch (e) {
+        errors.push(e);
+        console.warn('[Kin] Batch failed:', e.message);
+      }
+      await runNext();
+    };
+
+    const workers = Array(Math.min(concurrency, batches.length))
+      .fill()
+      .map(() => runNext());
+
+    await Promise.all(workers);
+
+    if (errors.length > 0 && typeof KinToast !== 'undefined') {
+      KinToast.warning(`${errors.length} 批翻译失败`);
+    }
+  },
+
+  // ========== Translate a Single Batch ==========
+  async _translateBatch(elements) {
+    const items = [];
+
+    // 1. Prepare all elements: save originals, assign kinId
+    for (const el of elements) {
+      if (el.dataset.kinTranslated === 'done' || el.dataset.kinTranslated === 'loading') {
+        this._onElementDone();
+        continue;
+      }
+
+      const originalText = this._getVisibleText(el);
+      if (!originalText || originalText.length < 2) {
+        el.dataset.kinTranslated = 'skip';
+        this._onElementDone();
+        continue;
+      }
+
+      const kinId = this._nextId++;
+      el.dataset.kinId = kinId;
+      el.dataset.kinTranslated = 'loading';
+
+      // Save original child nodes
+      const fragment = document.createDocumentFragment();
+      while (el.firstChild) {
+        fragment.appendChild(el.firstChild);
+      }
+      this.originalNodes.set(kinId, fragment);
+      this.originalTexts.set(kinId, originalText);
+
+      // Restore original content immediately so user sees no blank
+      el.appendChild(fragment.cloneNode(true));
+
+      items.push({ el, kinId, text: originalText });
+    }
+
+    if (!items.length) return;
+
+    // 2. Batch masking
+    const textsToTranslate = [];
+    const maskMaps = [];
+    for (const item of items) {
+      if (this.settings.sensitiveMask !== false && typeof KinMasker !== 'undefined') {
+        const result = KinMasker.mask(item.text);
+        textsToTranslate.push(result.masked);
+        maskMaps.push(result.map);
+      } else {
+        textsToTranslate.push(item.text);
+        maskMaps.push([]);
+      }
+    }
+
+    // 3. Single API call for the entire batch
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'translate',
+        data: {
+          texts: textsToTranslate,
+          to: this.settings.targetLang || 'zh-CN',
+          contentType: 'body',
+        }
+      });
+
+      if (response?.error) throw new Error(response.error);
+
+      const translations = Array.isArray(response?.translations) ? response.translations : [];
+
+      // 4. Inject results in document order
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        let translation = translations[i] || '';
+
+        if (!translation) {
+          // Empty translation — keep original
+          item.el.dataset.kinTranslated = 'error';
+          while (item.el.firstChild) item.el.firstChild.remove();
+          const frag = this.originalNodes.get(item.kinId);
+          if (frag) item.el.appendChild(frag.cloneNode(true));
+          this._onElementDone();
+          continue;
+        }
+
+        // Restore masked content
+        if (maskMaps[i]?.length > 0 && typeof KinMasker !== 'undefined') {
+          translation = KinMasker.restore(translation, maskMaps[i]);
+        }
+
+        this._injectTranslation(item.el, item.kinId, translation);
+        item.el.dataset.kinTranslated = 'done';
+        this.translatedRefs.push(new WeakRef(item.el));
+        if (this.translatedRefs.length > 100) this._cleanupRefs();
+
+        this._onElementDone();
+      }
+
+    } catch (e) {
+      // Batch failed — restore all originals
+      for (const item of items) {
+        item.el.dataset.kinTranslated = 'error';
+        while (item.el.firstChild) item.el.firstChild.remove();
+        const frag = this.originalNodes.get(item.kinId);
+        if (frag) item.el.appendChild(frag.cloneNode(true));
+        this._onElementDone();
+      }
+      console.warn('[Kin] Batch translation failed:', e.message);
+      throw e;
+    }
+  },
+
+  _onElementDone() {
+    this._pendingCount--;
+    if (this._pendingCount <= 0 && this._resolveDone) {
+      this._resolveDone();
+      this._resolveDone = null;
+    }
+  },
+
+  // ========== Viewport Detection ==========
+  _isInViewport(el, margin = 0) {
+    const rect = el.getBoundingClientRect();
+    const top = rect.top - margin;
+    const bottom = rect.bottom + margin;
+    const h = window.innerHeight || document.documentElement.clientHeight;
+    return bottom > 0 && top < h;
   },
 
   // ========== Collect Translatable Elements ==========
@@ -104,10 +274,10 @@ const KinTranslator = {
         if (text && text.length >= 4 && !/^\d+$/.test(text) && !/^[^\w]+$/.test(text)) {
           // Skip DIVs that look like navigation menus / link lists
           if (tag === 'DIV' && this._isNavLike(node, text)) {
-            return; // Skip this node entirely, don't recurse
+            return;
           }
           results.push(node);
-          return; // Leaf block found — don't recurse further
+          return;
         }
       }
 
@@ -119,7 +289,6 @@ const KinTranslator = {
     return results;
   },
 
-  // A "leaf block" has no block-level child elements — it's an atomic text unit
   _isLeafBlock(el) {
     for (const child of el.children) {
       if (this.BLOCK_CHILDREN.has(child.tagName)) return false;
@@ -127,28 +296,20 @@ const KinTranslator = {
     return true;
   },
 
-  // Detect navigation menus / link lists — should NOT be translated as a block
-  // Indicators: many <a> tags, short text fragments, high link density
   _isNavLike(el, text) {
     const anchors = el.querySelectorAll('a');
     if (anchors.length === 0) return false;
-
-    // If there are 3+ links, it's likely a menu/nav
     if (anchors.length >= 3) return true;
-
-    // If the element has role="menu" or role="navigation" nearby
     if (el.getAttribute('role') === 'menu' || el.getAttribute('role') === 'navigation') return true;
     if (el.getAttribute('aria-label')?.toLowerCase().includes('menu')) return true;
     if (el.getAttribute('aria-label')?.toLowerCase().includes('nav')) return true;
 
-    // If text contains many short fragments separated by newlines (typical of menu dumps)
     const lines = text.split('\n').filter(l => l.trim().length > 0);
     if (lines.length >= 5) {
       const avgLen = text.length / lines.length;
-      if (avgLen < 15) return true; // Many short lines = menu
+      if (avgLen < 15) return true;
     }
 
-    // If over 60% of the text content is inside <a> tags
     let linkTextLen = 0;
     anchors.forEach(a => { linkTextLen += (a.textContent || '').length; });
     if (text.length > 0 && linkTextLen / text.length > 0.6) return true;
@@ -156,7 +317,6 @@ const KinTranslator = {
     return false;
   },
 
-  // Extract visible text only, excluding SCRIPT/STYLE/NOSCRIPT content
   _getVisibleText(el) {
     let text = '';
     const walkText = (node) => {
@@ -173,88 +333,6 @@ const KinTranslator = {
     return text.trim();
   },
 
-  // ========== Translate Single Element ==========
-  async translateElement(el) {
-    if (el.dataset.kinTranslated === 'done' || el.dataset.kinTranslated === 'loading') return;
-
-    const originalText = this._getVisibleText(el);
-    if (!originalText || originalText.length < 2) {
-      el.dataset.kinTranslated = 'skip';
-      this._onElementDone();
-      return;
-    }
-
-    const kinId = this._nextId++;
-    el.dataset.kinId = kinId;
-    el.dataset.kinTranslated = 'loading';
-
-    // Save original child nodes into a DocumentFragment for safe restore
-    const fragment = document.createDocumentFragment();
-    while (el.firstChild) {
-      fragment.appendChild(el.firstChild);
-    }
-    this.originalNodes.set(kinId, fragment);
-    this.originalTexts.set(kinId, originalText);
-
-    // CRITICAL: Restore original content IMMEDIATELY — no spinner, no blank.
-    // The original DOM structure must stay visible while we wait for the API.
-    el.appendChild(fragment.cloneNode(true));
-
-    try {
-      // Mask sensitive info
-      let masked = originalText;
-      let map = [];
-      if (this.settings.sensitiveMask !== false && typeof KinMasker !== 'undefined') {
-        const result = KinMasker.mask(originalText);
-        masked = result.masked;
-        map = result.map;
-      }
-
-      const response = await chrome.runtime.sendMessage({
-        type: 'translate',
-        data: {
-          texts: [masked],
-          to: this.settings.targetLang || 'zh-CN',
-          contentType: this._getContentType(el),
-        }
-      });
-
-      if (response?.error) throw new Error(response.error);
-
-      let translation = response?.translations?.[0] || '';
-      if (!translation) throw new Error('Empty translation');
-
-      // Restore masked content
-      if (map.length > 0 && typeof KinMasker !== 'undefined') {
-        translation = KinMasker.restore(translation, map);
-      }
-
-      this._injectTranslation(el, kinId, translation);
-      el.dataset.kinTranslated = 'done';
-
-      this.translatedRefs.push(new WeakRef(el));
-      if (this.translatedRefs.length > 100) this._cleanupRefs();
-
-    } catch (e) {
-      el.dataset.kinTranslated = 'error';
-      // Restore original content on failure
-      while (el.firstChild) el.firstChild.remove();
-      const frag = this.originalNodes.get(kinId);
-      if (frag) el.appendChild(frag.cloneNode(true));
-      console.warn('[Kin] Translation failed:', e.message);
-    }
-
-    this._onElementDone();
-  },
-
-  _onElementDone() {
-    this._pendingCount--;
-    if (this._pendingCount <= 0 && this._resolveDone) {
-      this._resolveDone();
-      this._resolveDone = null;
-    }
-  },
-
   // ========== Inject Translation (XSS-safe) ==========
   _injectTranslation(el, kinId, translation) {
     const spinner = el.querySelector('[data-kin-spinner]');
@@ -263,25 +341,16 @@ const KinTranslator = {
     const originalFragment = this.originalNodes.get(kinId);
     const theme = this.settings.translationTheme || 'underline';
 
-    // ========== Translation Injection ==========
-    // Same approach as Immersive Translate:
-    // - Wrap original content in .kin-original span (inside the element)
-    // - Append translation as .kin-translation span (also inside the element)
-    // - The translation inherits parent font styles naturally via CSS inheritance
-
-    // Original span — clone original content from saved fragment
     const originalSpan = document.createElement('span');
     originalSpan.className = 'kin-original';
     if (originalFragment) {
       originalSpan.appendChild(originalFragment.cloneNode(true));
     }
 
-    // Translation span — textContent for XSS safety
     const translationSpan = document.createElement('span');
     translationSpan.className = 'kin-translation';
     translationSpan.textContent = translation;
 
-    // Wrapper with theme class
     const wrapper = document.createElement('span');
     wrapper.className = 'kin-translation-block-wrapper';
     wrapper.classList.add(`kin-translation-theme-${theme}`);
@@ -302,7 +371,6 @@ const KinTranslator = {
         const id = parseInt(kinId);
         const fragment = this.originalNodes.get(id);
         if (fragment) {
-          // Clear current content and restore original HTML structure
           while (el.firstChild) el.firstChild.remove();
           el.appendChild(fragment.cloneNode(true));
         }
