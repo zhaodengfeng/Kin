@@ -1,4 +1,4 @@
-/* Kin Float Ball — Compact popup style (Claude terracotta palette) */
+/* Kin Float Ball — Unified warm design */
 
 /* ========== Float Container ========== */
 .kin-fb-container {
@@ -15,10 +15,10 @@
   background-color: transparent !important;
   right: 0 !important;
   z-index: 2147483600 !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
-/* ========== Pill Button (logo) ========== */
+/* ========== Pill Button ========== */
 .kin-fb-btn {
   cursor: pointer !important;
   height: 36px !important;
@@ -44,7 +44,6 @@
   border-bottom-left-radius: 34px !important;
 }
 
-/* Logo circle inside pill */
 .kin-fb-logo {
   width: 28px !important;
   height: 28px !important;
@@ -62,14 +61,13 @@
   text-align: center !important;
 }
 
-/* ========== Gear Button (shown on hover) ========== */
+/* ========== Gear Button ========== */
 .kin-fb-pill-wrapper {
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-end !important;
   position: relative !important;
 }
-/* Invisible bridge: extends hover area from pill top into the gap */
 .kin-fb-pill-wrapper::before {
   content: '' !important;
   position: absolute !important;
@@ -92,7 +90,7 @@
   justify-content: center !important;
   background: #FFFFFF !important;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.08) !important;
-  color: #666 !important;
+  color: #9E9891 !important;
   opacity: 0 !important;
   transform: translateY(10px) !important;
   pointer-events: none !important;
@@ -104,7 +102,7 @@
   pointer-events: all !important;
 }
 .kin-fb-side:hover {
-  background: #f5f5f5 !important;
+  background: #F2F0ED !important;
   color: #D97559 !important;
 }
 .kin-fb-side svg {
@@ -113,7 +111,6 @@
   flex-shrink: 0 !important;
 }
 
-/* Gear stays visible when panel is open */
 .kin-fb-pill-wrapper.kin-fb-panel-open .kin-fb-side {
   opacity: 1 !important;
   transform: translateY(0) !important;
@@ -142,12 +139,9 @@
 
 /* ========== Popup Panel ========== */
 #kin-fb-panel {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  border-radius: 16px !important;
-  box-shadow: 2px 10px 24px 0 rgba(14, 18, 22, 0.08) !important;
-  border: 1px solid #f0f0f0 !important;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   pointer-events: all !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   animation: kin-fb-popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 @keyframes kin-fb-popIn {
@@ -155,306 +149,330 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* --- Container --- */
 .kin-fb-popup-container {
-  font-size: 13px !important;
-  color: #666 !important;
-  background-color: #e8eaeb !important;
-  width: 240px !important;
+  width: 280px !important;
+  background: #F2F0ED !important;
   border-radius: 16px !important;
+  box-shadow: 0 8px 40px rgba(28, 25, 23, 0.12), 0 0 0 1px rgba(28, 25, 23, 0.06) !important;
   overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  font-size: 13px !important;
+  color: #1C1917 !important;
 }
 
-/* --- Header (dark terracotta) --- */
+/* --- Header --- */
 .kin-fb-popup-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  background: linear-gradient(160deg, #1C1917, #2A1F1A) !important;
-  padding: 8px 10px !important;
+  padding: 12px 16px !important;
+  background: transparent !important;
+  border-bottom: 1px solid #EAE7E2 !important;
+  flex-shrink: 0 !important;
 }
+
 .kin-fb-popup-brand {
   display: flex !important;
   align-items: center !important;
-  gap: 7px !important;
+  gap: 10px !important;
 }
-.kin-fb-popup-logo {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 24px !important;
-  height: 24px !important;
-  background: rgba(255,255,255,0.25) !important;
-  border-radius: 6px !important;
-  color: #FFFFFF !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  line-height: 24px !important;
-  text-align: center !important;
+
+.kin-fb-popup-brand svg {
+  flex-shrink: 0 !important;
 }
+
 .kin-fb-popup-name {
+  font-family: 'DM Serif Display', Georgia, serif !important;
   font-size: 15px !important;
-  font-weight: 700 !important;
-  color: #FFFFFF !important;
-  letter-spacing: 0.5px !important;
+  font-weight: 400 !important;
+  color: #1C1917 !important;
+  letter-spacing: -0.2px !important;
 }
+
+.kin-fb-popup-subtitle {
+  font-size: 10px !important;
+  color: #9E9891 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.4px !important;
+}
+
 .kin-fb-popup-close {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 24px !important;
-  height: 24px !important;
-  background: rgba(255,255,255,0.15) !important;
-  border-radius: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  background: transparent !important;
+  border-radius: 8px !important;
   cursor: pointer !important;
-  color: rgba(255,255,255,0.8) !important;
-  transition: all 0.15s !important;
+  color: #9E9891 !important;
+  transition: background 0.15s, color 0.15s !important;
+  flex-shrink: 0 !important;
 }
 .kin-fb-popup-close:hover {
-  background: rgba(255,255,255,0.3) !important;
-  color: #FFFFFF !important;
+  background: #F2F0ED !important;
+  color: #6B6560 !important;
 }
-
-/* --- Content area (white) --- */
-.kin-fb-popup-content {
-  background-color: #ffffff !important;
-  padding: 8px 10px 10px !important;
-}
-
-/* --- Footer (gray bar) --- */
-.kin-fb-popup-footer {
-  background-color: #e8eaeb !important;
-  padding: 5px 12px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  height: 28px !important;
-  font-size: 11px !important;
-}
-
-/* ========== Language Row (source → arrow → target) ========== */
-.kin-fb-lang-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 0 !important;
-}
-
-.kin-fb-lang-container {
-  position: relative !important;
-  flex: 1 !important;
-  background-color: #f3f5f6 !important;
-  height: 48px !important;
-  border-radius: 10px !important;
-  cursor: pointer !important;
-}
-.kin-fb-lang-container:hover {
-  background-color: #eaeced !important;
-}
-
-.kin-fb-lang-container select {
-  color: #333 !important;
-  font-size: 13px !important;
-  padding: 6px 16px 16px 12px !important;
-  position: absolute !important;
-  border-radius: 10px !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  cursor: pointer !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  outline: none !important;
-  font-family: inherit !important;
-}
-.kin-fb-lang-container label {
-  position: absolute !important;
-  bottom: 6px !important;
-  left: 12px !important;
-  font-size: 10px !important;
-  color: #999 !important;
-  line-height: 10px !important;
-  margin: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Swap arrow between languages */
-.kin-fb-swap-btn {
-  width: 24px !important;
-  height: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  flex-shrink: 0 !important;
-  color: #999 !important;
-  border-radius: 50% !important;
-  margin: 0 2px !important;
-}
-.kin-fb-swap-btn:hover {
-  color: #D97559 !important;
-  background: #FBF0EB !important;
-}
-.kin-fb-swap-btn svg {
+.kin-fb-popup-close svg {
   width: 14px !important;
   height: 14px !important;
 }
 
-/* ========== Translation Service ========== */
-.kin-fb-service-container {
+/* --- Content --- */
+.kin-fb-popup-content {
+  padding: 12px 16px 12px !important;
   display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  height: 36px !important;
-  background-color: #f3f5f6 !important;
-  padding: 0 12px !important;
-  border-radius: 10px !important;
-  margin-top: 6px !important;
-}
-.kin-fb-service-container:hover {
-  background-color: #eaeced !important;
-}
-.kin-fb-service-container select {
-  flex: 1 !important;
-  border: none !important;
-  background: transparent !important;
-  font-size: 13px !important;
-  color: #333 !important;
-  cursor: pointer !important;
-  outline: none !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  font-family: inherit !important;
-  padding: 0 !important;
-  height: 36px !important;
+  flex-direction: column !important;
+  gap: 8px !important;
 }
 
-/* ========== Translate Mode Toggle + Button Row ========== */
-.kin-fb-btn-row {
+/* --- Card --- */
+.kin-fb-card {
+  background: #FAF9F7 !important;
+  border-radius: 12px !important;
+  border: 1px solid #DDD9D4 !important;
+  padding: 10px !important;
   display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.kin-fb-card-title {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #9E9891 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+}
+
+/* ========== Language Row ========== */
+.kin-fb-lang-row {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
   align-items: center !important;
-  margin-top: 5px !important;
   gap: 6px !important;
 }
 
-.kin-fb-mode-btn {
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 10px !important;
-  background-color: #f3f5f6 !important;
+.kin-fb-mini-select {
+  width: 100% !important;
+  padding: 5px 8px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
+  color: #1C1917 !important;
+  background: #F2F0ED !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+.kin-fb-mini-select:focus {
+  border-color: #D97559 !important;
+}
+
+.kin-fb-swap-btn {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  border: 1px solid #DDD9D4 !important;
+  border-radius: 6px !important;
+  background: #FAF9F7 !important;
   cursor: pointer !important;
-  color: #666 !important;
-  transition: background-color 0.15s ease !important;
+  color: #6B6560 !important;
+  flex-shrink: 0 !important;
+  transition: all 0.15s !important;
 }
-.kin-fb-mode-btn:hover {
-  background-color: #eaeced !important;
+.kin-fb-swap-btn:hover {
+  background: #FBF0EB !important;
   color: #D97559 !important;
+  border-color: #D97559 !important;
 }
-.kin-fb-mode-btn svg {
-  width: 20px !important;
-  height: 20px !important;
+.kin-fb-swap-btn svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+/* ========== Service Select ========== */
+.kin-fb-service-container {
+  display: flex !important;
+  align-items: center !important;
+}
+.kin-fb-service-container .kin-fb-mini-select {
+  width: 100% !important;
+  background: #F2F0ED !important;
+  padding: 6px 10px !important;
+}
+
+/* ========== Mode Toggle + Translate Button ========== */
+.kin-fb-btn-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Mode selector (two radio-style cards) */
+.kin-fb-mode-card {
+  display: flex !important;
+  flex-direction: row !important;
+  padding: 3px !important;
+  gap: 0 !important;
+  background: #FAF9F7 !important;
+  border: 1px solid #DDD9D4 !important;
+  border-radius: 10px !important;
+  flex: 1 !important;
+}
+
+.kin-fb-mode-item {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 6px 6px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #9E9891 !important;
+  transition: all 0.2s ease !important;
+  border: 1.5px solid transparent !important;
+}
+.kin-fb-mode-item input { display: none !important; }
+.kin-fb-mode-item:hover { color: #6B6560 !important; }
+.kin-fb-mode-item.active {
+  background: #F2F0ED !important;
+  color: #D97559 !important;
+  border-color: #DDD9D4 !important;
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.06) !important;
+}
+.kin-fb-mode-item svg {
+  width: 14px !important;
+  height: 14px !important;
+  stroke: currentColor !important;
+}
+
+.kin-fb-mode-divider {
+  width: 1px !important;
+  height: 18px !important;
+  background: #EAE7E2 !important;
+  flex-shrink: 0 !important;
 }
 
 /* Main translate button */
 .kin-fb-main-button {
-  flex: 1 !important;
-  font-size: 13px !important;
-  border-radius: 10px !important;
-  height: 34px !important;
-  line-height: 34px !important;
-  text-align: center !important;
-  cursor: pointer !important;
-  color: white !important;
-  background: #D97559 !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 10px 14px !important;
   border: none !important;
+  border-radius: 10px !important;
+  background: #D97559 !important;
+  color: #fff !important;
   font-family: inherit !important;
-  font-weight: 500 !important;
-  transition: background 0.15s ease !important;
-  box-shadow: 0 1px 4px rgba(217, 117, 89, 0.30) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(217, 117, 89, 0.30) !important;
+  line-height: 1 !important;
 }
-.kin-fb-main-button:hover { background: #C86748 !important; }
-.kin-fb-main-button:active { background: #B55A3D !important; }
+.kin-fb-main-button:hover {
+  background: #C86748 !important;
+  box-shadow: 0 4px 16px rgba(217, 117, 89, 0.38) !important;
+  transform: translateY(-1px) !important;
+}
+.kin-fb-main-button:active {
+  transform: translateY(0) !important;
+}
 
 /* ========== Settings Toggles ========== */
-.kin-fb-setting-section {
-  margin-top: 6px !important;
-  padding: 0 4px !important;
-}
-
-.kin-fb-setting-row {
+.kin-fb-toggle-row {
   display: flex !important;
-  justify-content: space-between !important;
   align-items: center !important;
-  margin-top: 4px !important;
+  justify-content: space-between !important;
+  padding: 8px 0 !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid #EAE7E2 !important;
+  transition: background 0.12s !important;
 }
-.kin-fb-setting-row:first-child { margin-top: 0 !important; }
-
-.kin-fb-setting-label {
+.kin-fb-toggle-row:last-child {
+  border-bottom: none !important;
+}
+.kin-fb-toggle-label {
   font-size: 12px !important;
-  color: #333 !important;
-}
-
-/* Hint text under hover toggle */
-.kin-fb-setting-hint {
-  font-size: 10px !important;
-  color: #aaa !important;
-  margin-top: 3px !important;
-  line-height: 1.4 !important;
+  font-weight: 500 !important;
+  color: #1C1917 !important;
+  margin-right: 12px !important;
 }
 
 /* Toggle switch */
 .kin-fb-toggle {
-  width: 28px !important;
-  height: 16px !important;
-  background-color: #ddd !important;
-  border-radius: 24px !important;
   position: relative !important;
+  width: 40px !important;
+  height: 22px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #DDD9D4 !important;
+  border-radius: 11px !important;
+  outline: none !important;
   cursor: pointer !important;
-  transition: background-color 0.2s ease !important;
+  transition: background 0.2s !important;
   flex-shrink: 0 !important;
 }
-.kin-fb-toggle.checked {
-  background-color: #D97559 !important;
+.kin-fb-toggle:checked {
+  background: #D97559 !important;
 }
-.kin-fb-toggle-dot {
-  width: 12px !important;
-  height: 12px !important;
-  background-color: #fff !important;
-  border-radius: 50% !important;
+.kin-fb-toggle::before {
+  content: '' !important;
   position: absolute !important;
   top: 2px !important;
   left: 2px !important;
-  transition: transform 0.2s ease !important;
-  box-shadow: 0 0 6px rgba(0,0,0,0.1) !important;
+  width: 18px !important;
+  height: 18px !important;
+  background: #fff !important;
+  border-radius: 50% !important;
+  transition: transform 0.2s !important;
 }
-.kin-fb-toggle.checked .kin-fb-toggle-dot {
-  transform: translateX(12px) !important;
+.kin-fb-toggle:checked::before {
+  transform: translateX(18px) !important;
 }
 
-/* ========== Footer Links ========== */
+.kin-fb-setting-hint {
+  font-size: 10px !important;
+  color: #9E9891 !important;
+  margin-top: 6px !important;
+  line-height: 1.4 !important;
+}
+
+/* ========== Footer ========== */
+.kin-fb-popup-footer {
+  padding: 8px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-top: 1px solid #EAE7E2 !important;
+  flex-shrink: 0 !important;
+}
+
 .kin-fb-footer-link {
-  font-size: 11px !important;
-  color: #999 !important;
+  font-size: 12px !important;
+  color: #9E9891 !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
-  gap: 3px !important;
+  gap: 4px !important;
+  transition: color 0.15s !important;
 }
-.kin-fb-footer-link:hover { color: #D97559 !important; }
+.kin-fb-footer-link:hover {
+  color: #D97559 !important;
+}
 .kin-fb-footer-link svg {
-  width: 12px !important;
-  height: 12px !important;
-}
-
-.kin-fb-footer-version {
-  font-size: 10px !important;
-  color: #bbb !important;
+  width: 14px !important;
+  height: 14px !important;
 }
 
 /* ========== Loading ========== */
@@ -466,7 +484,7 @@
   to   { transform: rotate(360deg); }
 }
 
-/* ========== Translated (green indicator dot) ========== */
+/* ========== Translated Indicator ========== */
 .kin-fb-indicator {
   position: absolute !important;
   top: 4px !important;
@@ -488,37 +506,39 @@
 /* ========== Dark Mode ========== */
 @media (prefers-color-scheme: dark) {
   .kin-fb-btn { background: #1E1E1E !important; }
-  .kin-fb-side { background: #1E1E1E !important; color: #b3b3b3 !important; }
-  .kin-fb-side:hover { background: #333 !important; color: #E68B6D !important; }
+  .kin-fb-side { background: #1E1E1E !important; color: #9E9891 !important; }
+  .kin-fb-side:hover { background: #222 !important; color: #D97559 !important; }
 
-  #kin-fb-panel {
-    background: #191919 !important;
-    border-color: #333 !important;
-    box-shadow: 2px 10px 24px 0 rgba(0,0,0,0.5) !important;
+  .kin-fb-popup-container {
+    background: #121212 !important;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
   }
-  .kin-fb-popup-container { background-color: #0d0d0d !important; color: #999 !important; }
-  .kin-fb-popup-close { color: rgba(255,255,255,0.7) !important; }
-  .kin-fb-popup-close:hover { background: rgba(255,255,255,0.25) !important; color: #FFFFFF !important; }
-  .kin-fb-popup-content { background-color: #191919 !important; }
-  .kin-fb-popup-footer { background-color: #0d0d0d !important; }
+  .kin-fb-popup-header {
+    border-bottom-color: #2a2a2a !important;
+  }
+  .kin-fb-popup-name { color: #e0e0e0 !important; }
+  .kin-fb-popup-subtitle { color: #666 !important; }
+  .kin-fb-popup-close { color: #9E9891 !important; }
+  .kin-fb-popup-close:hover { background: #222 !important; color: #aaa !important; }
+  .kin-fb-popup-content { border-color: #2a2a2a !important; }
 
-  .kin-fb-lang-container,
-  .kin-fb-service-container,
-  .kin-fb-mode-btn {
-    background-color: #272727 !important;
-  }
-  .kin-fb-lang-container:hover,
-  .kin-fb-service-container:hover,
-  .kin-fb-mode-btn:hover {
-    background-color: #333 !important;
-  }
-  .kin-fb-lang-container select,
-  .kin-fb-service-container select {
-    color: #E5E5E5 !important;
-  }
-  .kin-fb-setting-label { color: #E5E5E5 !important; }
+  .kin-fb-card { background: #1a1a1a !important; border-color: #2a2a2a !important; }
+  .kin-fb-card-title { color: #666 !important; }
+  .kin-fb-mini-select { color: #e0e0e0 !important; background: #222 !important; border-color: transparent !important; }
+  .kin-fb-mini-select:focus { border-color: #D97559 !important; }
+  .kin-fb-swap-btn { background: #1a1a1a !important; border-color: #2a2a2a !important; color: #aaa !important; }
+
+  .kin-fb-mode-card { background: #1a1a1a !important; border-color: #2a2a2a !important; }
+  .kin-fb-mode-item { color: #666 !important; }
+  .kin-fb-mode-item.active { background: #222 !important; border-color: #2a2a2a !important; color: #D97559 !important; }
+  .kin-fb-mode-divider { background: #2a2a2a !important; }
+
+  .kin-fb-toggle { background: #333 !important; }
+  .kin-fb-toggle-label { color: #e0e0e0 !important; }
   .kin-fb-setting-hint { color: #666 !important; }
+  .kin-fb-toggle-row { border-bottom-color: #2a2a2a !important; }
+
+  .kin-fb-popup-footer { border-top-color: #2a2a2a !important; }
   .kin-fb-footer-link { color: #666 !important; }
-  .kin-fb-footer-link:hover { color: #E68B6D !important; }
-  .kin-fb-footer-version { color: #555 !important; }
+  .kin-fb-footer-link:hover { color: #D97559 !important; }
 }

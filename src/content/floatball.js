@@ -160,53 +160,77 @@ const KinFloatBall = {
 
     panel.innerHTML = `<div class="kin-fb-popup-container">
       <div class="kin-fb-popup-header">
-        <div class="kin-fb-popup-brand"><span class="kin-fb-popup-logo">K</span><span class="kin-fb-popup-name">Kin</span></div>
-        <div class="kin-fb-popup-close" id="kin-fb-close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        <div class="kin-fb-popup-brand">
+          <svg width="32" height="32" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="44" height="44" rx="11" fill="url(#fbLogoGrad)"/>
+            <path d="M14 10L14 34M14 22L30 10M14 22L30 34" stroke="rgba(255,255,255,0.95)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="fbLogoGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#E68B6D"/>
+                <stop offset="100%" stop-color="#C86748"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div>
+            <div class="kin-fb-popup-name">Kin (金)</div>
+            <div class="kin-fb-popup-subtitle">Beyond Word. Into Meaning.</div>
+          </div>
+        </div>
+        <div class="kin-fb-popup-close" id="kin-fb-close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </div>
       </div>
+
       <div class="kin-fb-popup-content">
 
-        <!-- Language row -->
-        <div class="kin-fb-lang-row">
-          <div class="kin-fb-lang-container">
-            <select id="kin-fb-source">${langOpts(LANGS, src)}</select>
-            <label>源语言</label>
-          </div>
-          <div class="kin-fb-swap-btn" id="kin-fb-swap">${this.svg.swap}</div>
-          <div class="kin-fb-lang-container">
-            <select id="kin-fb-target">${langOpts(TGT_LANGS, tgt)}</select>
-            <label>目标语言</label>
+        <!-- Language -->
+        <div class="kin-fb-card">
+          <div class="kin-fb-lang-row">
+            <select class="kin-fb-mini-select" id="kin-fb-source">${langOpts(LANGS, src)}</select>
+            <div class="kin-fb-swap-btn" id="kin-fb-swap">${this.svg.swap}</div>
+            <select class="kin-fb-mini-select" id="kin-fb-target">${langOpts(TGT_LANGS, tgt)}</select>
           </div>
         </div>
 
-        <!-- Service -->
-        <div class="kin-fb-service-container">
-          <select id="kin-fb-engine"></select>
+        <!-- Engine -->
+        <div class="kin-fb-card">
+          <div class="kin-fb-service-container">
+            <select class="kin-fb-mini-select" id="kin-fb-engine"></select>
+          </div>
         </div>
 
-        <!-- Mode toggle + Translate button -->
-        <div class="kin-fb-btn-row">
-          <div class="kin-fb-mode-btn" id="kin-fb-mode" title="${mode==='dual'?'切换仅译文':'切换双语对照'}">
-            ${mode === 'dual' ? this.svg.dual : this.svg.mono}
+        <!-- Translation Mode -->
+        <div class="kin-fb-card">
+          <div class="kin-fb-mode-card" id="kin-fb-mode-group">
+            <div class="kin-fb-mode-item ${mode === 'dual' ? 'active' : ''}" data-mode="dual">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h10"/></svg>
+              <span>双语对照</span>
+            </div>
+            <div class="kin-fb-mode-divider"></div>
+            <div class="kin-fb-mode-item ${mode === 'translation' ? 'active' : ''}" data-mode="translation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+              <span>仅译文</span>
+            </div>
           </div>
-          <button class="kin-fb-main-button" id="kin-fb-go">
-            ${isTranslated ? '显示原文' : '翻译'}
-          </button>
         </div>
 
-        <!-- Settings toggles -->
-        <div class="kin-fb-setting-section">
-          <div class="kin-fb-setting-row">
-            <span class="kin-fb-setting-label">总是翻译此网站</span>
-            <div class="kin-fb-toggle ${isAlways?'checked':''}" id="kin-t-always"><div class="kin-fb-toggle-dot"></div></div>
-          </div>
-          <div class="kin-fb-setting-row">
-            <span class="kin-fb-setting-label">划词翻译</span>
-            <div class="kin-fb-toggle ${s.selectionTranslate!==false?'checked':''}" id="kin-t-sel"><div class="kin-fb-toggle-dot"></div></div>
-          </div>
-          <div class="kin-fb-setting-row">
-            <span class="kin-fb-setting-label">悬停翻译</span>
-            <div class="kin-fb-toggle ${s.hoverTranslate!==false?'checked':''}" id="kin-t-hover"><div class="kin-fb-toggle-dot"></div></div>
-          </div>
+        <!-- Toggles -->
+        <div class="kin-fb-card">
+          <label class="kin-fb-toggle-row">
+            <span class="kin-fb-toggle-label">总是翻译此网站</span>
+            <input type="checkbox" class="kin-fb-toggle" id="kin-t-always" ${isAlways ? 'checked' : ''}>
+          </label>
+          <label class="kin-fb-toggle-row">
+            <span class="kin-fb-toggle-label">划词翻译</span>
+            <input type="checkbox" class="kin-fb-toggle" id="kin-t-sel" ${s.selectionTranslate !== false ? 'checked' : ''}>
+          </label>
+          <label class="kin-fb-toggle-row">
+            <span class="kin-fb-toggle-label">悬停翻译</span>
+            <input type="checkbox" class="kin-fb-toggle" id="kin-t-hover" ${s.hoverTranslate !== false ? 'checked' : ''}>
+          </label>
           <div class="kin-fb-setting-hint">按住 Ctrl 悬停英文段落即可翻译</div>
         </div>
 
@@ -217,7 +241,6 @@ const KinFloatBall = {
         <span class="kin-fb-footer-link" data-act="open_settings">
           ${this.svg.settings}<span>设置</span>
         </span>
-        <span class="kin-fb-footer-version">Kin v1.0</span>
       </div>
     </div>`;
 
@@ -294,17 +317,17 @@ const KinFloatBall = {
       this.closePanel();
     });
 
-    // Translate button
-    this.panel.querySelector('#kin-fb-go')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.closePanel();
-      window.dispatchEvent(new CustomEvent('kin-action', { detail: { action: 'toggle_translate' } }));
-    });
-
     // Mode toggle
-    this.panel.querySelector('#kin-fb-mode')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.dispatchEvent(new CustomEvent('kin-action', { detail: { action: 'toggle_mode' } }));
+    this.panel.querySelectorAll('.kin-fb-mode-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const mode = el.dataset.mode;
+        this.panel.querySelectorAll('.kin-fb-mode-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        this.settings.translationMode = mode;
+        this._save({ translationMode: mode });
+        window.dispatchEvent(new CustomEvent('kin-action', { detail: { action: 'toggle_mode' } }));
+      });
     });
 
     // Swap languages
@@ -325,15 +348,13 @@ const KinFloatBall = {
     this.panel.querySelector('#kin-fb-target')?.addEventListener('change', (e) => { this.settings.targetLang = e.target.value; this._save({ targetLang: e.target.value }); });
     this.panel.querySelector('#kin-fb-engine')?.addEventListener('change', (e) => { this.settings.translationProvider = e.target.value; this._save({ translationProvider: e.target.value }); });
 
-    // Toggles
+    // Toggles (checkbox inputs)
     const bindToggle = (id, key) => {
       const el = this.panel.querySelector('#' + id);
       if (!el) return;
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const on = el.classList.toggle('checked');
-        this.settings[key] = on;
-        this._save({ [key]: on });
+      el.addEventListener('change', () => {
+        this.settings[key] = el.checked;
+        this._save({ [key]: el.checked });
       });
     };
     bindToggle('kin-t-hover', 'hoverTranslate');
@@ -342,12 +363,10 @@ const KinFloatBall = {
     // Always translate (special logic)
     const alwaysEl = this.panel.querySelector('#kin-t-always');
     if (alwaysEl) {
-      alwaysEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const on = alwaysEl.classList.toggle('checked');
+      alwaysEl.addEventListener('change', () => {
         const host = location.hostname;
         let urls = Array.isArray(this.settings.alwaysTranslateUrls) ? [...this.settings.alwaysTranslateUrls] : [];
-        if (on) { if (!urls.includes(host)) urls.push(host); }
+        if (alwaysEl.checked) { if (!urls.includes(host)) urls.push(host); }
         else { urls = urls.filter(u => u !== host); }
         this.settings.alwaysTranslateUrls = urls;
         this._save({ alwaysTranslateUrls: urls });

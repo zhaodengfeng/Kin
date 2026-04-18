@@ -5,13 +5,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnReader = document.getElementById('btnReader');
   const btnSettings = document.getElementById('btnSettings');
   const btnSwapLang = document.getElementById('btnSwapLang');
-  const btnSidebar = document.getElementById('btnSidebar');
   const sourceLang = document.getElementById('sourceLang');
   const targetLang = document.getElementById('targetLang');
   const engineSelect = document.getElementById('engineSelect');
   const btnDual = document.getElementById('btnDual');
   const btnTransOnly = document.getElementById('btnTransOnly');
-  const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
   const quickInput = document.getElementById('quickInput');
   const btnQuickTranslate = document.getElementById('btnQuickTranslate');
@@ -81,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!text) return;
     quickResult.style.display = '';
     quickResult.textContent = '翻译中...';
-    quickResult.className = 'kin-quick-result';
+    quickResult.className = 'quick-result';
     try {
       const resp = await chrome.runtime.sendMessage({
         type: 'translate',
@@ -91,11 +89,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         quickResult.textContent = resp.translations[0];
       } else if (resp?.error) {
         quickResult.textContent = resp.error;
-        quickResult.className = 'kin-quick-result error';
+        quickResult.className = 'quick-result error';
       }
     } catch (e) {
       quickResult.textContent = '翻译失败';
-      quickResult.className = 'kin-quick-result error';
+      quickResult.className = 'quick-result error';
     }
   }
 
@@ -108,12 +106,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Settings button
   btnSettings.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
-  });
-
-  // Sidebar button
-  btnSidebar?.addEventListener('click', () => {
-    chrome.tabs.sendMessage(tab.id, { type: 'toggle_sidebar' });
-    window.close();
   });
 
   // Swap languages
@@ -137,18 +129,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.tabs.sendMessage(tab.id, { type: 'toggle_mode' });
     btnDual.classList.add('active');
     btnTransOnly.classList.remove('active');
+    saveSettings({ translationMode: 'dual' });
   });
   btnTransOnly.addEventListener('click', () => {
     chrome.tabs.sendMessage(tab.id, { type: 'toggle_mode' });
     btnTransOnly.classList.add('active');
     btnDual.classList.remove('active');
+    saveSettings({ translationMode: 'translation' });
   });
 
   // ========== Functions ==========
 
   function setStatus(state, text) {
-    statusDot.className = 'kin-status-dot' + (state !== 'idle' ? ` ${state}` : '');
     statusText.textContent = text;
+    statusText.className = 'popup-status' + (state !== 'idle' ? ` ${state}` : '');
   }
 
   function populateLanguages() {
@@ -207,6 +201,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.translationMode === 'translation') {
       btnTransOnly.classList.add('active');
       btnDual.classList.remove('active');
+    } else {
+      btnDual.classList.add('active');
+      btnTransOnly.classList.remove('active');
     }
   }
 
@@ -272,9 +269,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const history = data?.history || [];
       if (!history.length) { list.innerHTML = '<div style="font-size:11px;color:#999">暂无阅读记录</div>'; return; }
       list.innerHTML = history.slice(0, 5).map(item =>
-        `<div class="kin-history-item">
-          <span class="kin-history-item-title">${escapeHtml(item.title || 'Untitled')}</span>
-          <span class="kin-history-item-source">${escapeHtml(item.source || '')}</span>
+        `<div class="history-item">
+          <span class="history-item-title">${escapeHtml(item.title || 'Untitled')}</span>
+          <span class="history-item-source">${escapeHtml(item.source || '')}</span>
         </div>`
       ).join('');
     });

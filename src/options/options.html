@@ -10,458 +10,441 @@
   <link rel="stylesheet" href="../styles/variables.css">
   <link rel="stylesheet" href="options.css">
 </head>
-<body>
-  <div class="kin-options">
+<body class="settings-booting">
 
-    <!-- Sticky Header -->
-    <header class="kin-options-header">
-      <div class="kin-options-header-left">
-        <svg class="kin-options-icon" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="30" height="30" rx="8" fill="url(#optLogoGrad)"/>
-            <path d="M9.5 7.5L9.5 22.5M9.5 15L20 7.5M9.5 15L20 22.5"
-                  stroke="rgba(255,255,255,0.95)" stroke-width="2.2"
-                  stroke-linecap="round" stroke-linejoin="round"/>
+  <div class="save-status" id="saveStatus">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span id="saveStatusText">已保存</span>
+  </div>
+
+  <div class="container">
+    <div class="settings-shell">
+
+      <aside class="settings-sidebar">
+        <div class="sidebar-brand">
+          <svg width="36" height="36" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="44" height="44" rx="11" fill="url(#topLogoGrad)"/>
+            <path d="M14 10L14 34M14 22L30 10M14 22L30 34" stroke="rgba(255,255,255,0.95)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
             <defs>
-              <linearGradient id="optLogoGrad" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+              <linearGradient id="topLogoGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stop-color="#E68B6D"/>
                 <stop offset="100%" stop-color="#C86748"/>
               </linearGradient>
             </defs>
           </svg>
-        <h1 class="kin-options-title">Kin</h1>
-        <span class="kin-options-divider">/</span>
-        <span class="kin-options-page">设置</span>
-      </div>
-      <div class="kin-options-header-right">
-        <span class="kin-version-tag">v1.0.0</span>
-      </div>
-    </header>
-
-    <div class="kin-options-body">
-
-      <!-- Sidebar Navigation -->
-      <nav class="kin-sidebar">
-        <div class="kin-sidebar-group">
-          <div class="kin-sidebar-group-title">核心功能</div>
-          <button class="kin-nav-link active" data-tab="translation">
-            <svg class="kin-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/></svg>
-            <span>翻译设置</span>
-          </button>
-          <button class="kin-nav-link" data-tab="style">
-            <svg class="kin-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-            <span>翻译样式</span>
-          </button>
+          <div>
+            <strong>Kin (金)</strong>
+            <p>Beyond Word. Into Meaning.</p>
+          </div>
         </div>
-
-        <div class="kin-sidebar-group">
-          <div class="kin-sidebar-group-title">高级</div>
-          <button class="kin-nav-link" data-tab="reader">
-            <svg class="kin-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            <span>阅读器</span>
+        <nav class="settings-nav">
+          <button class="settings-tab active" data-tab="translation">
+            <span class="settings-tab-title">翻译</span>
+            <span class="settings-tab-desc">翻译服务相关配置</span>
           </button>
-          <button class="kin-nav-link" data-tab="rules">
-            <svg class="kin-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 24V1"/><path d="M20 24V9"/><path d="M4 13h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H8"/></svg>
-            <span>页面规则</span>
+          <button class="settings-tab" data-tab="appearance">
+            <span class="settings-tab-title">外观</span>
+            <span class="settings-tab-desc">样式、显示模式</span>
           </button>
-        </div>
-
-        <div class="kin-sidebar-group">
-          <button class="kin-nav-link" data-tab="about">
-            <svg class="kin-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            <span>关于</span>
+          <button class="settings-tab" data-tab="reader">
+            <span class="settings-tab-title">沉浸阅读</span>
+            <span class="settings-tab-desc">主题、导出</span>
           </button>
-        </div>
+          <button class="settings-tab" data-tab="rules">
+            <span class="settings-tab-title">网站规则</span>
+            <span class="settings-tab-desc">自动翻译规则</span>
+          </button>
+          <button class="settings-tab" data-tab="data">
+            <span class="settings-tab-title">数据管理</span>
+            <span class="settings-tab-desc">备份、缓存、重置</span>
+          </button>
+        </nav>
+      </aside>
 
-      </nav>
+      <main class="settings-main">
 
-      <!-- Content Area -->
-      <main class="kin-content">
+        <!-- ========== Panel: Translation ========== -->
+        <section class="settings-panel active" id="panel-translation" data-panel="translation">
 
-        <!-- ========== Tab: Translation ========== -->
-        <section class="kin-tab active" id="tab-translation">
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">翻译引擎</div>
-              <div class="kin-nav-desc" id="engineHint">免费引擎无需配置即可使用</div>
+          <div class="section">
+            <div class="section-header">
+              <div>
+                <div class="section-label">翻译服务配置</div>
+              </div>
+              <button class="btn-primary" id="btnSaveProvider">保存</button>
             </div>
-            <div class="kin-nav-control">
-              <select class="kin-select" id="optEngine">
-                <optgroup label="免费 (无需配置)" id="optFreeEngines"></optgroup>
-                <optgroup label="API 引擎 (需要 API Key)" id="optApiEngines"></optgroup>
-              </select>
-            </div>
-          </div>
-
-          <!-- Summary status line -->
-          <div class="kin-summary-note" id="activeSummaryLine">当前: Google Translate / 简体中文</div>
-
-          <!-- Provider Config (dynamically rendered) -->
-          <div class="kin-provider-config" id="providerConfig"></div>
-
-          <!-- Save toolbar -->
-          <div class="kin-save-toolbar" id="saveToolbar" style="display:none;">
-            <div class="kin-save-copy">
-              <div class="kin-save-title">翻译服务设置需要手动保存</div>
-              <div class="kin-save-desc">修改 API Key、模型或端点后，点击保存按钮才会生效</div>
-            </div>
-            <button class="kin-btn-primary" id="btnSaveProvider">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-              </svg>
-              <span>保存翻译设置</span>
-            </button>
-          </div>
-          <div class="kin-save-status" id="saveStatus">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            <span id="saveStatusText">已保存</span>
-          </div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">源语言</div>
-            </div>
-            <div class="kin-nav-control">
-              <select class="kin-select" id="optSourceLang" style="width:160px"></select>
-            </div>
-          </div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">目标语言</div>
-            </div>
-            <div class="kin-nav-control">
-              <select class="kin-select" id="optTargetLang" style="width:160px"></select>
-            </div>
-          </div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">翻译风格</div>
-              <div class="kin-nav-desc">仅限大模型引擎</div>
-            </div>
-            <div class="kin-nav-control">
-              <select class="kin-select" id="optTranslationStyle" style="width:160px">
-                <option value="">默认</option>
-                <option value="colloquial">口语化</option>
-                <option value="academic">学术严谨</option>
-                <option value="literary">文学优美</option>
-                <option value="concise">简洁明快</option>
-                <option value="news">新闻报道</option>
-                <option value="custom">自定义...</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="kin-form-group" id="customPromptGroup" style="display:none">
-            <label>自定义翻译提示词</label>
-            <textarea class="kin-textarea" id="optCustomPrompt" rows="3" placeholder="例如：请将以下文本翻译为简体中文，使用 IT 行业专业术语..."></textarea>
-            <p class="kin-hint">此提示词将作为系统指令发送给大模型</p>
-          </div>
-
-          <!-- Feature Toggles -->
-          <div class="kin-section-divider"></div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">悬浮翻译</div>
-              <div class="kin-nav-desc">鼠标悬停在段落后自动翻译</div>
-            </div>
-            <div class="kin-nav-control">
-              <label class="kin-switch">
-                <input type="checkbox" id="optHoverTranslate">
-                <span class="kin-switch-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="kin-sub-options" id="hoverOptions">
-            <label class="kin-radio-label"><input type="radio" name="hoverTrigger" value="ctrl" checked> Ctrl/Cmd + 悬停</label>
-            <label class="kin-radio-label"><input type="radio" name="hoverTrigger" value="direct"> 直接悬停</label>
-          </div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">划词翻译</div>
-              <div class="kin-nav-desc">选中文字后点击翻译图标即可翻译</div>
-            </div>
-            <div class="kin-nav-control">
-              <label class="kin-switch">
-                <input type="checkbox" id="optSelectionTranslate">
-                <span class="kin-switch-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">敏感信息屏蔽</div>
-              <div class="kin-nav-desc">翻译时自动屏蔽手机号、银行卡号等敏感信息</div>
-            </div>
-            <div class="kin-nav-control">
-              <label class="kin-switch">
-                <input type="checkbox" id="optSensitiveMask">
-                <span class="kin-switch-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">关闭模型推理</div>
-              <div class="kin-nav-desc">对 LLM 翻译禁用思考/推理（Gemini、Qwen 等），更快速、省 Token、减少截断</div>
-            </div>
-            <div class="kin-nav-control">
-              <label class="kin-switch">
-                <input type="checkbox" id="optDisableReasoning">
-                <span class="kin-switch-slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Test Translation -->
-          <div class="kin-section-divider"></div>
-          <div class="kin-test-card">
-            <div class="kin-test-header">
-              <span class="kin-test-label">测试翻译</span>
-              <button class="kin-btn-test" id="btnTestTranslate">测试</button>
-            </div>
-            <div class="kin-form-group">
-              <label>示例文本</label>
-              <textarea class="kin-textarea" id="testInput" rows="3" placeholder="输入要测试翻译的文本">The rapid advancement of artificial intelligence has sparked intense debate about the future of work.</textarea>
-              <p class="kin-hint">使用当前表单中的设置进行翻译测试（无需先保存）</p>
-            </div>
-            <div class="kin-test-result" id="testResult"></div>
-          </div>
-        </section>
-
-        <!-- ========== Tab: Style ========== -->
-        <section class="kin-tab" id="tab-style">
-          <h2>翻译样式</h2>
-          <p class="kin-tab-desc">选择翻译文本在页面中的展示方式</p>
-
-          <div class="kin-theme-preview">
-            <div class="kin-theme-preview-label">预览效果</div>
-            <div class="kin-theme-preview-box" id="themePreview">
-              <p class="kin-preview-original">The rapid advancement of artificial intelligence has sparked intense debate about the future of work. As machines become increasingly capable of performing tasks once thought to require uniquely human skills, many wonder whether entire professions will disappear or simply evolve.</p>
-              <p class="kin-preview-translation kin-theme-underline">人工智能的快速发展引发了关于工作未来的激烈讨论。随着机器越来越能够完成曾经被认为需要人类独特技能的任务，许多人担心整个职业会消失，还是仅仅会进化。</p>
-            </div>
-          </div>
-
-          <div class="kin-section-divider"></div>
-
-          <div class="kin-theme-grid" id="themeGrid"></div>
-
-          <div class="kin-section-divider"></div>
-
-          <div class="kin-section-title">显示模式</div>
-          <div class="kin-form-group">
-            <div class="kin-radio-cards">
-              <label class="kin-radio-card">
-                <input type="radio" name="translationMode" value="dual" checked>
-                <div class="kin-radio-card-body">
-                  <strong>双语对照</strong>
-                  <p>同时显示原文和译文</p>
+            <div class="card">
+              <div class="config-card">
+                <!-- 快速设置 -->
+                <div class="summary-grid">
+                  <div class="field">
+                    <label class="field-label">翻译引擎</label>
+                    <select class="input" id="optEngine">
+                      <optgroup label="免费 (无需配置)" id="optFreeEngines"></optgroup>
+                      <optgroup label="API 引擎 (需要 API Key)" id="optApiEngines"></optgroup>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">源语言</label>
+                    <select class="input" id="optSourceLang"></select>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">目标语言</label>
+                    <select class="input" id="optTargetLang"></select>
+                  </div>
+                  <div class="field">
+                    <label class="field-label">翻译风格</label>
+                    <select class="input" id="optTranslationStyle">
+                      <option value="">默认</option>
+                      <option value="colloquial">口语化</option>
+                      <option value="academic">学术严谨</option>
+                      <option value="literary">文学优美</option>
+                      <option value="concise">简洁明快</option>
+                      <option value="news">新闻报道</option>
+                      <option value="custom">自定义...</option>
+                    </select>
+                  </div>
                 </div>
-              </label>
-              <label class="kin-radio-card">
-                <input type="radio" name="translationMode" value="translation">
-                <div class="kin-radio-card-body">
-                  <strong>仅显示译文</strong>
-                  <p>隐藏原文，只保留翻译</p>
+                <hr class="config-divider">
+
+                <!-- 引擎配置 -->
+                <div id="providerConfig"></div>
+
+                <hr class="config-divider">
+
+                <!-- 测试翻译 -->
+                <div class="test-bar">
+                  <textarea class="input input-multiline" id="testInput" rows="1" placeholder="输入要测试翻译的文本">Hello world. This is a translation test.</textarea>
+                  <button class="btn-secondary" id="btnTestTranslate">测试</button>
                 </div>
-              </label>
-            </div>
-          </div>
-        </section>
-
-        <!-- ========== Tab: Reader ========== -->
-        <section class="kin-tab" id="tab-reader">
-
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">深度阅读模式</div>
-              <div class="kin-nav-desc">启用后，在支持的新闻站文章页将显示阅读器入口</div>
-            </div>
-            <div class="kin-nav-control">
-              <label class="kin-switch">
-                <input type="checkbox" id="optReaderEnabled">
-                <span class="kin-switch-slider"></span>
-              </label>
+                <div class="test-result" id="testResult"></div>
+              </div>
             </div>
           </div>
 
-          <div class="kin-reader-settings" id="readerSettings" style="display:none">
-
-            <div class="kin-nav-row">
-              <div class="kin-nav-label">
-                <div class="kin-nav-title">阅读器主题</div>
-              </div>
-              <div class="kin-nav-control">
-                <select class="kin-select" id="optReaderTheme" style="width:160px">
-                  <option value="default">Kin (金色暖调)</option>
-                  <option value="classic">Classic (黑白经典)</option>
-                </select>
+          <div class="section" id="customPromptSection" style="display:none">
+            <div class="section-header">
+              <div class="section-label">自定义提示词</div>
+              <div class="section-desc">此提示词将作为系统指令发送给大模型</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div class="field">
+                  <textarea class="input input-multiline" id="optCustomPrompt" rows="3" placeholder="例如：请将以下文本翻译为简体中文，使用 IT 行业专业术语..."></textarea>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div class="kin-nav-row">
-              <div class="kin-nav-label">
-                <div class="kin-nav-title">截图格式</div>
-              </div>
-              <div class="kin-nav-control">
-                <select class="kin-select" id="optExportFormat" style="width:140px">
-                  <option value="jpeg">JPEG (较小)</option>
-                  <option value="png">PNG (高清)</option>
-                </select>
-              </div>
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">全局翻译偏好设置</div>
             </div>
-
-            <div class="kin-nav-row">
-              <div class="kin-nav-label">
-                <div class="kin-nav-title">导出质量</div>
-              </div>
-              <div class="kin-nav-control">
-                <select class="kin-select" id="optExportQuality" style="width:140px">
-                  <option value="balanced">均衡</option>
-                  <option value="high">高质量</option>
-                  <option value="small">小体积</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="kin-nav-row">
-              <div class="kin-nav-label">
-                <div class="kin-nav-title">长文分段截图</div>
-                <div class="kin-nav-desc">超长文章将自动分段导出为多张图片</div>
-              </div>
-              <div class="kin-nav-control">
-                <label class="kin-switch">
-                  <input type="checkbox" id="optMultiImage">
-                  <span class="kin-switch-slider"></span>
+            <div class="card">
+              <div class="config-card">
+                <label class="toggle-row">
+                  <span class="toggle-label">
+                    <span>悬浮翻译</span>
+                    <span class="toggle-desc">鼠标悬停在段落后自动翻译</span>
+                  </span>
+                  <input type="checkbox" class="toggle-switch" id="optHoverTranslate">
+                </label>
+                <div class="sub-options" id="hoverOptions">
+                  <label class="sub-radio"><input type="radio" name="hoverTrigger" value="ctrl" checked> Ctrl/Cmd + 悬停</label>
+                  <label class="sub-radio"><input type="radio" name="hoverTrigger" value="direct"> 直接悬停</label>
+                </div>
+                <label class="toggle-row">
+                  <span class="toggle-label">
+                    <span>划词翻译</span>
+                    <span class="toggle-desc">选中文字后点击翻译图标即可翻译</span>
+                  </span>
+                  <input type="checkbox" class="toggle-switch" id="optSelectionTranslate">
+                </label>
+                <label class="toggle-row">
+                  <span class="toggle-label">
+                    <span>敏感信息屏蔽</span>
+                    <span class="toggle-desc">翻译时自动屏蔽手机号、银行卡号等敏感信息</span>
+                  </span>
+                  <input type="checkbox" class="toggle-switch" id="optSensitiveMask">
+                </label>
+                <label class="toggle-row">
+                  <span class="toggle-label">
+                    <span>关闭模型推理</span>
+                    <span class="toggle-desc">对 LLM 翻译禁用思考/推理，更快速、省 Token、减少截断</span>
+                  </span>
+                  <input type="checkbox" class="toggle-switch" id="optDisableReasoning">
                 </label>
               </div>
             </div>
           </div>
 
-          <div class="kin-section-divider"></div>
+        </section>
 
-          <div class="kin-supported-sites">
-            <div class="kin-section-title">支持的新闻站</div>
-            <div class="kin-site-tags">
-              <span class="kin-site-tag">Bloomberg</span>
-              <span class="kin-site-tag">WSJ</span>
-              <span class="kin-site-tag">New York Times</span>
-              <span class="kin-site-tag">Financial Times</span>
-              <span class="kin-site-tag">The Economist</span>
-              <span class="kin-site-tag">SCMP</span>
-              <span class="kin-site-tag">The New Yorker</span>
+        <!-- ========== Panel: Appearance ========== -->
+        <section class="settings-panel" id="panel-appearance" data-panel="appearance" hidden>
+
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">翻译样式</div>
+              <div class="section-desc">选择翻译文本在页面中的展示方式</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div class="field">
+                  <div class="theme-preview">
+                    <div class="theme-preview-label">预览效果</div>
+                    <div class="theme-preview-box" id="themePreview">
+                      <p class="preview-original">The rapid advancement of artificial intelligence has sparked intense debate about the future of work. As machines become increasingly capable of performing tasks once thought to require uniquely human skills, many wonder whether entire professions will disappear or simply evolve.</p>
+                      <p class="preview-translation theme-underline">人工智能的快速发展引发了关于工作未来的激烈讨论。随着机器越来越能够完成曾经被认为需要人类独特技能的任务，许多人担心整个职业会消失，还是仅仅会进化。</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="theme-grid" id="themeGrid"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">显示模式</div>
+              <div class="section-desc">控制原文和译文的显示方式</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div class="radio-cards">
+                  <label class="radio-card">
+                    <input type="radio" name="translationMode" value="dual" checked>
+                    <div class="radio-card-body">
+                      <strong>双语对照</strong>
+                      <p>同时显示原文和译文</p>
+                    </div>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="translationMode" value="translation">
+                    <div class="radio-card-body">
+                      <strong>仅显示译文</strong>
+                      <p>隐藏原文，只保留翻译</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- ========== Tab: Rules ========== -->
-        <section class="kin-tab" id="tab-rules">
-          <h2>页面规则</h2>
-          <p class="kin-tab-desc">控制哪些网站自动翻译或永不翻译</p>
+        <!-- ========== Panel: Reader ========== -->
+        <section class="settings-panel" id="panel-reader" data-panel="reader" hidden>
 
-          <div class="kin-form-group">
-            <div class="kin-section-title">始终翻译的网站</div>
-            <p class="kin-hint">访问以下网站时自动翻译页面</p>
-            <div class="kin-rule-list" id="alwaysTranslateList"></div>
-            <div class="kin-rule-add">
-              <input type="text" class="kin-input" id="addAlwaysUrl" placeholder="例如: twitter.com">
-              <button class="kin-btn-small" id="btnAddAlways">添加</button>
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">沉浸阅读</div>
+              <div class="section-desc">阅读风格、参数设置</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <label class="toggle-row">
+                  <span class="toggle-label">
+                    <span>沉浸阅读模式</span>
+                    <span class="toggle-desc">启用后，在支持的新闻资讯站点将不按普通翻译显示页面，而是进入沉浸翻译页面阅读新闻资讯和导出内容</span>
+                  </span>
+                  <input type="checkbox" class="toggle-switch" id="optReaderEnabled">
+                </label>
+              </div>
             </div>
           </div>
 
-          <div class="kin-form-group">
-            <div class="kin-section-title">永不翻译的网站</div>
-            <p class="kin-hint">以下网站将不会触发翻译</p>
-            <div class="kin-rule-list" id="neverTranslateList"></div>
-            <div class="kin-rule-add">
-              <input type="text" class="kin-input" id="addNeverUrl" placeholder="例如: github.com">
-              <button class="kin-btn-small" id="btnAddNever">添加</button>
+          <div class="section" id="readerSettings" style="display:none">
+            <div class="section-header">
+              <div class="section-label">导出设置</div>
+              <div class="section-desc">截图和导出配置</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div class="field">
+                  <label class="field-label">阅读器主题</label>
+                  <select class="input" id="optReaderTheme">
+                    <option value="default">Kin (金色暖调)</option>
+                    <option value="classic">Classic (黑白经典)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">截图格式</label>
+                  <select class="input" id="optExportFormat">
+                    <option value="jpeg">JPEG (较小)</option>
+                    <option value="png">PNG (高清)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">导出质量</label>
+                  <select class="input" id="optExportQuality">
+                    <option value="balanced">均衡</option>
+                    <option value="high">高质量</option>
+                    <option value="small">小体积</option>
+                  </select>
+                </div>
+                <label class="toggle-row">
+                  <span class="toggle-label">
+                    <span>超长文分段截图</span>
+                    <span class="toggle-desc">超长文章将自动分段导出为多张图片</span>
+                  </span>
+                  <input type="checkbox" class="toggle-switch" id="optMultiImage">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">支持的新闻站</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div class="site-tags">
+                  <span class="site-tag">Bloomberg</span>
+                  <span class="site-tag">WSJ</span>
+                  <span class="site-tag">New York Times</span>
+                  <span class="site-tag">Financial Times</span>
+                  <span class="site-tag">The Economist</span>
+                  <span class="site-tag">SCMP</span>
+                  <span class="site-tag">The New Yorker</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- ========== Tab: About ========== -->
-        <section class="kin-tab" id="tab-about">
+        <!-- ========== Panel: Rules ========== -->
+        <section class="settings-panel" id="panel-rules" data-panel="rules" hidden>
 
-          <div class="kin-about-card">
-            <svg class="kin-about-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="44" height="44" rx="11" fill="url(#aboutLogoGrad)"/>
-              <path d="M14 10L14 34M14 22L30 10M14 22L30 34"
-                    stroke="rgba(255,255,255,0.95)" stroke-width="3.2"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-              <defs>
-                <linearGradient id="aboutLogoGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#E68B6D"/>
-                  <stop offset="100%" stop-color="#C86748"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div>
-              <strong>Kin (金)</strong>
-              <p>Beyond Word. Into Meaning. — v1.0.0</p>
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">网站规则</div>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div class="field">
+                  <label class="field-label">始终翻译的网站</label>
+                  <p class="field-hint">访问以下网站时自动翻译页面</p>
+                  <div class="rule-list" id="alwaysTranslateList"></div>
+                  <div class="rule-add">
+                    <input type="text" class="input" id="addAlwaysUrl" placeholder="例如: twitter.com">
+                    <button class="btn-secondary" id="btnAddAlways">添加</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="kin-section-title">快捷键</div>
-          <div class="kin-shortcuts">
-            <div class="kin-shortcut-row"><kbd>Alt+A</kbd><span>翻译 / 取消翻译当前页面</span></div>
-            <div class="kin-shortcut-row"><kbd>Alt+S</kbd><span>切换双语对照 / 仅译文</span></div>
-            <div class="kin-shortcut-row"><kbd>Alt+R</kbd><span>进入 / 退出阅读模式</span></div>
-          </div>
-
-          <div class="kin-section-divider"></div>
-
-          <div class="kin-section-title">缓存管理</div>
-          <div class="kin-nav-row">
-            <div class="kin-nav-label">
-              <div class="kin-nav-title">翻译缓存</div>
-            </div>
-            <div class="kin-nav-control">
-              <span class="kin-cache-value" id="cacheStats">计算中...</span>
+          <div class="card" style="margin-top: 16px;">
+            <div class="config-card">
+              <div class="field">
+                <label class="field-label">永不翻译的网站</label>
+                <p class="field-hint">以下网站将不会触发翻译</p>
+                <div class="rule-list" id="neverTranslateList"></div>
+                <div class="rule-add">
+                  <input type="text" class="input" id="addNeverUrl" placeholder="例如: github.com">
+                  <button class="btn-secondary" id="btnAddNever">添加</button>
+                </div>
+              </div>
             </div>
           </div>
-          <div style="margin-top:8px">
-            <button class="kin-btn-secondary" id="btnClearCache">清除缓存</button>
+        </section>
+
+        <!-- ========== Panel: Data ========== -->
+        <section class="settings-panel" id="panel-data" data-panel="data" hidden>
+
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">备份与恢复</div>
+              <div class="section-desc">导出和导入加密备份</div>
+            </div>
+            <div class="card">
+              <div class="card-row">
+                <div>
+                  <div class="card-row-label">导出加密备份</div>
+                  <div class="card-row-desc">保存所有设置到加密的备份文件</div>
+                </div>
+                <button class="btn-secondary" id="btnExportBackup">导出</button>
+              </div>
+              <div class="card-row">
+                <div>
+                  <div class="card-row-label">导入加密备份</div>
+                  <div class="card-row-desc">从备份文件恢复所有设置</div>
+                </div>
+                <button class="btn-secondary" id="btnImportBackup">导入</button>
+              </div>
+            </div>
           </div>
 
-          <div class="kin-section-divider"></div>
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">翻译缓存</div>
+              <div class="section-desc">管理翻译缓存数据</div>
+            </div>
+            <div class="card">
+              <div class="card-row">
+                <div>
+                  <div class="card-row-label">缓存条目</div>
+                  <div class="card-row-desc" id="cacheStats">计算中...</div>
+                </div>
+                <button class="btn-secondary" id="btnClearCache">清除缓存</button>
+              </div>
+            </div>
+          </div>
 
-          <div class="kin-section-title">数据管理</div>
-          <div class="kin-btn-row">
-            <button class="kin-btn-secondary" id="btnExportBackup">导出加密备份</button>
-            <button class="kin-btn-secondary" id="btnImportBackup">导入加密备份</button>
-          </div>
-          <div class="kin-btn-row" style="margin-top:8px">
-            <button class="kin-btn-danger" id="btnClearHistory">清空阅读历史</button>
+          <div class="section">
+            <div class="section-header">
+              <div class="section-label">阅读历史</div>
+              <div class="section-desc">清空阅读历史记录</div>
+            </div>
+            <div class="card danger">
+              <div class="card-row">
+                <div>
+                  <div class="card-row-label">清空全部阅读历史</div>
+                  <div class="card-row-desc">此操作不可撤销</div>
+                </div>
+                <button class="btn-danger" id="btnClearHistory">清空</button>
+              </div>
+            </div>
           </div>
 
-          <div class="kin-about-footer">
-            <button class="kin-btn-danger" id="btnResetAll">重置所有设置</button>
+          <div class="section danger-zone">
+            <div class="section-header">
+              <div class="section-label">危险操作</div>
+              <div class="section-desc">重置所有数据和设置</div>
+            </div>
+            <div class="card danger">
+              <div class="card-row">
+                <div>
+                  <div class="card-row-label">重置所有数据与设置</div>
+                  <div class="card-row-desc">此操作不可撤销，将清除所有配置</div>
+                </div>
+                <button class="btn-danger" id="btnResetAll">重置</button>
+              </div>
+            </div>
           </div>
+
         </section>
 
       </main>
     </div>
   </div>
 
-  <!-- Backup password modal -->
-  <div class="kin-modal-overlay" id="backupModal" style="display:none">
-    <div class="kin-modal">
-      <h3 id="modalTitle">加密备份</h3>
-      <input type="password" class="kin-input" id="modalPassword" placeholder="输入密码">
-      <div class="kin-modal-btns">
-        <button class="kin-btn-secondary" id="modalCancel">取消</button>
-        <button class="kin-btn-primary" id="modalConfirm">确认</button>
+  <!-- Backup Modal -->
+  <div class="backup-modal" id="backupModal" style="display:none;">
+    <div class="backup-modal-box">
+      <div class="backup-modal-header" id="modalTitle">加密备份</div>
+      <div class="backup-modal-field">
+        <label class="field-label">密码</label>
+        <input type="password" class="input" id="modalPassword" placeholder="输入密码">
+      </div>
+      <div class="backup-modal-actions">
+        <button class="btn-secondary" id="modalCancel">取消</button>
+        <button class="btn-save" id="modalConfirm">确认</button>
       </div>
     </div>
   </div>

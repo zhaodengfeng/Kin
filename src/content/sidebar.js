@@ -39,11 +39,23 @@ const KinSidebar = {
     this.panel.innerHTML = `
       <div class="kin-sidebar-header">
         <div class="kin-sidebar-brand">
-          <span class="kin-sidebar-logo">K</span>
-          <span class="kin-sidebar-title">Kin</span>
+          <svg width="32" height="32" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="44" height="44" rx="11" fill="url(#sidebarGrad)"/>
+            <path d="M14 10L14 34M14 22L30 10M14 22L30 34" stroke="rgba(255,255,255,0.95)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="sidebarGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#E68B6D"/>
+                <stop offset="100%" stop-color="#C86748"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div>
+            <div class="kin-sidebar-title">Kin (金)</div>
+            <div class="kin-sidebar-subtitle">快速翻译</div>
+          </div>
         </div>
         <button class="kin-sidebar-close" title="关闭">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
 
@@ -60,37 +72,37 @@ const KinSidebar = {
           </button>
         </div>
 
-        <!-- Divider -->
-        <div class="kin-sidebar-divider"><span>快速翻译</span></div>
-
         <!-- Quick translate -->
-        <div class="kin-sidebar-translate-box">
-          <textarea class="kin-sidebar-input" placeholder="输入文字，按 Ctrl+Enter 翻译..." rows="2"></textarea>
-          <div class="kin-sidebar-translate-row">
-            <select class="kin-sidebar-mini-select" id="kin-sidebar-lang"></select>
-            <button class="kin-sidebar-go-btn">翻译</button>
-          </div>
-          <div class="kin-sidebar-result" style="display:none">
-            <div class="kin-sidebar-result-text"></div>
-            <button class="kin-sidebar-copy-btn" title="复制译文">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              复制
-            </button>
+        <div class="kin-sidebar-card">
+          <div class="kin-sidebar-section-title">快速翻译</div>
+          <div class="kin-sidebar-translate-box">
+            <textarea class="kin-sidebar-input" placeholder="输入文字，按 Ctrl+Enter 翻译..." rows="2"></textarea>
+            <div class="kin-sidebar-translate-row">
+              <select class="kin-sidebar-mini-select" id="kin-sidebar-lang"></select>
+              <button class="kin-sidebar-go-btn">翻译</button>
+            </div>
+            <div class="kin-sidebar-result" style="display:none">
+              <div class="kin-sidebar-result-text"></div>
+              <button class="kin-sidebar-copy-btn" title="复制译文">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                复制
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Divider -->
-        <div class="kin-sidebar-divider"><span>设置</span></div>
-
-        <!-- Compact settings -->
-        <div class="kin-sidebar-settings-grid">
-          <div class="kin-sidebar-field">
-            <label>引擎</label>
-            <select class="kin-sidebar-mini-select" id="kin-sidebar-engine"></select>
-          </div>
-          <div class="kin-sidebar-field">
-            <label>样式</label>
-            <select class="kin-sidebar-mini-select" id="kin-sidebar-theme"></select>
+        <!-- Settings -->
+        <div class="kin-sidebar-card">
+          <div class="kin-sidebar-section-title">偏好设置</div>
+          <div class="kin-sidebar-settings-grid">
+            <div class="kin-sidebar-field">
+              <label>翻译引擎</label>
+              <select class="kin-sidebar-mini-select" id="kin-sidebar-engine"></select>
+            </div>
+            <div class="kin-sidebar-field">
+              <label>显示样式</label>
+              <select class="kin-sidebar-mini-select" id="kin-sidebar-theme"></select>
+            </div>
           </div>
         </div>
 

@@ -1,12 +1,17 @@
 // Kin Options Page Script — Hash routing + Immersive redesign
 document.addEventListener('DOMContentLoaded', async () => {
   // ========== Hash-based Tab Navigation ==========
-  const navBtns = document.querySelectorAll('.kin-nav-link');
-  const tabs = document.querySelectorAll('.kin-tab');
+  const navBtns = document.querySelectorAll('.settings-tab');
+  const tabs = document.querySelectorAll('.settings-panel');
 
   function activateTab(tabName) {
     navBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
-    tabs.forEach(t => t.classList.toggle('active', t.id === 'tab-' + tabName));
+    tabs.forEach(t => {
+      const isActive = t.dataset.panel === tabName;
+      t.classList.toggle('active', isActive);
+      if (isActive) t.removeAttribute('hidden');
+      else t.setAttribute('hidden', '');
+    });
   }
 
   function getCurrentHash() {
@@ -27,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initial activation from hash
   activateTab(getCurrentHash());
+
 
   // ========== Load Settings ==========
   const settings = await new Promise(resolve => {
@@ -52,11 +58,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await applySettings(settings);
 
+  // Reveal UI after settings loaded
+  document.body.classList.remove('settings-booting');
+
   // ========== Translation Tab ==========
   const optEngine = document.getElementById('optEngine');
   const providerConfig = document.getElementById('providerConfig');
-  const engineHint = document.getElementById('engineHint');
-  const activeSummaryLine = document.getElementById('activeSummaryLine');
+  const engineHint = document.getElementById('engineHint'); // may be null in new UI
   const saveStatus = document.getElementById('saveStatus');
   const saveStatusText = document.getElementById('saveStatusText');
 
@@ -106,15 +114,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (info.type === 'free') {
       _container.innerHTML = `
-        <div class="kin-config-card">
-          <div class="no-config">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            <div style="font-weight:500; color:var(--kin-text-secondary); margin-bottom:4px;">${info.name}</div>
-            <div style="font-size:12px; color:var(--kin-text-tertiary);">免费引擎无需配置即可使用</div>
-          </div>
+        <div class="no-config">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <div style="font-weight:500; color:var(--kin-text-secondary); margin-bottom:4px;">${info.name}</div>
+          <div style="font-size:12px; color:var(--kin-text-tertiary);">免费引擎无需配置即可使用</div>
         </div>`;
       return;
     }
@@ -124,13 +130,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const savedEndpoint = savedConfig?.endpoint || info.endpoint || '';
     const savedPlan = savedConfig?.plan || getDeepLPlanFromEndpoint(savedEndpoint);
 
+    const eyeOpenSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    const eyeOffSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
     let fieldsHtml = `
-      <div class="kin-form-group">
-        <label>API Key${info.type === 'deepl' ? 's' : ''} <span class="kin-required">*</span></label>
+      <div class="field">
+        <label>API Key${info.type === 'deepl' ? 's' : ''} <span class="required">*</span></label>
+        <div class="input-wrap">
+          ${info.type === 'deepl'
+            ? `<textarea class="input input-multiline input-masked" id="cfg_apiKey" rows="3" placeholder="每行一个 API Key">${escapeAttr(savedApiKey)}</textarea>`
+            : `<input type="password" class="input input-masked" id="cfg_apiKey" value="${escapeAttr(savedApiKey)}" placeholder="输入 API Key">`
+          }
+          <button type="button" class="toggle-visible" id="btnToggleKeyVisibility" title="显示/隐藏">
+            ${eyeOpenSvg}
+          </button>
+        </div>
         ${info.type === 'deepl'
-          ? `<textarea class="kin-textarea" id="cfg_apiKey" rows="3" placeholder="每行一个 API Key">${escapeAttr(savedApiKey)}</textarea>
-             <p class="kin-hint">每行一个 Key，当某个 Key 额度用尽时自动切换到下一个</p>`
-          : `<input type="password" class="kin-input" id="cfg_apiKey" value="${escapeAttr(savedApiKey)}" placeholder="输入 API Key">`
+          ? `<p class="field-hint">每行一个 Key，当某个 Key 额度用尽时自动切换到下一个</p>`
+          : ``
         }
       </div>`;
 
@@ -139,82 +156,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedModel = info.models.includes(savedModel) ? savedModel : (info.model || info.models[0] || '');
         const customModel = info.models.includes(savedModel) ? '' : savedModel;
         fieldsHtml += `
-          <div class="kin-form-group">
+          <div class="field">
             <label>预设模型</label>
-            <select class="kin-select" id="cfg_model">
+            <select class="input" id="cfg_model">
               ${info.models.map(model => `<option value="${escapeAttr(model)}" ${model === selectedModel ? 'selected' : ''}>${escapeAttr(model)}</option>`).join('')}
             </select>
-            <p class="kin-hint">选择一个预设模型，或在下方的自定义模型中覆盖</p>
+            <p class="field-hint">选择一个预设模型，或在下方的自定义模型中覆盖</p>
           </div>
-          <div class="kin-form-group">
+          <div class="field">
             <label>自定义模型名称</label>
-            <input type="text" class="kin-input" id="cfg_model_custom" value="${escapeAttr(customModel)}" placeholder="可选：输入自定义模型名称">
-            <p class="kin-hint">留空则使用预设模型。如果填写，该值将优先使用</p>
+            <input type="text" class="input" id="cfg_model_custom" value="${escapeAttr(customModel)}" placeholder="可选：输入自定义模型名称">
+            <p class="field-hint">留空则使用预设模型。如果填写，该值将优先使用</p>
           </div>`;
       } else {
         fieldsHtml += `
-          <div class="kin-form-group">
+          <div class="field">
             <label>模型名称</label>
-            <input type="text" class="kin-input" id="cfg_model" value="${escapeAttr(savedModel)}" placeholder="输入模型名称">
+            <input type="text" class="input" id="cfg_model" value="${escapeAttr(savedModel)}" placeholder="输入模型名称">
           </div>`;
       }
     }
 
     if (info.type === 'deepl') {
       fieldsHtml += `
-        <div class="kin-form-group">
+        <div class="field">
           <label>API Plan</label>
-          <select class="kin-select" id="cfg_deeplPlan">
+          <select class="input" id="cfg_deeplPlan">
             <option value="free" ${savedPlan === 'free' ? 'selected' : ''}>Free API (api-free.deepl.com)</option>
             <option value="pro" ${savedPlan === 'pro' ? 'selected' : ''}>Pro API (api.deepl.com)</option>
           </select>
-          <p class="kin-hint">Free 使用 api-free.deepl.com，Pro 使用 api.deepl.com</p>
-        </div>
-        <details class="kin-advanced-block">
-          <summary>高级设置</summary>
-          <div class="kin-advanced-content">
-            <div class="kin-form-group">
-              <label>API Endpoint</label>
-              <input type="text" class="kin-input" id="cfg_endpoint" value="${escapeAttr(getDeepLEndpointFromPlan(savedPlan))}" readonly>
-              <p class="kin-hint">端点根据选择的 DeepL Plan 自动确定</p>
-            </div>
-          </div>
-        </details>`;
-    } else {
-      const endpointHint = info.endpoint
-        ? '保持默认值即可，除非需要使用自定义端点'
-        : '自定义服务商必填';
+          <p class="field-hint">Free 使用 api-free.deepl.com，Pro 使用 api.deepl.com</p>
+        </div>`;
+    } else if (!info.endpoint) {
       fieldsHtml += `
-        <details class="kin-advanced-block">
-          <summary>高级设置</summary>
-          <div class="kin-advanced-content">
-            <div class="kin-form-group">
-              <label>API Endpoint</label>
-              <input type="text" class="kin-input" id="cfg_endpoint" value="${escapeAttr(savedEndpoint)}" placeholder="${escapeAttr(info.endpoint || '输入 API 端点')}">
-              <p class="kin-hint">${endpointHint}</p>
-            </div>
-          </div>
-        </details>`;
+        <div class="field">
+          <label>API Endpoint</label>
+          <input type="text" class="input" id="cfg_endpoint" value="${escapeAttr(savedEndpoint)}" placeholder="${escapeAttr(info.endpoint || '输入 API 端点')}">
+          <p class="field-hint">自定义服务商必填</p>
+        </div>`;
     }
 
-    const typeLabel = info.type === 'openai'
-      ? 'OpenAI-Compatible API'
-      : info.type === 'claude'
-        ? 'Claude API'
-        : info.type === 'deepl'
-          ? 'DeepL API'
-          : '';
-
-    _container.innerHTML = `
-      <div class="kin-config-card">
-        <div class="config-header">
-          <div>
-            <div class="config-title">${info.name}</div>
-            <div class="config-subtitle">${typeLabel}</div>
-          </div>
-        </div>
-        ${fieldsHtml}
-      </div>`;
+    _container.innerHTML = fieldsHtml;
 
     if (info.type === 'deepl') {
       const planEl = document.getElementById('cfg_deeplPlan');
@@ -222,9 +204,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (planEl && endpointEl) {
         planEl.addEventListener('change', () => {
           endpointEl.value = getDeepLEndpointFromPlan(planEl.value);
-          renderSummaryStatus();
         });
       }
+    }
+
+    // Toggle API Key visibility
+    const toggleBtn = document.getElementById('btnToggleKeyVisibility');
+    const keyInput = document.getElementById('cfg_apiKey');
+    if (toggleBtn && keyInput) {
+      toggleBtn.addEventListener('click', () => {
+        const isMasked = keyInput.classList.contains('input-masked');
+        if (isMasked) {
+          keyInput.classList.remove('input-masked');
+          if (keyInput.tagName === 'INPUT') keyInput.type = 'text';
+          toggleBtn.innerHTML = eyeOffSvg;
+          toggleBtn.title = '隐藏';
+        } else {
+          keyInput.classList.add('input-masked');
+          if (keyInput.tagName === 'INPUT') keyInput.type = 'password';
+          toggleBtn.innerHTML = eyeOpenSvg;
+          toggleBtn.title = '显示';
+        }
+      });
     }
   }
 
@@ -254,35 +255,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { provider, providerName: info.name, providerType: info.type, targetLang, apiKey, model, endpoint, deeplPlan };
   }
 
-  function renderSummaryStatus() {
-    const draft = getDraftConfig();
-    const info = getProviderInfo(draft.provider);
-
-    let modelLabel = '无需 API Key';
-    if (info.type === 'deepl') {
-      modelLabel = draft.deeplPlan === 'pro' ? 'Pro API' : 'Free API';
-    } else if (info.type !== 'free') {
-      modelLabel = draft.model || '未设置';
-    }
-
-    const langName = (typeof TARGET_LANGUAGES !== 'undefined'
-      ? TARGET_LANGUAGES.find(l => l.code === draft.targetLang)
-      : null)?.name || draft.targetLang;
-
-    const summaryEl = document.getElementById('activeSummaryLine');
-    if (summaryEl) summaryEl.textContent = `当前: ${draft.providerName} / ${modelLabel} / ${langName}`;
-  }
-
   function setTestResult(type, message) {
     const testResult = document.getElementById('testResult');
-    testResult.className = 'kin-test-result visible';
+    testResult.className = 'test-result visible';
     if (type) testResult.classList.add(type);
     testResult.textContent = message;
   }
 
   function clearTestResult() {
     const testResult = document.getElementById('testResult');
-    testResult.className = 'kin-test-result';
+    testResult.className = 'test-result';
     testResult.textContent = '';
   }
 
@@ -316,16 +298,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       plan: data[`${provider}_plan`] || ''
     });
 
-    renderSummaryStatus();
+    ;
   }
 
   optEngine.addEventListener('change', async () => {
     const provider = optEngine.value;
     const isFree = provider === 'google' || provider === 'microsoft';
-    engineHint.textContent = isFree ? '免费引擎无需配置即可使用' : '需要配置 API Key 才能使用';
+    if (engineHint) engineHint.textContent = isFree ? '免费引擎无需配置即可使用' : '需要配置 API Key 才能使用';
 
-    const saveToolbar = document.getElementById('saveToolbar');
-    if (saveToolbar) saveToolbar.style.display = isFree ? 'none' : 'flex';
+    const btnSave = document.getElementById('btnSaveProvider');
+    if (btnSave) btnSave.style.display = isFree ? 'none' : '';
 
     clearTestResult();
     await loadAndRenderConfig(provider);
@@ -336,11 +318,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Provider config input listeners
   providerConfig.addEventListener('input', () => {
     clearTestResult();
-    renderSummaryStatus();
+    ;
   });
   providerConfig.addEventListener('change', () => {
     clearTestResult();
-    renderSummaryStatus();
+    ;
   });
 
   // Save provider config
@@ -375,7 +357,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await new Promise(resolve => chrome.storage.local.set(toSet, resolve));
     showSaveStatus('已保存');
-    renderSummaryStatus();
+    ;
   });
 
   // Source / target languages
@@ -385,15 +367,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('optTargetLang').addEventListener('change', function() {
     saveSettings({ targetLang: this.value });
-    renderSummaryStatus();
+    ;
   });
 
   // Translation style
   const optStyle = document.getElementById('optTranslationStyle');
-  const customPromptGroup = document.getElementById('customPromptGroup');
+  const customPromptSection = document.getElementById('customPromptSection');
 
   optStyle.addEventListener('change', () => {
-    customPromptGroup.style.display = optStyle.value === 'custom' ? '' : 'none';
+    if (customPromptSection) customPromptSection.style.display = optStyle.value === 'custom' ? '' : 'none';
     saveSettings({ translationStyle: optStyle.value });
   });
 
@@ -613,16 +595,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const previewText = '这是一个翻译效果的预览示例文本，用于展示不同主题的样式差异。';
     Object.entries(THEME_NAMES).forEach(([id, name]) => {
       const item = document.createElement('div');
-      item.className = 'kin-theme-item';
+      item.className = 'theme-item';
       item.dataset.theme = id;
 
       item.innerHTML = `
-        <div class="kin-theme-name">${name}</div>
-        <span class="kin-theme-preview-line kin-theme-${id}">${previewText}</span>
+        <div class="theme-name">${name}</div>
+        <span class="theme-preview-line theme-${id}">${previewText}</span>
       `;
 
       item.addEventListener('click', () => {
-        grid.querySelectorAll('.kin-theme-item').forEach(i => i.classList.remove('active'));
+        grid.querySelectorAll('.theme-item').forEach(i => i.classList.remove('active'));
         item.classList.add('active');
         saveSettings({ translationTheme: id });
         updateThemePreview(id);
@@ -633,10 +615,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function updateThemePreview(themeId) {
-    const preview = document.querySelector('.kin-preview-translation');
+    const preview = document.querySelector('.preview-translation');
     if (!preview) return;
-    Object.keys(THEME_NAMES).forEach(t => preview.classList.remove(`kin-theme-${t}`));
-    preview.classList.add(`kin-theme-${themeId}`);
+    Object.keys(THEME_NAMES).forEach(t => preview.classList.remove(`theme-${t}`));
+    preview.classList.add(`theme-${themeId}`);
   }
 
 
@@ -646,20 +628,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isFree = s.translationProvider === 'google' || s.translationProvider === 'microsoft';
       const hintEl = document.getElementById('engineHint');
       if (hintEl) hintEl.textContent = isFree ? '免费引擎无需配置即可使用' : '需要配置 API Key 才能使用';
-      const saveToolbar = document.getElementById('saveToolbar');
-      if (saveToolbar) saveToolbar.style.display = isFree ? 'none' : 'flex';
+      const btnSave = document.getElementById('btnSaveProvider');
+      if (btnSave) btnSave.style.display = isFree ? 'none' : '';
       await loadAndRenderConfig(s.translationProvider);
     }
     if (s.sourceLang) document.getElementById('optSourceLang').value = s.sourceLang;
     if (s.targetLang) {
       document.getElementById('optTargetLang').value = s.targetLang;
-      renderSummaryStatus();
+      ;
     }
     if (s.translationStyle) {
       document.getElementById('optTranslationStyle').value = s.translationStyle;
       if (s.translationStyle === 'custom') {
-        const customPromptGroupEl = document.getElementById('customPromptGroup');
-        if (customPromptGroupEl) customPromptGroupEl.style.display = '';
+        const customPromptSectionEl = document.getElementById('customPromptSection');
+        if (customPromptSectionEl) customPromptSectionEl.style.display = '';
       }
     }
     if (s.customPrompt) document.getElementById('optCustomPrompt').value = s.customPrompt;
@@ -684,7 +666,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.exportQuality) document.getElementById('optExportQuality').value = s.exportQuality;
     if (s.longArticleMultiImageExport !== undefined) document.getElementById('optMultiImage').checked = s.longArticleMultiImageExport;
     if (s.translationTheme) {
-      const item = document.querySelector(`.kin-theme-item[data-theme="${s.translationTheme}"]`);
+      const item = document.querySelector(`.theme-item[data-theme="${s.translationTheme}"]`);
       if (item) { item.classList.add('active'); updateThemePreview(s.translationTheme); }
     }
   }
@@ -716,12 +698,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const list = document.getElementById(listId);
     list.innerHTML = '';
     if (!urls.length) {
-      list.innerHTML = '<div class="kin-hint">暂无规则</div>';
+      list.innerHTML = '<div class="field-hint">暂无规则</div>';
       return;
     }
     urls.forEach(url => {
       const item = document.createElement('div');
-      item.className = 'kin-rule-item';
+      item.className = 'rule-item';
       item.innerHTML = `<span>${escapeHtml(url)}</span><button data-url="${escapeHtml(url)}" data-key="${key}">删除</button>`;
       item.querySelector('button').addEventListener('click', function() {
         removeRule(this.dataset.key, this.dataset.url, listId);
