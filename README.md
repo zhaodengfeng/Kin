@@ -1,24 +1,23 @@
-<p align="center">
-  <img src="assets/banner.png" alt="Kin Banner" width="100%">
-</p>
+<div align="center">
 
-<h1 align="center">Kin (金)</h1>
+<img src="assets/banner.png" alt="Kin Banner" width="100%">
 
-<p align="center"><em>Beyond Words. Into Meaning.</em></p>
+**Kin (金)**，取金石之意。
 
-<p align="center">
-  不只是翻译，更是理解与共鸣。
-</p>
+*Beyond Words. Into Meaning.*
+
+不只是翻译，更是理解与共鸣。Kin 为深度阅读而生——
+让外文内容读起来像母语一样自然流畅，**从文字，到意义**。
+
+> 我们相信，翻译的本质不是字词的替换，而是意义的传递。
+
+[![Version](https://img.shields.io/badge/version-26.4.18-blue.svg)](https://github.com/zhaodengfeng/Kin/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Chrome%20%7C%20Edge-orange.svg)](#安装)
+
+</div>
 
 ---
-
-## 什么是 Kin？
-
-Kin 是一款为深度阅读而生的浏览器翻译扩展。
-
-我们相信，翻译的本质不是字词的替换，而是意义的传递。Kin 在网页翻译的基础上，为新闻资讯站点打造了沉浸式的阅读模式 —— 让外文内容读起来像母语一样自然流畅。
-
-**从文字，到意义。**
 
 ## 核心功能
 
@@ -47,10 +46,12 @@ Kin 是一款为深度阅读而生的浏览器翻译扩展。
 
 ## 安装
 
-<p align="center">
-  <!-- Chrome Web Store 上架后替换下方链接 -->
-  <a href="#"><img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4CE.png" alt="Chrome Web Store" height="48"></a>
-</p>
+<div align="center">
+
+<!-- Chrome Web Store 上架后替换下方链接 -->
+<a href="#"><img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4CE.png" alt="Chrome Web Store" height="48"></a>
+
+</div>
 
 或手动安装：
 1. 下载 [最新 Release](https://github.com/zhaodengfeng/Kin/releases/latest) 的 `Kin-*.zip`
@@ -96,4 +97,4 @@ MIT License
 
 ---
 
-<p align="center"><em>Made with care for readers who seek meaning beyond words.</em></p>
+<div align="center"><em>Made with care for readers who seek meaning beyond words.</em></div>
