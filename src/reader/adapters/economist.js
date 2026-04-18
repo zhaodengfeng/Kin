@@ -88,6 +88,7 @@ class EconomistAdapter extends BaseAdapter {
       if (text.length > 100) continue;
       const lower = text.toLowerCase();
       if (isBrief) {
+        if (i < total * 0.7) return null;
         if (/^(daily quiz|today's quiz|sign up|subscribe|newsletter|copyright)/.test(lower)) {
           return allEls[i];
         }
