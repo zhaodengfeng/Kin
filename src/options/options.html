@@ -93,65 +93,32 @@
             </div>
           </div>
 
-          <!-- API Config Card (hidden for free engines) -->
-          <div class="kin-provider-config" id="providerConfig" style="display:none">
-            <div class="kin-config-card">
-              <h3 id="configCardTitle">API 配置</h3>
+          <!-- Summary status line -->
+          <div class="kin-summary-note" id="activeSummaryLine">当前: Google Translate / 简体中文</div>
 
-              <!-- DeepL account type (shown only for deepl) -->
-              <div class="kin-form-group" id="deeplAccountGroup" style="display:none">
-                <label>账户类型</label>
-                <div class="kin-radio-cards">
-                  <label class="kin-radio-card">
-                    <input type="radio" name="deeplAccount" value="free" checked>
-                    <div class="kin-radio-card-body">
-                      <strong>免费 (Free)</strong>
-                      <p>api-free.deepl.com</p>
-                    </div>
-                  </label>
-                  <label class="kin-radio-card">
-                    <input type="radio" name="deeplAccount" value="pro">
-                    <div class="kin-radio-card-body">
-                      <strong>Pro / Enterprise</strong>
-                      <p>api.deepl.com</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
+          <!-- Provider Config (dynamically rendered) -->
+          <div class="kin-provider-config" id="providerConfig"></div>
 
-              <!-- DeepL multi-key (shown only for deepl free) -->
-              <div class="kin-form-group" id="deeplKeyGroup" style="display:none">
-                <label>API Keys <span class="kin-required">*</span></label>
-                <textarea class="kin-textarea" id="optApiKey" rows="3" placeholder="每行一个 API Key，支持多账户轮询"></textarea>
-                <p class="kin-hint">每行一个 Key，当某个 Key 额度用尽时自动切换到下一个</p>
-              </div>
-
-              <!-- Standard single key (shown for non-deepl) -->
-              <div class="kin-form-group" id="singleKeyGroup">
-                <label>API Key <span class="kin-required">*</span></label>
-                <div class="kin-input-row">
-                  <input type="password" class="kin-input" id="optApiKeySingle" placeholder="输入 API Key">
-                  <button class="kin-btn-eye" id="btnToggleKey" title="显示/隐藏">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="kin-form-group">
-                <label>API Endpoint</label>
-                <input type="text" class="kin-input" id="optEndpoint" placeholder="自动填充">
-              </div>
-
-              <div class="kin-form-group" id="modelGroup">
-                <label>模型</label>
-                <select class="kin-select" id="optModel"></select>
-              </div>
-
-              <div class="kin-form-group">
-                <button class="kin-btn-secondary" id="btnTestApi">测试连接</button>
-                <span class="kin-test-status" id="apiTestStatus"></span>
-              </div>
+          <!-- Save toolbar -->
+          <div class="kin-save-toolbar" id="saveToolbar" style="display:none;">
+            <div class="kin-save-copy">
+              <div class="kin-save-title">翻译服务设置需要手动保存</div>
+              <div class="kin-save-desc">修改 API Key、模型或端点后，点击保存按钮才会生效</div>
             </div>
+            <button class="kin-btn-primary" id="btnSaveProvider">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              <span>保存翻译设置</span>
+            </button>
+          </div>
+          <div class="kin-save-status" id="saveStatus">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span id="saveStatusText">已保存</span>
           </div>
 
           <div class="kin-nav-row">
@@ -263,13 +230,12 @@
               <span class="kin-test-label">测试翻译</span>
               <button class="kin-btn-test" id="btnTestTranslate">测试</button>
             </div>
-            <div class="kin-test-row">
-              <div class="kin-test-col">
-                <div class="kin-test-lang">English</div>
-                <div class="kin-test-source">The rapid advancement of artificial intelligence has sparked intense debate about the future of work.</div>
-              </div>
+            <div class="kin-form-group">
+              <label>示例文本</label>
+              <textarea class="kin-textarea" id="testInput" rows="3" placeholder="输入要测试翻译的文本">The rapid advancement of artificial intelligence has sparked intense debate about the future of work.</textarea>
+              <p class="kin-hint">使用当前表单中的设置进行翻译测试（无需先保存）</p>
             </div>
-            <div class="kin-test-result-inline" id="testResult"></div>
+            <div class="kin-test-result" id="testResult"></div>
           </div>
         </section>
 
@@ -450,9 +416,7 @@
           <div class="kin-shortcuts">
             <div class="kin-shortcut-row"><kbd>Alt+A</kbd><span>翻译 / 取消翻译当前页面</span></div>
             <div class="kin-shortcut-row"><kbd>Alt+S</kbd><span>切换双语对照 / 仅译文</span></div>
-            <div class="kin-shortcut-row"><kbd>Alt+I</kbd><span>翻译输入框内容</span></div>
             <div class="kin-shortcut-row"><kbd>Alt+R</kbd><span>进入 / 退出阅读模式</span></div>
-            <div class="kin-shortcut-row"><kbd>//</kbd><span>输入框翻译触发</span></div>
           </div>
 
           <div class="kin-section-divider"></div>

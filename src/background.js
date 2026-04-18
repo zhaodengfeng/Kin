@@ -51,12 +51,21 @@ const CACHE_FLUSH_DELAY_MS = 1500;
 // API Key Encryption (审查 P1-3)
 // ============================================
 async function getDeviceKey() {
-  const { kin_device_key } = await chrome.storage.session.get('kin_device_key');
-  if (kin_device_key) return kin_device_key;
+  const { kin_device_key_jwk } = await chrome.storage.local.get('kin_device_key_jwk');
+  if (kin_device_key_jwk) {
+    try {
+      return await crypto.subtle.importKey(
+        'jwk', kin_device_key_jwk, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+      );
+    } catch (e) {
+      console.error('[Kin] Failed to import device key, regenerating:', e.message);
+    }
+  }
   const key = await crypto.subtle.generateKey(
     { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']
   );
-  await chrome.storage.session.set({ kin_device_key: key });
+  const jwk = await crypto.subtle.exportKey('jwk', key);
+  await chrome.storage.local.set({ kin_device_key_jwk: jwk });
   return key;
 }
 
@@ -362,7 +371,8 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
     providerConfig = {
       apiKey: decryptedKey,
       model: allSettings[`${finalProvider}_model`] || '',
-      endpoint: allSettings[`${finalProvider}_endpoint`] || ''
+      endpoint: allSettings[`${finalProvider}_endpoint`] || '',
+      isPlaintext: true
     };
   }
   const mergedConfigOverride = providerConfig && !configOverride ? providerConfig : configOverride;

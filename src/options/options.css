@@ -937,6 +937,175 @@ kbd {
   }
 }
 
+/* ===== Summary note ===== */
+.kin-summary-note {
+  margin: 8px 0 16px;
+  padding: 10px 14px;
+  border-radius: var(--kin-radius-sm, 6px);
+  background: var(--kin-primary-light, #FBF0EB);
+  color: var(--kin-text-secondary, #6B6560);
+  font-size: 12px;
+}
+
+/* ===== Save toolbar ===== */
+.kin-save-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--kin-border, #DDD9D4);
+  border-radius: var(--kin-radius-md, 10px);
+  background: var(--kin-bg, #FAF9F7);
+}
+
+.kin-save-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--kin-text, #1C1917);
+}
+
+.kin-save-desc {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--kin-text-tertiary, #9E9891);
+}
+
+.kin-save-status {
+  font-size: 12px;
+  color: var(--kin-primary, #D97559);
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.kin-save-status.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Advanced block ===== */
+.kin-advanced-block {
+  margin-top: 12px;
+  border-top: 1px solid var(--kin-border-light, #EAE7E2);
+  padding-top: 12px;
+}
+
+.kin-advanced-block summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kin-text-secondary, #6B6560);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.kin-advanced-block summary::-webkit-details-marker { display: none; }
+
+.kin-advanced-block summary::after {
+  content: '▾';
+  font-size: 12px;
+  color: var(--kin-text-tertiary, #9E9891);
+  transition: transform 0.2s ease;
+}
+
+.kin-advanced-block[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.kin-advanced-content {
+  margin-top: 12px;
+}
+
+/* ===== Test result ===== */
+.kin-test-result {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--kin-radius-sm, 6px);
+  border: 1px solid var(--kin-border, #DDD9D4);
+  background: var(--kin-bg-secondary, #F2F0ED);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--kin-text-secondary, #6B6560);
+  display: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.kin-test-result.visible {
+  display: block;
+}
+
+.kin-test-result.success {
+  border-color: rgba(52, 199, 89, 0.25);
+  background: rgba(52, 199, 89, 0.06);
+  color: #0d7f63;
+}
+
+.kin-test-result.error {
+  border-color: rgba(229, 72, 77, 0.25);
+  background: rgba(229, 72, 77, 0.06);
+  color: #c42b2b;
+}
+
+.kin-test-result.pending {
+  border-color: rgba(217, 117, 89, 0.25);
+  background: rgba(217, 117, 89, 0.06);
+  color: var(--kin-primary-hover, #C86748);
+}
+
+/* ===== No config ===== */
+.no-config {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--kin-text-tertiary, #9E9891);
+  font-size: 13px;
+}
+
+.no-config svg {
+  color: #34C759;
+  margin-bottom: 12px;
+}
+
+/* ===== Config header ===== */
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(217, 117, 89, 0.15);
+}
+
+.config-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kin-text, #1C1917);
+}
+
+.config-subtitle {
+  font-size: 11px;
+  color: var(--kin-text-tertiary, #9E9891);
+  margin-top: 2px;
+}
+
+/* ===== Responsive save toolbar ===== */
+@media (max-width: 600px) {
+  .kin-save-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* ===== Responsive: tablet ===== */
 @media (max-width: 800px) {
   .kin-options-body { flex-direction: column; }

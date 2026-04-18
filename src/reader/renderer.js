@@ -763,8 +763,7 @@ const ReaderRenderer = {
         ? this.sanitizeTitleLikeTranslation(translation, el.dataset.original)
         : String(translation || '').trim();
       if (!normalizedTranslation) return;
-      el.innerHTML = `<span class="kin-r-original">${this.escapeHtml(el.dataset.original)}</span>
-                     <span class="kin-r-translation">${this.escapeHtml(normalizedTranslation)}</span>`;
+      el.innerHTML = `<span class="kin-r-original">${this.escapeHtml(el.dataset.original)}</span><span class="kin-r-translation">${this.escapeHtml(normalizedTranslation)}</span>`;
       el.classList.remove('kin-r-translating');
       el.classList.add('kin-r-translated');
       if (isTitleLike) {

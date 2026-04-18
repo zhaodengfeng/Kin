@@ -50,122 +50,342 @@ document.addEventListener('DOMContentLoaded', async () => {
   populateEngines();
   populateThemes();
 
-  applySettings(settings);
+  await applySettings(settings);
 
   // ========== Translation Tab ==========
   const optEngine = document.getElementById('optEngine');
   const providerConfig = document.getElementById('providerConfig');
   const engineHint = document.getElementById('engineHint');
-  const deeplAccountGroup = document.getElementById('deeplAccountGroup');
-  const deeplKeyGroup = document.getElementById('deeplKeyGroup');
-  const singleKeyGroup = document.getElementById('singleKeyGroup');
-  const modelGroup = document.getElementById('modelGroup');
+  const activeSummaryLine = document.getElementById('activeSummaryLine');
+  const saveStatus = document.getElementById('saveStatus');
+  const saveStatusText = document.getElementById('saveStatusText');
 
-  function isDeepl(provider) { return provider === 'deepl'; }
-
-  function updateDeeplUI(provider, accountType) {
-    const isFree = accountType === 'free';
-    // Show/hide account type selector
-    deeplAccountGroup.style.display = isDeepl(provider) ? 'block' : 'none';
-    // Show/hide multi-key vs single key
-    deeplKeyGroup.style.display = isDeepl(provider) && isFree ? 'block' : 'none';
-    singleKeyGroup.style.display = isDeepl(provider) && isFree ? 'none' : 'block';
-    // Hide model for deepl
-    modelGroup.style.display = isDeepl(provider) ? 'none' : 'block';
+  let _saveStatusTimer = null;
+  function showSaveStatus(message) {
+    if (!saveStatus) return;
+    if (saveStatusText) saveStatusText.textContent = message;
+    saveStatus.classList.add('visible');
+    if (_saveStatusTimer) clearTimeout(_saveStatusTimer);
+    _saveStatusTimer = setTimeout(() => saveStatus.classList.remove('visible'), 2500);
   }
 
-  optEngine.addEventListener('change', () => {
+  function getProviderInfo(provider) {
+    return (typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider] : null)
+      || (typeof ProviderRegistry !== 'undefined' ? ProviderRegistry.get(provider) : null)
+      || { name: provider, type: 'free' };
+  }
+
+  function getDeepLPlanFromEndpoint(endpoint) {
+    const value = (endpoint || '').trim().toLowerCase();
+    if (value.includes('api.deepl.com') && !value.includes('api-free.deepl.com')) return 'pro';
+    return 'free';
+  }
+
+  function getDeepLEndpointFromPlan(plan) {
+    return plan === 'pro'
+      ? 'https://api.deepl.com/v2/translate'
+      : 'https://api-free.deepl.com/v2/translate';
+  }
+
+  function getStoredKeys(provider) {
+    return [`${provider}_apiKey`, `${provider}_model`, `${provider}_endpoint`, `${provider}_plan`];
+  }
+
+  function escapeAttr(str) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function renderProviderConfig(provider, savedConfig) {
+    const _container = document.getElementById('providerConfig');
+    const info = getProviderInfo(provider);
+    if (!info || !_container) return;
+
+    if (info.type === 'free') {
+      _container.innerHTML = `
+        <div class="kin-config-card">
+          <div class="no-config">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <div style="font-weight:500; color:var(--kin-text-secondary); margin-bottom:4px;">${info.name}</div>
+            <div style="font-size:12px; color:var(--kin-text-tertiary);">免费引擎无需配置即可使用</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const savedApiKey = savedConfig?.apiKey || '';
+    const savedModel = savedConfig?.model || info.model || '';
+    const savedEndpoint = savedConfig?.endpoint || info.endpoint || '';
+    const savedPlan = savedConfig?.plan || getDeepLPlanFromEndpoint(savedEndpoint);
+
+    let fieldsHtml = `
+      <div class="kin-form-group">
+        <label>API Key${info.type === 'deepl' ? 's' : ''} <span class="kin-required">*</span></label>
+        ${info.type === 'deepl'
+          ? `<textarea class="kin-textarea" id="cfg_apiKey" rows="3" placeholder="每行一个 API Key">${escapeAttr(savedApiKey)}</textarea>
+             <p class="kin-hint">每行一个 Key，当某个 Key 额度用尽时自动切换到下一个</p>`
+          : `<input type="password" class="kin-input" id="cfg_apiKey" value="${escapeAttr(savedApiKey)}" placeholder="输入 API Key">`
+        }
+      </div>`;
+
+    if (info.type !== 'deepl') {
+      if (info.models && info.models.length > 0) {
+        const selectedModel = info.models.includes(savedModel) ? savedModel : (info.model || info.models[0] || '');
+        const customModel = info.models.includes(savedModel) ? '' : savedModel;
+        fieldsHtml += `
+          <div class="kin-form-group">
+            <label>预设模型</label>
+            <select class="kin-select" id="cfg_model">
+              ${info.models.map(model => `<option value="${escapeAttr(model)}" ${model === selectedModel ? 'selected' : ''}>${escapeAttr(model)}</option>`).join('')}
+            </select>
+            <p class="kin-hint">选择一个预设模型，或在下方的自定义模型中覆盖</p>
+          </div>
+          <div class="kin-form-group">
+            <label>自定义模型名称</label>
+            <input type="text" class="kin-input" id="cfg_model_custom" value="${escapeAttr(customModel)}" placeholder="可选：输入自定义模型名称">
+            <p class="kin-hint">留空则使用预设模型。如果填写，该值将优先使用</p>
+          </div>`;
+      } else {
+        fieldsHtml += `
+          <div class="kin-form-group">
+            <label>模型名称</label>
+            <input type="text" class="kin-input" id="cfg_model" value="${escapeAttr(savedModel)}" placeholder="输入模型名称">
+          </div>`;
+      }
+    }
+
+    if (info.type === 'deepl') {
+      fieldsHtml += `
+        <div class="kin-form-group">
+          <label>API Plan</label>
+          <select class="kin-select" id="cfg_deeplPlan">
+            <option value="free" ${savedPlan === 'free' ? 'selected' : ''}>Free API (api-free.deepl.com)</option>
+            <option value="pro" ${savedPlan === 'pro' ? 'selected' : ''}>Pro API (api.deepl.com)</option>
+          </select>
+          <p class="kin-hint">Free 使用 api-free.deepl.com，Pro 使用 api.deepl.com</p>
+        </div>
+        <details class="kin-advanced-block">
+          <summary>高级设置</summary>
+          <div class="kin-advanced-content">
+            <div class="kin-form-group">
+              <label>API Endpoint</label>
+              <input type="text" class="kin-input" id="cfg_endpoint" value="${escapeAttr(getDeepLEndpointFromPlan(savedPlan))}" readonly>
+              <p class="kin-hint">端点根据选择的 DeepL Plan 自动确定</p>
+            </div>
+          </div>
+        </details>`;
+    } else {
+      const endpointHint = info.endpoint
+        ? '保持默认值即可，除非需要使用自定义端点'
+        : '自定义服务商必填';
+      fieldsHtml += `
+        <details class="kin-advanced-block">
+          <summary>高级设置</summary>
+          <div class="kin-advanced-content">
+            <div class="kin-form-group">
+              <label>API Endpoint</label>
+              <input type="text" class="kin-input" id="cfg_endpoint" value="${escapeAttr(savedEndpoint)}" placeholder="${escapeAttr(info.endpoint || '输入 API 端点')}">
+              <p class="kin-hint">${endpointHint}</p>
+            </div>
+          </div>
+        </details>`;
+    }
+
+    const typeLabel = info.type === 'openai'
+      ? 'OpenAI-Compatible API'
+      : info.type === 'claude'
+        ? 'Claude API'
+        : info.type === 'deepl'
+          ? 'DeepL API'
+          : '';
+
+    _container.innerHTML = `
+      <div class="kin-config-card">
+        <div class="config-header">
+          <div>
+            <div class="config-title">${info.name}</div>
+            <div class="config-subtitle">${typeLabel}</div>
+          </div>
+        </div>
+        ${fieldsHtml}
+      </div>`;
+
+    if (info.type === 'deepl') {
+      const planEl = document.getElementById('cfg_deeplPlan');
+      const endpointEl = document.getElementById('cfg_endpoint');
+      if (planEl && endpointEl) {
+        planEl.addEventListener('change', () => {
+          endpointEl.value = getDeepLEndpointFromPlan(planEl.value);
+          renderSummaryStatus();
+        });
+      }
+    }
+  }
+
+  function getDraftConfig() {
+    const provider = document.getElementById('optEngine').value;
+    const info = getProviderInfo(provider);
+    const targetLang = document.getElementById('optTargetLang').value;
+
+    const apiKeyEl = document.getElementById('cfg_apiKey');
+    const modelEl = document.getElementById('cfg_model');
+    const customModelEl = document.getElementById('cfg_model_custom');
+    const endpointEl = document.getElementById('cfg_endpoint');
+    const deeplPlanEl = document.getElementById('cfg_deeplPlan');
+
+    const apiKey = apiKeyEl
+      ? (info.type === 'deepl'
+        ? apiKeyEl.value.trim().split('\n').map(k => k.trim()).filter(Boolean).join('\n')
+        : apiKeyEl.value.trim())
+      : '';
+    const customModel = customModelEl ? customModelEl.value.trim() : '';
+    const model = customModel || (modelEl ? modelEl.value.trim() : '') || info.model || '';
+    const deeplPlan = deeplPlanEl ? deeplPlanEl.value : getDeepLPlanFromEndpoint(endpointEl ? endpointEl.value : info.endpoint);
+    const endpoint = info.type === 'deepl'
+      ? getDeepLEndpointFromPlan(deeplPlan)
+      : ((endpointEl ? endpointEl.value.trim() : '') || info.endpoint || '');
+
+    return { provider, providerName: info.name, providerType: info.type, targetLang, apiKey, model, endpoint, deeplPlan };
+  }
+
+  function renderSummaryStatus() {
+    const draft = getDraftConfig();
+    const info = getProviderInfo(draft.provider);
+
+    let modelLabel = '无需 API Key';
+    if (info.type === 'deepl') {
+      modelLabel = draft.deeplPlan === 'pro' ? 'Pro API' : 'Free API';
+    } else if (info.type !== 'free') {
+      modelLabel = draft.model || '未设置';
+    }
+
+    const langName = (typeof TARGET_LANGUAGES !== 'undefined'
+      ? TARGET_LANGUAGES.find(l => l.code === draft.targetLang)
+      : null)?.name || draft.targetLang;
+
+    const summaryEl = document.getElementById('activeSummaryLine');
+    if (summaryEl) summaryEl.textContent = `当前: ${draft.providerName} / ${modelLabel} / ${langName}`;
+  }
+
+  function setTestResult(type, message) {
+    const testResult = document.getElementById('testResult');
+    testResult.className = 'kin-test-result visible';
+    if (type) testResult.classList.add(type);
+    testResult.textContent = message;
+  }
+
+  function clearTestResult() {
+    const testResult = document.getElementById('testResult');
+    testResult.className = 'kin-test-result';
+    testResult.textContent = '';
+  }
+
+  async function loadAndRenderConfig(provider) {
+    const keys = getStoredKeys(provider);
+    if (provider === 'deepl') keys.push('deepl_apiKeys');
+
+    const data = await new Promise(resolve => chrome.storage.local.get(keys, resolve));
+
+    let displayApiKey = '';
+    const encKey = data[`${provider}_apiKey`];
+    if (encKey) {
+      try {
+        const resp = await chrome.runtime.sendMessage({ type: 'get_api_key', data: { provider } });
+        displayApiKey = resp?.key || '';
+      } catch (e) {
+        console.error('[Kin] Failed to decrypt API key:', e);
+      }
+    }
+
+    if (provider === 'deepl' && data.deepl_apiKeys && Array.isArray(data.deepl_apiKeys) && data.deepl_apiKeys.length > 0) {
+      const existing = displayApiKey ? displayApiKey.split('\n').map(k => k.trim()).filter(Boolean) : [];
+      const merged = new Set([...existing, ...data.deepl_apiKeys]);
+      displayApiKey = Array.from(merged).join('\n');
+    }
+
+    renderProviderConfig(provider, {
+      apiKey: displayApiKey,
+      model: data[`${provider}_model`] || '',
+      endpoint: data[`${provider}_endpoint`] || '',
+      plan: data[`${provider}_plan`] || ''
+    });
+
+    renderSummaryStatus();
+  }
+
+  optEngine.addEventListener('change', async () => {
     const provider = optEngine.value;
     const isFree = provider === 'google' || provider === 'microsoft';
-    providerConfig.style.display = isFree ? 'none' : 'block';
     engineHint.textContent = isFree ? '免费引擎无需配置即可使用' : '需要配置 API Key 才能使用';
 
-    if (isDeepl(provider)) {
-      updateDeeplUI(provider, 'free');
-      // Load saved account type
-      chrome.storage.local.get('deeplAccount', d => {
-        const acc = d.deeplAccount || 'free';
-        document.querySelector(`input[name="deeplAccount"][value="${acc}"]`).checked = true;
-        updateDeeplUI(provider, acc);
-      });
-    } else {
-      updateDeeplUI(provider, '');
-    }
+    const saveToolbar = document.getElementById('saveToolbar');
+    if (saveToolbar) saveToolbar.style.display = isFree ? 'none' : 'flex';
 
-    if (!isFree) {
-      loadProviderConfig(provider);
-      if (!isDeepl(provider)) populateModelSelect(provider);
-      autoFillProviderDefaults(provider);
-    }
+    clearTestResult();
+    await loadAndRenderConfig(provider);
+
     saveSettings({ translationProvider: provider });
   });
-  optEngine.dispatchEvent(new Event('change'));
 
-  // DeepL account type change
-  document.querySelectorAll('input[name="deeplAccount"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      const provider = optEngine.value;
-      updateDeeplUI(provider, this.value);
-      // Update endpoint
-      const info = typeof PROVIDERS !== 'undefined' ? PROVIDERS.deepl : null;
-      if (info?.endpoints) {
-        const endpoint = info.endpoints[this.value] || info.endpoints.free;
-        document.getElementById('optEndpoint').value = endpoint;
-        saveSettings({ deepl_endpoint: endpoint, deeplAccount: this.value });
+  // Provider config input listeners
+  providerConfig.addEventListener('input', () => {
+    clearTestResult();
+    renderSummaryStatus();
+  });
+  providerConfig.addEventListener('change', () => {
+    clearTestResult();
+    renderSummaryStatus();
+  });
+
+  // Save provider config
+  document.getElementById('btnSaveProvider').addEventListener('click', async () => {
+    const draft = getDraftConfig();
+    const info = getProviderInfo(draft.provider);
+    const toSet = { translationProvider: draft.provider, targetLang: draft.targetLang };
+
+    if (info.type !== 'free') {
+      if (info.type === 'deepl') {
+        const keys = draft.apiKey.split('\n').map(k => k.trim()).filter(Boolean);
+        if (keys.length > 0) {
+          await chrome.runtime.sendMessage({
+            type: 'save_api_key',
+            data: { provider: draft.provider, key: keys.join('\n') }
+          });
+        }
+        toSet[`${draft.provider}_apiKeys`] = keys.length > 1 ? keys : [];
+        toSet[`${draft.provider}_plan`] = draft.deeplPlan;
+        toSet[`${draft.provider}_endpoint`] = draft.endpoint;
+      } else {
+        if (draft.apiKey) {
+          await chrome.runtime.sendMessage({
+            type: 'save_api_key',
+            data: { provider: draft.provider, key: draft.apiKey }
+          });
+        }
+        toSet[`${draft.provider}_model`] = draft.model;
+        toSet[`${draft.provider}_endpoint`] = draft.endpoint;
       }
-    });
+    }
+
+    await new Promise(resolve => chrome.storage.local.set(toSet, resolve));
+    showSaveStatus('已保存');
+    renderSummaryStatus();
   });
 
-  // Toggle API key visibility
-  document.getElementById('btnToggleKey').addEventListener('click', () => {
-    const inp = document.getElementById('optApiKeySingle');
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-  });
-
-  // Save API key (single key providers) — save immediately on input
-  let _keySaveTimer = null;
-  document.getElementById('optApiKeySingle').addEventListener('input', function() {
-    const provider = optEngine.value;
-    const key = this.value;
-    clearTimeout(_keySaveTimer);
-    _keySaveTimer = setTimeout(async () => {
-      const resp = await chrome.runtime.sendMessage({
-        type: 'save_api_key',
-        data: { provider, key }
-      });
-      if (resp?.ok) showToast('API Key 已保存', 'success');
-      else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
-    }, 500);
-  });
-
-  // Save DeepL multi-key — save immediately on input
-  document.getElementById('optApiKey').addEventListener('input', function() {
-    const keys = this.value.split('\n').map(k => k.trim()).filter(k => k);
-    clearTimeout(_keySaveTimer);
-    _keySaveTimer = setTimeout(async () => {
-      const resp = await chrome.runtime.sendMessage({
-        type: 'save_api_key',
-        data: { provider: 'deepl', key: keys.join('\n') }
-      });
-      if (resp?.ok) showToast(`${keys.length} 个 API Key 已保存`, 'success');
-      else if (resp?.error) showToast('保存失败: ' + resp.error, 'error');
-    }, 500);
-  });
-
-  document.getElementById('optEndpoint').addEventListener('change', function() {
-    saveSettings({ [`${optEngine.value}_endpoint`]: this.value });
-  });
-
-  document.getElementById('optModel').addEventListener('change', function() {
-    saveSettings({ [`${optEngine.value}_model`]: this.value });
-  });
-
+  // Source / target languages
   document.getElementById('optSourceLang').addEventListener('change', function() {
     saveSettings({ sourceLang: this.value });
   });
 
   document.getElementById('optTargetLang').addEventListener('change', function() {
     saveSettings({ targetLang: this.value });
+    renderSummaryStatus();
   });
 
   // Translation style
@@ -181,40 +401,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ customPrompt: this.value });
   });
 
-  // Test API connection — pass key directly via configOverride, no storage dependency
-  document.getElementById('btnTestApi').addEventListener('click', async () => {
-    const status = document.getElementById('apiTestStatus');
-    status.textContent = '测试中...';
-    status.style.color = 'var(--kin-text-tertiary)';
-    const provider = optEngine.value;
-    const keyEl = provider === 'deepl'
-      ? document.getElementById('optApiKey')
-      : document.getElementById('optApiKeySingle');
-    const currentKey = keyEl?.value || '';
-    const configOverride = { isPlaintext: true };
-    if (currentKey) configOverride.apiKey = currentKey;
-    const endpointEl = document.getElementById('optEndpoint');
-    if (endpointEl?.value) configOverride.endpoint = endpointEl.value;
-    const modelEl = document.getElementById('optModel');
-    if (modelEl?.value) configOverride.model = modelEl.value;
-    try {
-      const resp = await chrome.runtime.sendMessage({
-        type: 'translate',
-        data: { texts: ['Hello'], to: 'zh-CN', configOverride }
-      });
-      if (resp?.translations?.[0]) {
-        status.textContent = '连接成功';
-        status.style.color = 'var(--kin-success)';
-      } else {
-        status.textContent = '失败: ' + (resp?.error || '未知错误');
-        status.style.color = 'var(--kin-error)';
-      }
-    } catch (e) {
-      status.textContent = '连接失败';
-      status.style.color = 'var(--kin-error)';
-    }
-  });
-
   // Feature toggles
   document.getElementById('optHoverTranslate').addEventListener('change', function() {
     document.getElementById('hoverOptions').style.display = this.checked ? '' : 'none';
@@ -225,7 +411,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ selectionTranslate: this.checked });
   });
 
-  // Fix: use querySelectorAll for all radio buttons
   document.querySelectorAll('input[name="hoverTrigger"]').forEach(radio => {
     radio.addEventListener('change', function() {
       saveSettings({ hoverTrigger: this.value });
@@ -249,25 +434,61 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Test translation
   document.getElementById('btnTestTranslate').addEventListener('click', async () => {
-    const text = 'The rapid advancement of artificial intelligence has sparked intense debate about the future of work.';
-    const resultEl = document.getElementById('testResult');
-    resultEl.textContent = '翻译中...';
-    resultEl.style.color = '';
+    const draft = getDraftConfig();
+    const sampleText = document.getElementById('testInput').value.trim();
+
+    if (!sampleText) {
+      setTestResult('error', '请先输入一些示例文本。');
+      return;
+    }
+
+    const btn = document.getElementById('btnTestTranslate');
+    btn.disabled = true;
+    setTestResult('pending', '正在使用当前表单设置测试翻译...');
+
     try {
       const resp = await chrome.runtime.sendMessage({
         type: 'translate',
-        data: { texts: [text], to: settings.targetLang || 'zh-CN' }
+        data: {
+          texts: [sampleText],
+          to: draft.targetLang,
+          providerOverride: draft.provider,
+          configOverride: {
+            apiKey: draft.apiKey,
+            model: draft.model,
+            endpoint: draft.endpoint,
+            isPlaintext: true
+          }
+        }
       });
-      if (resp?.error) {
-        resultEl.textContent = '错误: ' + resp.error;
-        resultEl.style.color = 'var(--kin-error)';
-      } else if (resp?.translations?.[0]) {
-        resultEl.textContent = resp.translations[0];
-        resultEl.style.color = '';
+
+      btn.disabled = false;
+
+      if (chrome.runtime.lastError) {
+        setTestResult('error', `测试失败: ${chrome.runtime.lastError.message}`);
+        return;
       }
+
+      if (!resp) {
+        setTestResult('error', '翻译服务未响应。请检查网络连接或 API 配置。');
+        return;
+      }
+
+      if (resp?.error) {
+        setTestResult('error', resp.error);
+        return;
+      }
+
+      const translated = resp?.translations?.[0] || '';
+      if (!translated) {
+        setTestResult('error', '翻译结果为空。请尝试其他模型或检查端点配置。');
+        return;
+      }
+
+      setTestResult('success', translated);
     } catch (e) {
-      resultEl.textContent = '翻译失败: ' + e.message;
-      resultEl.style.color = 'var(--kin-error)';
+      btn.disabled = false;
+      setTestResult('error', `测试失败: ${e.message}`);
     }
   });
 
@@ -418,74 +639,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     preview.classList.add(`kin-theme-${themeId}`);
   }
 
-  async function loadProviderConfig(provider) {
-    const keys = [`${provider}_apiKey`, `${provider}_model`, `${provider}_endpoint`];
-    const data = await new Promise(resolve => chrome.storage.local.get(keys, resolve));
 
-    const encKey = data[`${provider}_apiKey`] || '';
-    let apiKey = '';
-    if (encKey) {
-      const resp = await chrome.runtime.sendMessage({ type: 'get_api_key', data: { provider } });
-      apiKey = resp?.key || '';
+  async function applySettings(s) {
+    if (s.translationProvider) {
+      document.getElementById('optEngine').value = s.translationProvider;
+      const isFree = s.translationProvider === 'google' || s.translationProvider === 'microsoft';
+      const hintEl = document.getElementById('engineHint');
+      if (hintEl) hintEl.textContent = isFree ? '免费引擎无需配置即可使用' : '需要配置 API Key 才能使用';
+      const saveToolbar = document.getElementById('saveToolbar');
+      if (saveToolbar) saveToolbar.style.display = isFree ? 'none' : 'flex';
+      await loadAndRenderConfig(s.translationProvider);
     }
-
-    if (isDeepl(provider)) {
-      // DeepL uses textarea for multi-key
-      document.getElementById('optApiKey').value = apiKey;
-    } else {
-      document.getElementById('optApiKeySingle').value = apiKey;
-    }
-
-    const savedEndpoint = data[`${provider}_endpoint`] || '';
-    const endpointInput = document.getElementById('optEndpoint');
-    const defaultEndpoint = typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider]?.endpoint : '';
-    endpointInput.value = savedEndpoint || defaultEndpoint || '';
-    endpointInput.placeholder = defaultEndpoint || '自定义端点';
-
-    if (!isDeepl(provider)) {
-      const savedModel = data[`${provider}_model`] || '';
-      const defaultModel = typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider]?.model : '';
-      document.getElementById('optModel').value = savedModel || defaultModel || '';
-    }
-  }
-
-  function autoFillProviderDefaults(provider) {
-    const info = typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider] : null;
-    if (!info) return;
-
-    const endpointInput = document.getElementById('optEndpoint');
-
-    if (!endpointInput.value && info.endpoint) {
-      endpointInput.value = info.endpoint;
-      saveSettings({ [`${provider}_endpoint`]: info.endpoint });
-    }
-    if (info.endpoint) endpointInput.placeholder = info.endpoint;
-
-    // Skip model for DeepL
-    if (isDeepl(provider)) return;
-
-    const modelSelect = document.getElementById('optModel');
-    if (info.model && modelSelect.options.length > 0) {
-      let found = false;
-      for (const opt of modelSelect.options) {
-        if (opt.value === info.model) { opt.selected = true; found = true; break; }
-      }
-      if (!found) {
-        const opt = document.createElement('option');
-        opt.value = info.model; opt.textContent = info.model;
-        opt.selected = true;
-        modelSelect.insertBefore(opt, modelSelect.firstChild);
-      }
-    }
-  }
-
-  function applySettings(s) {
-    if (s.translationProvider) document.getElementById('optEngine').value = s.translationProvider;
     if (s.sourceLang) document.getElementById('optSourceLang').value = s.sourceLang;
-    if (s.targetLang) document.getElementById('optTargetLang').value = s.targetLang;
+    if (s.targetLang) {
+      document.getElementById('optTargetLang').value = s.targetLang;
+      renderSummaryStatus();
+    }
     if (s.translationStyle) {
       document.getElementById('optTranslationStyle').value = s.translationStyle;
-      if (s.translationStyle === 'custom') customPromptGroup.style.display = '';
+      if (s.translationStyle === 'custom') {
+        const customPromptGroupEl = document.getElementById('customPromptGroup');
+        if (customPromptGroupEl) customPromptGroupEl.style.display = '';
+      }
     }
     if (s.customPrompt) document.getElementById('optCustomPrompt').value = s.customPrompt;
     if (s.hoverTranslate !== undefined) {
@@ -511,12 +686,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.translationTheme) {
       const item = document.querySelector(`.kin-theme-item[data-theme="${s.translationTheme}"]`);
       if (item) { item.classList.add('active'); updateThemePreview(s.translationTheme); }
-    }
-    // DeepL account type
-    if (s.deeplAccount) {
-      const radio = document.querySelector(`input[name="deeplAccount"][value="${s.deeplAccount}"]`);
-      if (radio) radio.checked = true;
-      updateDeeplUI(s.translationProvider || 'deepl', s.deeplAccount);
     }
   }
 
@@ -593,7 +762,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     'longArticleMultiImageExport',
     'alwaysTranslateUrls', 'neverTranslateUrls',
     'floatBallPosY',
-    'deeplAccount',
+    'openai_apiKey', 'openai_model', 'openai_endpoint',
+    'deepseek_apiKey', 'deepseek_model', 'deepseek_endpoint',
+    'qwen_apiKey', 'qwen_model', 'qwen_endpoint',
+    'gemini_apiKey', 'gemini_model', 'gemini_endpoint',
+    'glm_apiKey', 'glm_model', 'glm_endpoint',
+    'kimi_apiKey', 'kimi_model', 'kimi_endpoint',
+    'openrouter_apiKey', 'openrouter_model', 'openrouter_endpoint',
+    'claude_apiKey', 'claude_model', 'claude_endpoint',
+    'deepl_apiKey', 'deepl_apiKeys', 'deepl_plan', 'deepl_endpoint',
+    'custom_openai_apiKey', 'custom_openai_model', 'custom_openai_endpoint',
+    'custom_claude_apiKey', 'custom_claude_model', 'custom_claude_endpoint',
   ];
 
   async function deriveBackupKey(password, salt) {
