@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner.png" alt="Kin Banner" width="100%">
+<img src="assets/banner.png?v=2" alt="Kin Banner" width="100%">
 
 **Kin (金)**，取金石之意。
 
@@ -48,8 +48,7 @@
 
 <div align="center">
 
-<!-- Chrome Web Store 上架后替换下方链接 -->
-<a href="#"><img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4CE.png" alt="Chrome Web Store" height="48"></a>
+<a href="#"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?logo=google-chrome" alt="Chrome Web Store" height="48"></a>
 
 </div>
 
