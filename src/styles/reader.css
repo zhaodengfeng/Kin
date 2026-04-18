@@ -120,11 +120,47 @@
 }
 
 /* ============================================
+   Parchment — Warm off-white, earthy brown accent
+   ============================================ */
+.kin-r-theme-parchment {
+  --kin-r-bg: #F5F2EB;
+  --kin-r-bg-warm: #EDE9E0;
+  --kin-r-surface: #FAF8F3;
+  --kin-r-text: #2D2D2D;
+  --kin-r-text-secondary: #4A4744;
+  --kin-r-text-tertiary: #9E9891;
+  --kin-r-accent: #8B7355;
+  --kin-r-accent-hover: #7A6548;
+  --kin-r-accent-light: rgba(139, 115, 85, 0.07);
+  --kin-r-accent-glow: rgba(139, 115, 85, 0.14);
+  --kin-r-border: #E0DDD5;
+  --kin-r-border-subtle: #EAE7E0;
+  --kin-r-shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.04);
+  --kin-r-shadow: 0 2px 12px rgba(28, 25, 23, 0.06);
+  --kin-r-shadow-lg: 0 8px 32px rgba(28, 25, 23, 0.08);
+  --kin-r-radius: 10px;
+  --kin-r-radius-sm: 8px;
+  --kin-r-font-serif: 'Georgia', 'Noto Serif SC', 'SimSun', serif;
+  --kin-r-font-sans: 'Georgia', 'Noto Serif SC', 'SimSun', serif;
+  --kin-r-font-title-cn: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif;
+  --kin-r-progress-bg: rgba(139, 115, 85, 0.25);
+  --kin-r-toolbar-bg: rgba(245, 242, 235, 0.90);
+  --kin-r-scrollbar-track: #EDE9E0;
+  --kin-r-scrollbar-thumb: #D5CEC7;
+  --kin-r-btn-translate-bg: #8B7355;
+  --kin-r-btn-translate-shadow: rgba(139, 115, 85, 0.22);
+  --kin-r-btn-translate-hover-bg: #7A6548;
+  --kin-r-btn-translate-hover-shadow: rgba(139, 115, 85, 0.28);
+  --kin-r-divider-style: solid;
+}
+
+/* ============================================
    Alias mapping
    ============================================ */
 :root,
 .kin-r-theme-default,
-.kin-r-theme-classic {
+.kin-r-theme-classic,
+.kin-r-theme-parchment {
   --bg: var(--kin-r-bg);
   --bg-warm: var(--kin-r-bg-warm);
   --surface: var(--kin-r-surface);

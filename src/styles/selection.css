@@ -1,74 +1,84 @@
-/* Kin Selection Translation Styles */
+/* Kin Selection Translation — Unified warm design */
 
-/* Translate icon that appears above selection */
+/* ========== Translate icon ========== */
 .kin-selection-icon {
   position: absolute;
-  width: 28px;
-  height: 28px;
-  background: #FFFFFF;
-  border: 1px solid var(--kin-border, #E5E5E5);
-  border-radius: var(--kin-radius-sm, 4px);
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(145deg, #E68B6D, #D97559, #C86748);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--kin-primary, #D97559);
-  box-shadow: var(--kin-shadow-md, 0 4px 12px rgba(0,0,0,0.1));
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(217, 117, 89, 0.35);
   z-index: 2147483570;
-  transition: all 0.15s ease;
-  animation: kin-sel-icon-in 0.2s ease;
+  transition: all 0.2s ease;
+  animation: kin-sel-icon-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .kin-selection-icon:hover {
-  background: var(--kin-primary-light, #FBF0EB);
-  border-color: var(--kin-primary, #D97559);
-  transform: scale(1.1);
+  transform: scale(1.12);
+  box-shadow: 0 4px 16px rgba(217, 117, 89, 0.45);
 }
 
-/* Translation popup */
+.kin-selection-icon:active {
+  transform: scale(0.95);
+}
+
+.kin-selection-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.2;
+}
+
+/* ========== Translation popup ========== */
 .kin-selection-popup {
   position: absolute;
-  min-width: 180px;
-  max-width: 340px;
-  background: #FFFFFF;
-  border: 1px solid var(--kin-border, #E5E5E5);
-  border-radius: var(--kin-radius-md, 8px);
-  box-shadow: var(--kin-shadow-lg, 0 8px 24px rgba(0,0,0,0.12));
+  min-width: 200px;
+  max-width: 360px;
+  background: #FAF9F7;
+  border: 1px solid #DDD9D4;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(28, 25, 23, 0.10), 0 0 0 1px rgba(28, 25, 23, 0.04);
   z-index: 2147483575;
   overflow: hidden;
-  animation: kin-sel-popup-in 0.2s ease;
+  animation: kin-sel-popup-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .kin-selection-original {
-  padding: 10px 14px 6px;
-  font-size: 12px;
+  padding: 12px 14px 8px;
+  font-size: 11px;
   line-height: 1.5;
-  color: var(--kin-text-secondary, #666);
+  color: #9E9891;
   max-height: 60px;
   overflow-y: auto;
   word-break: break-word;
+  font-style: italic;
 }
 
 .kin-selection-divider {
   height: 1px;
-  background: var(--kin-border, #E5E5E5);
+  background: #EAE7E2;
   margin: 0 14px;
 }
 
 .kin-selection-translation {
   padding: 10px 14px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--kin-text, #1A1A1A);
-  max-height: 200px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #1C1917;
+  max-height: 220px;
   overflow-y: auto;
   word-break: break-word;
 }
 
 .kin-selection-loading {
-  padding: 14px;
-  font-size: 13px;
-  color: var(--kin-text-tertiary, #999);
+  padding: 16px;
+  font-size: 12px;
+  color: #9E9891;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,25 +87,26 @@
 
 .kin-selection-spinner {
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(212, 168, 67, 0.3);
-  border-top-color: var(--kin-primary, #D97559);
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(217, 117, 89, 0.2);
+  border-top-color: #D97559;
   border-radius: 50%;
   animation: kin-sel-spin 0.6s linear infinite;
 }
 
 .kin-selection-error {
   padding: 12px 14px;
-  font-size: 13px;
-  color: var(--kin-error, #FF3B30);
+  font-size: 12px;
+  color: #E5484D;
 }
 
 .kin-selection-actions {
-  padding: 4px 8px 6px;
+  padding: 6px 10px 8px;
   display: flex;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 6px;
+  border-top: 1px solid #EAE7E2;
 }
 
 .kin-selection-actions button {
@@ -105,37 +116,51 @@
   gap: 4px;
   border: none;
   background: transparent;
-  color: var(--kin-text-secondary, #666);
+  color: #6B6560;
   font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
   transition: all 0.15s;
+  font-family: inherit;
 }
 
 .kin-selection-actions button:hover {
-  background: var(--kin-primary-light, #FBF0EB);
-  color: var(--kin-primary, #D97559);
+  background: #FBF0EB;
+  color: #D97559;
 }
 
 @keyframes kin-sel-icon-in {
-  from { opacity: 0; transform: scale(0.7) translateY(6px); }
+  from { opacity: 0; transform: scale(0.6) translateY(6px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes kin-sel-popup-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes kin-sel-spin {
   to { transform: rotate(360deg); }
 }
 
-/* Dark mode */
+/* ========== Dark mode ========== */
 @media (prefers-color-scheme: dark) {
-  .kin-selection-icon { background: var(--kin-bg-secondary, #242424); border-color: var(--kin-border, #3A3A3A); }
-  .kin-selection-popup { background: var(--kin-bg-secondary, #242424); border-color: var(--kin-border, #3A3A3A); }
-  .kin-selection-translation { color: var(--kin-text, #F5F5F5); }
-  .kin-selection-actions button { color: var(--kin-text-secondary, #AAA); }
+  .kin-selection-icon {
+    box-shadow: 0 2px 10px rgba(217, 117, 89, 0.25);
+  }
+  .kin-selection-popup {
+    background: #1a1a1a;
+    border-color: #2a2a2a;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+  .kin-selection-original { color: #666; }
+  .kin-selection-translation { color: #e0e0e0; }
+  .kin-selection-divider { background: #2a2a2a; }
+  .kin-selection-actions { border-top-color: #2a2a2a; }
+  .kin-selection-actions button { color: #aaa; }
+  .kin-selection-actions button:hover { background: rgba(217, 117, 89, 0.1); color: #D97559; }
+  .kin-selection-loading { color: #666; }
+  .kin-selection-spinner { border-color: rgba(217, 117, 89, 0.15); border-top-color: #D97559; }
 }

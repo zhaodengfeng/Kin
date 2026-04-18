@@ -39,6 +39,24 @@ const THEMES = {
     blankThreshold: 20,
     blankSearchSpan: 0.25,
   },
+  parchment: {
+    label: 'Parchment',
+    bg: '#F5F2EB',
+    bgWarm: '#EDE9E0',
+    text: '#2D2D2D',
+    textSecondary: '#4A4744',
+    textTertiary: '#9E9891',
+    accent: '#8B7355',
+    accentHover: '#7A6548',
+    border: '#E0DDD5',
+    radius: '10px',
+    radiusSm: '8px',
+    fontSerif: "'Georgia', 'Noto Serif SC', 'SimSun', serif",
+    fontSans: "'Georgia', 'Noto Serif SC', 'SimSun', serif",
+    fontTitleCn: "'Noto Serif SC', 'Source Han Serif SC', 'SimSun', Georgia, serif",
+    blankThreshold: 20,
+    blankSearchSpan: 0.25,
+  },
 };
 
 // Theme key registry — drives theme-select dropdown options in the toolbar
