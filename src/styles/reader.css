@@ -202,6 +202,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* P2-1: Smooth color transitions on theme switch */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.kin-r-reader, .kin-r-reader * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body.kin-r-reader-active video,
@@ -319,6 +324,12 @@ body.kin-r-reader-active [id*="VideoPlayer"] {
   background: var(--accent);
   border-radius: 0 2px 2px 0; z-index: 200;
   transition: width 0.3s ease;
+}
+/* Reading progress: slimmer, no animation (scroll-driven) */
+.kin-r-progress-bar.kin-r-progress-reading {
+  height: 3px;
+  opacity: 0.8;
+  transition: width 0.1s linear;
 }
 
 /* ============================================
@@ -650,16 +661,23 @@ body.kin-r-reader-active [id*="VideoPlayer"] {
    Loading State
    ============================================ */
 .kin-r-loading { opacity: 0.6; pointer-events: none; }
-.kin-r-loading .kin-r-btn-translate { position: relative; }
-.kin-r-loading .kin-r-btn-translate::after {
+.kin-r-btn.kin-r-loading { position: relative; }
+.kin-r-btn.kin-r-loading::after {
   content: '';
-  position: absolute;
+  display: inline-block;
   width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   margin-left: 6px;
+  vertical-align: -2px;
+  opacity: 0.8;
+}
+/* Keep the translate button's original white spinner for dark primary */
+.kin-r-btn-translate.kin-r-loading::after {
+  border-color: rgba(255,255,255,0.3);
+  border-top-color: #fff;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 

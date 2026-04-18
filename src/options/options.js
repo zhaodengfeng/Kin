@@ -202,8 +202,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const planEl = document.getElementById('cfg_deeplPlan');
       const endpointEl = document.getElementById('cfg_endpoint');
       if (planEl && endpointEl) {
+        let _prevPlan = planEl.value;
         planEl.addEventListener('change', () => {
-          endpointEl.value = getDeepLEndpointFromPlan(planEl.value);
+          // P2-9: Confirm plan switch — endpoint and key format differ between Free/Pro
+          const nextPlan = planEl.value;
+          const msg = nextPlan === 'pro'
+            ? '切换到 DeepL Pro 将使用 api.deepl.com 端点，且需要 Pro 版 API Key。确认继续？'
+            : '切换到 DeepL Free 将使用 api-free.deepl.com 端点，且需要 Free 版 API Key。确认继续？';
+          if (!confirm(msg)) {
+            planEl.value = _prevPlan;
+            return;
+          }
+          _prevPlan = nextPlan;
+          endpointEl.value = getDeepLEndpointFromPlan(nextPlan);
         });
       }
     }
@@ -757,12 +768,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     'custom_claude_apiKey', 'custom_claude_model', 'custom_claude_endpoint',
   ];
 
-  async function deriveBackupKey(password, salt) {
+  // Magic header for v2 backups: "KIN\x02". v1 (legacy) has no header and uses 100k iterations.
+  const BACKUP_MAGIC_V2 = [0x4B, 0x49, 0x4E, 0x02];
+  const BACKUP_ITERATIONS_V1 = 100000;
+  const BACKUP_ITERATIONS_V2 = 310000;
+
+  async function deriveBackupKey(password, salt, iterations) {
     const keyMaterial = await crypto.subtle.importKey(
       'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
     );
     return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
       false,
@@ -773,23 +789,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function encryptBackup(data, password) {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const key = await deriveBackupKey(password, salt);
+    const key = await deriveBackupKey(password, salt, BACKUP_ITERATIONS_V2);
     const encrypted = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(data))
     );
-    const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
-    combined.set(salt, 0);
-    combined.set(iv, salt.length);
-    combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+    const combined = new Uint8Array(BACKUP_MAGIC_V2.length + salt.length + iv.length + encrypted.byteLength);
+    combined.set(BACKUP_MAGIC_V2, 0);
+    combined.set(salt, BACKUP_MAGIC_V2.length);
+    combined.set(iv, BACKUP_MAGIC_V2.length + salt.length);
+    combined.set(new Uint8Array(encrypted), BACKUP_MAGIC_V2.length + salt.length + iv.length);
     return btoa(String.fromCharCode(...combined));
   }
 
   async function decryptBackup(base64Str, password) {
     const combined = Uint8Array.from(atob(base64Str), c => c.charCodeAt(0));
-    const salt = combined.slice(0, 16);
-    const iv = combined.slice(16, 28);
-    const ciphertext = combined.slice(28);
-    const key = await deriveBackupKey(password, salt);
+    const hasV2Magic = combined.length > BACKUP_MAGIC_V2.length &&
+      BACKUP_MAGIC_V2.every((b, i) => combined[i] === b);
+    const offset = hasV2Magic ? BACKUP_MAGIC_V2.length : 0;
+    const iterations = hasV2Magic ? BACKUP_ITERATIONS_V2 : BACKUP_ITERATIONS_V1;
+    const salt = combined.slice(offset, offset + 16);
+    const iv = combined.slice(offset + 16, offset + 28);
+    const ciphertext = combined.slice(offset + 28);
+    const key = await deriveBackupKey(password, salt, iterations);
     const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
     return JSON.parse(new TextDecoder().decode(decrypted));
   }
@@ -879,6 +900,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     d.textContent = str;
     return d.innerHTML;
   }
+
+  // P2-8: Throttled "saved" toast driven by storage.onChanged for generic settings
+  let _savedToastTimer = null;
+  const _savedToastSkipKeys = new Set(['history', 'translationCache', 'deeplKeyIndex']);
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local') return;
+    const keys = Object.keys(changes).filter(k => !_savedToastSkipKeys.has(k));
+    if (!keys.length) return;
+    if (_savedToastTimer) clearTimeout(_savedToastTimer);
+    _savedToastTimer = setTimeout(() => { showToast('已保存', 'success'); _savedToastTimer = null; }, 400);
+  });
 
   function showToast(msg, type = 'info') {
     const existing = document.querySelector('.kin-options-toast');

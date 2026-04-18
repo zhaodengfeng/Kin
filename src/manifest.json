@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Kin - Translate & Read",
-  "version": "26.4.19",
-  "version_name": "26.4.19",
+  "version": "26.4.20",
+  "version_name": "26.4.20",
   "description": "Beyond Word. Into Meaning. — Elegant translation & reader for the web.",
   "permissions": [
     "storage",
@@ -52,6 +52,30 @@
   },
   "content_scripts": [
     {
+      "matches": [
+        "*://*.bloomberg.com/*",
+        "*://*.wsj.com/*",
+        "*://*.wsj.net/*",
+        "*://*.nytimes.com/*",
+        "*://*.nyt.com/*",
+        "*://*.ft.com/*",
+        "*://*.economist.com/*",
+        "*://*.scmp.com/*",
+        "*://*.newyorker.com/*"
+      ],
+      "js": [
+        "reader/adapters/base.js",
+        "reader/adapters/bloomberg.js",
+        "reader/adapters/wsj.js",
+        "reader/adapters/nytimes.js",
+        "reader/adapters/ft.js",
+        "reader/adapters/economist.js",
+        "reader/adapters/scmp.js",
+        "reader/adapters/newyorker.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
       "matches": ["<all_urls>"],
       "css": [
         "styles/variables.css",
@@ -65,18 +89,8 @@
       ],
       "js": [
         "lib/dompurify.min.js",
-        "lib/html2canvas.min.js",
-        "lib/jspdf.umd.min.js",
         "content/toast.js",
         "content/masker.js",
-        "reader/adapters/base.js",
-        "reader/adapters/bloomberg.js",
-        "reader/adapters/wsj.js",
-        "reader/adapters/nytimes.js",
-        "reader/adapters/ft.js",
-        "reader/adapters/economist.js",
-        "reader/adapters/scmp.js",
-        "reader/adapters/newyorker.js",
         "reader/renderer.js",
         "content/translator.js",
         "content/hover.js",

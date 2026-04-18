@@ -208,8 +208,8 @@ const ReaderRenderer = {
       <div class="kin-r-progress-bar" id="kin-r-progress" style="width: 0%;"></div>
       <div class="kin-r-reader-toolbar">
         <div class="kin-r-reader-meta">
-          <span class="kin-r-badge">${article.source}</span>
-          ${article.date ? `<span class="kin-r-date">${article.date}</span>` : ''}
+          <span class="kin-r-badge">${this.escapeHtml(article.source || '')}</span>
+          ${article.date ? `<span class="kin-r-date">${this.escapeHtml(article.date)}</span>` : ''}
         </div>
         <div class="kin-r-reader-actions">
           <select class="kin-r-select kin-r-theme-select" title="Style">
@@ -258,9 +258,9 @@ const ReaderRenderer = {
         </div>
       </div>
       <div class="kin-r-reader-content">
-        <h1 class="kin-r-title" data-original="${this.escapeHtml(article.title)}">${this.escapeHtml(article.title)}</h1>
+        <h1 class="kin-r-title" data-original="${this.escapeAttr(article.title)}">${this.escapeHtml(article.title)}</h1>
         ${article.standfirst ? `
-          <div class="kin-r-standfirst" data-original="${this.escapeHtml(article.standfirst)}">${this.escapeHtml(article.standfirst)}</div>
+          <div class="kin-r-standfirst" data-original="${this.escapeAttr(article.standfirst)}">${this.escapeHtml(article.standfirst)}</div>
         ` : ''}
         ${(article.author || article.date) ? `
           <div class="kin-r-meta">
@@ -292,7 +292,7 @@ const ReaderRenderer = {
   imageAttributes(src, alt = '') {
     const skipCors = /media\.newyorker\.com/i.test(src || '');
     const corsAttr = skipCors ? '' : ' crossorigin="anonymous"';
-    return `src="${this.escapeHtml(src || '')}" alt="${this.escapeHtml(alt || '')}" loading="lazy" decoding="async"${corsAttr}`;
+    return `src="${this.escapeAttr(src || '')}" alt="${this.escapeAttr(alt || '')}" loading="lazy" decoding="async"${corsAttr}`;
   },
 
   renderParagraph(p) {
@@ -305,9 +305,9 @@ const ReaderRenderer = {
     }
     if (p.type === 'heading') {
       const tag = `h${p.level || 2}`;
-      return `<${tag} class="kin-r-heading" data-original="${this.escapeHtml(p.text)}">${this.escapeHtml(p.text)}</${tag}>`;
+      return `<${tag} class="kin-r-heading" data-original="${this.escapeAttr(p.text)}">${this.escapeHtml(p.text)}</${tag}>`;
     }
-    return `<p class="kin-r-paragraph" data-original="${this.escapeHtml(p.text)}">${this.escapeHtml(p.text)}</p>`;
+    return `<p class="kin-r-paragraph" data-original="${this.escapeAttr(p.text)}">${this.escapeHtml(p.text)}</p>`;
   },
 
   bindEvents() {
@@ -367,6 +367,7 @@ const ReaderRenderer = {
     this.active = false;
     this.translated = false;
     this.translating = false;
+    this._disableReadingProgress();
     document.body.classList.remove('kin-r-reader-active');
     if (this.overlay) {
       this.overlay.remove();
@@ -885,12 +886,8 @@ const ReaderRenderer = {
       this.translated = true;
       btn.querySelector('span').textContent = 'Show Original';
       btn.classList.remove('kin-r-loading');
-      setTimeout(() => {
-        if (progressBar) {
-          progressBar.style.opacity = '0';
-          setTimeout(() => { progressBar.style.width = '0%'; progressBar.style.opacity = '1'; }, 300);
-        }
-      }, 800);
+      // P2-4: after translation, repurpose progress bar as reading progress
+      this._enableReadingProgress();
     } catch (err) {
       if (isStale()) return;
       console.error('Kin translation error:', err);
@@ -915,6 +912,45 @@ const ReaderRenderer = {
     toast.textContent = message;
     this.overlay.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
+  },
+
+  // P2-4: After translation, reuse the progress bar as a reading/scroll progress indicator.
+  _enableReadingProgress() {
+    if (!this.overlay || this._readingProgressHandler) return;
+    const bar = this.overlay.querySelector('#kin-r-progress');
+    if (!bar) return;
+    bar.classList.add('kin-r-progress-reading');
+    const compute = () => {
+      if (!this.overlay) return;
+      const scrollTop = this.overlay.scrollTop;
+      const max = this.overlay.scrollHeight - this.overlay.clientHeight;
+      const pct = max > 0 ? Math.min(100, Math.max(0, (scrollTop / max) * 100)) : 0;
+      bar.style.width = pct + '%';
+    };
+    this._readingProgressHandler = () => requestAnimationFrame(compute);
+    this.overlay.addEventListener('scroll', this._readingProgressHandler, { passive: true });
+    compute();
+  },
+
+  _disableReadingProgress() {
+    if (this.overlay && this._readingProgressHandler) {
+      this.overlay.removeEventListener('scroll', this._readingProgressHandler);
+    }
+    this._readingProgressHandler = null;
+  },
+
+  // Lazy-load html2canvas + jsPDF on first export; cached per tab in background.
+  async _ensureExportLibs() {
+    if (typeof html2canvas !== 'undefined' && (typeof jspdf !== 'undefined' || typeof window.jspdf !== 'undefined')) return;
+    const resp = await new Promise((resolve, reject) => {
+      try {
+        chrome.runtime.sendMessage({ type: 'ensure_export_libs' }, (r) => {
+          if (chrome.runtime.lastError) { reject(new Error(chrome.runtime.lastError.message)); return; }
+          resolve(r || {});
+        });
+      } catch (e) { reject(e); }
+    });
+    if (resp?.error) throw new Error(resp.error);
   },
 
   // ========== Export clone logic ==========
@@ -1398,11 +1434,18 @@ const ReaderRenderer = {
   },
 
   async takeScreenshot() {
-    if (typeof html2canvas === 'undefined' || !this.overlay) return;
+    if (!this.overlay) return;
 
     const btn = this.overlay.querySelector('.kin-r-btn-screenshot');
     const originalLabel = btn?.querySelector('span')?.textContent || 'Screenshot';
-    btn.classList.add('kin-r-loading');
+    btn?.classList.add('kin-r-loading');
+    try {
+      await this._ensureExportLibs();
+    } catch (e) {
+      btn?.classList.remove('kin-r-loading');
+      this.showToast('Failed to load export libraries', 'error');
+      return;
+    }
     const mode = this.getTranslateMode();
     const themeKey = this._getCurrentThemeKey();
     const theme = THEMES[themeKey] || THEMES.default;
@@ -1467,12 +1510,23 @@ const ReaderRenderer = {
 
   // PDF 导出：按页分片 html2canvas → 图片 → PDF，避免超长文章超过浏览器 canvas 上限。
   async exportPDF() {
-    if ((typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') || !this.overlay) return;
-    if (typeof html2canvas === 'undefined') return;
+    if (!this.overlay) return;
 
     const btn = this.overlay.querySelector('.kin-r-btn-pdf');
     const originalLabel = btn?.querySelector('span')?.textContent || 'PDF';
-    btn.classList.add('kin-r-loading');
+    btn?.classList.add('kin-r-loading');
+    try {
+      await this._ensureExportLibs();
+    } catch (e) {
+      btn?.classList.remove('kin-r-loading');
+      this.showToast('Failed to load export libraries', 'error');
+      return;
+    }
+    if (typeof html2canvas === 'undefined' || (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined')) {
+      btn?.classList.remove('kin-r-loading');
+      this.showToast('Export libraries unavailable', 'error');
+      return;
+    }
     let clone = null;
 
     try {
@@ -1551,9 +1605,19 @@ const ReaderRenderer = {
     }
   },
 
+  // Use for text-node interpolation: `<p>${escapeHtml(x)}</p>`
   escapeHtml(text) {
     const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML.replace(/"/g, '&quot;');
+    div.textContent = text ?? '';
+    return div.innerHTML;
+  },
+
+  // Use for attribute interpolation: `<p data-x="${escapeAttr(x)}">`
+  // MUST escape both " and ' or attribute boundary can be broken.
+  escapeAttr(text) {
+    if (text === null || text === undefined) return '';
+    return String(text).replace(/[&"'<>]/g, c =>
+      ({ '&': '&amp;', '"': '&quot;', "'": '&#39;', '<': '&lt;', '>': '&gt;' }[c])
+    );
   }
 };

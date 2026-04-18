@@ -281,6 +281,12 @@ body {
   align-items: center;
   padding: 3px;
   gap: 0;
+  transition: opacity 0.2s ease;
+}
+/* P2-7: Visually disable mode cards when page is not translated */
+.mode-card.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .mode-item {
@@ -350,6 +356,12 @@ body {
   font-size: 10px;
   color: var(--kin-text-tertiary, #9E9891);
   margin-left: 8px;
+}
+.history-empty {
+  font-size: 11px;
+  color: var(--kin-text-tertiary, #9E9891);
+  padding: 8px 0;
+  text-align: center;
 }
 
 /* ===== Focus ===== */

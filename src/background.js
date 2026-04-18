@@ -221,6 +221,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
       return true;
 
+    case 'ensure_export_libs':
+      ensureExportLibs(sender.tab?.id).then(sendResponse).catch(err => {
+        sendResponse({ error: err.message || 'Failed to load export libraries' });
+      });
+      return true;
+
     case 'article_opened':
       chrome.storage.local.get('history', (data) => {
         const history = data.history || [];
@@ -302,6 +308,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 // ============================================
+// Lazy Export Library Loader
+// ============================================
+const _exportLibsLoadedTabs = new Set();
+async function ensureExportLibs(tabId) {
+  if (!tabId) throw new Error('Missing tab id');
+  if (_exportLibsLoadedTabs.has(tabId)) return { ok: true, cached: true };
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    files: ['lib/html2canvas.min.js', 'lib/jspdf.umd.min.js']
+  });
+  _exportLibsLoadedTabs.add(tabId);
+  return { ok: true, cached: false };
+}
+chrome.tabs?.onRemoved?.addListener?.(tabId => _exportLibsLoadedTabs.delete(tabId));
+chrome.tabs?.onUpdated?.addListener?.((tabId, changeInfo) => {
+  if (changeInfo.status === 'loading') _exportLibsLoadedTabs.delete(tabId);
+});
+
+// ============================================
 // Image Fetch (for Reader export)
 // ============================================
 async function fetchExportImage({ url } = {}) {
@@ -314,7 +339,7 @@ async function fetchExportImage({ url } = {}) {
   try {
     response = await fetch(parsed.href, {
       credentials: 'omit',
-      cache: 'force-cache',
+      cache: 'default',
       signal: controller.signal
     });
   } finally {
@@ -1224,8 +1249,12 @@ async function deeplTranslate(texts, targetLang, langName, provider, configOverr
   let keyIndex = (keyState.deeplKeyIndex || 0) % Math.max(keys.length, 1);
 
   const maxAttempts = keys.length > 1 ? keys.length * 2 : 4;
+  const exhaustedKeys = new Set();
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (keys.length > 1 && exhaustedKeys.size >= keys.length) {
+      throw new Error('DeepL error 456: all configured keys have exhausted their quota');
+    }
     const currentKey = keys.length > 1 ? keys[keyIndex % keys.length] : cfg.apiKey.trim();
 
     const controller = new AbortController();
@@ -1246,6 +1275,7 @@ async function deeplTranslate(texts, targetLang, langName, provider, configOverr
       const errText = await response.text();
       // 456 = quota exceeded, rotate to next key
       if (response.status === 456 && keys.length > 1) {
+        exhaustedKeys.add(keyIndex % keys.length);
         keyIndex = (keyIndex + 1) % keys.length;
         await chrome.storage.local.set({ deeplKeyIndex: keyIndex });
         // Don't retry immediately, short delay then try next key
@@ -1261,17 +1291,23 @@ async function deeplTranslate(texts, targetLang, langName, provider, configOverr
       throw new Error('DeepL request failed. If you use a Pro key, set the endpoint to https://api.deepl.com/v2/translate in settings.');
     } finally { clearTimeout(timeoutId); }
   }
+  throw new Error('DeepL request failed after exhausting all retry attempts');
 }
 
 // ============================================
 // Encrypted Backup (AES-256-GCM)
 // ============================================
-async function deriveBackupKey(password, salt) {
+// Magic header for v2 backups: "KIN\x02". v1 (legacy) has no header and uses 100k iterations.
+const BACKUP_MAGIC_V2 = [0x4B, 0x49, 0x4E, 0x02];
+const BACKUP_ITERATIONS_V1 = 100000;
+const BACKUP_ITERATIONS_V2 = 310000;
+
+async function deriveBackupKey(password, salt, iterations) {
   const keyMaterial = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
   );
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
@@ -1282,24 +1318,29 @@ async function deriveBackupKey(password, salt) {
 async function encryptBackup(data, password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveBackupKey(password, salt);
+  const key = await deriveBackupKey(password, salt, BACKUP_ITERATIONS_V2);
   const encrypted = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(data))
   );
-  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
-  combined.set(salt, 0);
-  combined.set(iv, salt.length);
-  combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+  const combined = new Uint8Array(BACKUP_MAGIC_V2.length + salt.length + iv.length + encrypted.byteLength);
+  combined.set(BACKUP_MAGIC_V2, 0);
+  combined.set(salt, BACKUP_MAGIC_V2.length);
+  combined.set(iv, BACKUP_MAGIC_V2.length + salt.length);
+  combined.set(new Uint8Array(encrypted), BACKUP_MAGIC_V2.length + salt.length + iv.length);
   return btoa(String.fromCharCode(...combined));
 }
 
 async function decryptBackup(base64Str, password) {
   try {
     const combined = Uint8Array.from(atob(base64Str), c => c.charCodeAt(0));
-    const salt = combined.slice(0, 16);
-    const iv = combined.slice(16, 28);
-    const ciphertext = combined.slice(28);
-    const key = await deriveBackupKey(password, salt);
+    const hasV2Magic = combined.length > BACKUP_MAGIC_V2.length &&
+      BACKUP_MAGIC_V2.every((b, i) => combined[i] === b);
+    const offset = hasV2Magic ? BACKUP_MAGIC_V2.length : 0;
+    const iterations = hasV2Magic ? BACKUP_ITERATIONS_V2 : BACKUP_ITERATIONS_V1;
+    const salt = combined.slice(offset, offset + 16);
+    const iv = combined.slice(offset + 16, offset + 28);
+    const ciphertext = combined.slice(offset + 28);
+    const key = await deriveBackupKey(password, salt, iterations);
     const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
     return JSON.parse(new TextDecoder().decode(decrypted));
   } catch (e) {

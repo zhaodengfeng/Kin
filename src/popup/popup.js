@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let pageState = 'idle'; // idle | translating | translated
 
+  // P2-7: toggle mode-card disabled state in sync with pageState
+  function syncModeCardState() {
+    const modeCard = document.querySelector('.mode-card');
+    if (!modeCard) return;
+    modeCard.classList.toggle('is-disabled', pageState !== 'translated');
+  }
+
   // Populate dropdowns
   populateLanguages();
   await populateEngines();
@@ -26,12 +33,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;
 
+  // P2-5: Friendly message for restricted URLs where content scripts cannot run
+  const restrictedPrefixes = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'brave://', 'view-source:', 'https://chrome.google.com/webstore', 'https://chromewebstore.google.com'];
+  const isRestricted = typeof tab.url === 'string' && restrictedPrefixes.some(p => tab.url.startsWith(p));
+  if (isRestricted) {
+    btnTranslate.disabled = true;
+    btnTranslateText.textContent = '当前页面不支持翻译';
+    setStatus('error', '浏览器内部页面无法注入脚本');
+    if (btnReader) btnReader.style.display = 'none';
+  }
+
   // Load saved settings
   const settings = await getSettings();
   applySettings(settings);
 
   // Ping content script
-  const response = await pingContentScript(tab.id);
+  const response = isRestricted ? null : await pingContentScript(tab.id);
   if (response) updateUI(response);
 
   // Load history for news sites
@@ -46,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       btnTranslateText.textContent = '翻译中...';
       btnTranslate.disabled = true;
       setStatus('translating', '正在翻译...');
+      syncModeCardState();
       try {
         await chrome.tabs.sendMessage(tab.id, { type: 'toggle_translate' });
       } catch(e) {
@@ -60,6 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       pageState = 'idle';
       btnTranslateText.textContent = '翻译此页面';
       setStatus('idle', '准备就绪');
+      syncModeCardState();
       try {
         await chrome.tabs.sendMessage(tab.id, { type: 'toggle_translate' });
       } catch(e) {
@@ -229,6 +248,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       btnTranslateText.textContent = '显示原文';
       setStatus('translated', '已翻译');
     }
+    syncModeCardState();
   }
 
   function pollTranslationState(tabId) {
@@ -244,6 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           btnTranslate.disabled = false;
           setStatus(resp?.pageTranslated ? 'translated' : 'idle',
             resp?.pageTranslated ? '已翻译' : '准备就绪');
+          syncModeCardState();
           clearInterval(interval);
         }
       } catch {
@@ -267,19 +288,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.runtime.sendMessage({ type: 'get_history' }, (data) => {
       const list = document.getElementById('historyList');
       const history = data?.history || [];
-      if (!history.length) { list.innerHTML = '<div style="font-size:11px;color:#999">暂无阅读记录</div>'; return; }
-      list.innerHTML = history.slice(0, 5).map(item =>
-        `<div class="history-item">
-          <span class="history-item-title">${escapeHtml(item.title || 'Untitled')}</span>
-          <span class="history-item-source">${escapeHtml(item.source || '')}</span>
-        </div>`
-      ).join('');
+      list.replaceChildren();
+      if (!history.length) {
+        list.classList.add('is-empty');
+        const empty = document.createElement('div');
+        empty.className = 'history-empty';
+        empty.textContent = '暂无阅读记录';
+        list.appendChild(empty);
+        return;
+      }
+      list.classList.remove('is-empty');
+      const frag = document.createDocumentFragment();
+      history.slice(0, 5).forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'history-item';
+        const title = document.createElement('span');
+        title.className = 'history-item-title';
+        title.textContent = item.title || 'Untitled';
+        const source = document.createElement('span');
+        source.className = 'history-item-source';
+        source.textContent = item.source || '';
+        row.append(title, source);
+        frag.appendChild(row);
+      });
+      list.appendChild(frag);
     });
-  }
-
-  function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
   }
 });
