@@ -60,7 +60,7 @@ class FTAdapter extends BaseAdapter {
     for (let i = total - 1; i >= 0; i--) {
       const text = (allEls[i].innerText || '').trim().toLowerCase();
       if (i < total * 0.7) return null;
-      if (/^(latest on|more from the ft|related|recommended|popular in|more stories|explore the ft|try premium|myft|copyright|newsletter|sign up|subscribe|understanding the most|signed in as|edit commenting|show comments|exclusively for subscribers)/.test(text)) {
+      if (/^(latest on|more from the ft|related|recommended|popular in|more stories|explore the ft|try premium|myft|copyright|newsletter|sign up|subscribe|understanding the most|signed in as|edit commenting|show comments|exclusively for subscribers|please use the sharing tools|find out about our latest stories|follow .* on instagram)/.test(text)) {
         return allEls[i];
       }
     }
@@ -178,11 +178,15 @@ class FTAdapter extends BaseAdapter {
       if (/^(published|updated|first published)\s*/i.test(text) && /\b(ago|yesterday|\d{4})\b/i.test(text)) continue;
       if (/^get ahead with daily|^keep up with|^stay informed|^follow the topics/i.test(text)) continue;
       if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) continue;
-      if (/email|@ft\.com/i.test(text) && text.length < 80) continue;
+      if (/email|@ft\.com/i.test(text) && text.length < 120) continue;
+      if (/licensing@ft\.com/i.test(text)) continue;
+      if (/follow .* on instagram|follow .* on bluesky|follow .* on x/i.test(text)) continue;
+      if (/sign up to receive .* newsletter/i.test(text)) continue;
+      if (text.includes('ft.com/content/') && text.length < 200) continue;
       if (/^exclusively for subscribers\b/i.test(text)) continue;
       if (/^latest on\b/i.test(text)) continue;
       if (/^managing risk and opportunity in the world/i.test(text)) continue;
-      if (/^(sign up|subscribe|newsletter|myft|try premium|more from|read more|share this|follow|copyright|signed in as|edit commenting|show comments|understanding the most)/i.test(text)) continue;
+      if (/^(sign up|subscribe|newsletter|myft|try premium|more from|read more|share this|follow|copyright|signed in as|edit commenting|show comments|understanding the most|please use the sharing tools|find out about our latest stories)/i.test(text)) continue;
       if (/^understanding the (most|key|latest|important)/i.test(text) && text.length < 120) continue;
       if (/signed in as/i.test(text) && /edit (commenting|display name)/i.test(text)) continue;
       if (/^https?:\/\//i.test(text) && text.length < 120) continue;
@@ -208,7 +212,7 @@ class FTAdapter extends BaseAdapter {
         if (seen.has(text2)) continue;
         if (el2.closest(skipSelector)) continue;
         const t2Lower = text2.toLowerCase();
-        if (/^(managing risk|get ahead|keep up|latest on|more from the ft|related|popular in|more stories|explore the ft|try premium|myft|sign up|subscribe|newsletter|understanding the most|signed in as|edit commenting|show comments|exclusively for subscribers|methodology)/.test(t2Lower)) break;
+        if (/^(managing risk|get ahead|keep up|latest on|more from the ft|related|popular in|more stories|explore the ft|try premium|myft|sign up|subscribe|newsletter|understanding the most|signed in as|edit commenting|show comments|exclusively for subscribers|methodology|please use the sharing tools|find out about our latest stories)/.test(t2Lower)) break;
         if (/^exclusively for subscribers\b/i.test(text2)) continue;
         if (/^latest on\b/i.test(text2)) continue;
         if (/^recommended$/i.test(text2)) continue;
