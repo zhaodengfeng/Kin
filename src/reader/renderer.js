@@ -1452,7 +1452,7 @@ const ReaderRenderer = {
       if (!window.KinSummaryCard) throw new Error('Summary card module not loaded');
       const themeKey = this._currentTheme || 'default';
       const translateMode = this.getTranslateMode();
-      const translated = this.translated === true;
+      const translated = this.translated === true || !!this.overlay.querySelector('.kin-r-title .kin-r-translation, .kin-r-standfirst .kin-r-translation, .kin-r-paragraph .kin-r-translation');
       await window.KinSummaryCard.generate(this.article, themeKey, { translated, translateMode });
       this.showToast('摘要卡片已生成');
     } catch (e) {

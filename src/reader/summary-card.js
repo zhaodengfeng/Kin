@@ -494,13 +494,26 @@
     return parts.join('\n\n').trim();
   }
 
+  function hasTranslatedReaderContent() {
+    const reader = document.getElementById('kin-reader');
+    if (!reader) return false;
+    return !!reader.querySelector('.kin-r-title .kin-r-translation, .kin-r-standfirst .kin-r-translation, .kin-r-paragraph .kin-r-translation');
+  }
+
   function getTranslatedTitle() {
     const reader = document.getElementById('kin-reader');
     if (!reader) return null;
     const titleEl = reader.querySelector('.kin-r-title');
     if (!titleEl) return null;
     const t = titleEl.querySelector('.kin-r-translation');
-    return t ? t.textContent.trim() : null;
+    const translated = t ? t.textContent.trim() : '';
+    if (translated) return translated;
+    if (titleEl.classList.contains('kin-r-translated')) {
+      const original = titleEl.querySelector('.kin-r-original');
+      const fallback = String(titleEl.textContent || '').replace(String(original?.textContent || ''), '').trim();
+      if (fallback) return fallback;
+    }
+    return null;
   }
 
   // ─── Data Builder ─────────────────────────────────────────────────────────────
@@ -512,7 +525,7 @@
     const matrix = window.KinQR.encode(url, { ecLevel: 'L' });
     const qrSvg = window.KinQR.renderSVG(matrix, { moduleSize: 6, quietZone: 4, fg: '#1C1917', bg: '#FFFFFF' });
 
-    const useTranslated = opts.translated === true;
+    const useTranslated = opts.translated === true || hasTranslatedReaderContent();
     let summaryLang = null;
     let cardTitle = article.title || '';
     let textForLLM = '';
