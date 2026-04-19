@@ -134,6 +134,7 @@ chrome.runtime.onInstalled.addListener(() => {
     }
     if (Object.keys(toSet).length > 0) chrome.storage.local.set(toSet);
   });
+  migrateStoredModelDefaults();
 
   // Initialize cache structure
   chrome.storage.local.get(CACHE_KEY, (data) => {
@@ -142,6 +143,36 @@ chrome.runtime.onInstalled.addListener(() => {
     }
   });
 });
+
+async function migrateStoredModelDefaults() {
+  const migrations = [
+    ['openai_model', ['gpt-4o-mini'], 'gpt-5.4-mini'],
+    ['summary_openai_model', ['gpt-4o-mini'], 'gpt-5.4-mini'],
+    ['qwen_model', ['qwen-mt-turbo'], 'qwen-mt-plus'],
+    ['summary_qwen_model', ['qwen-plus', 'qwen-turbo', 'qwen-max', 'qwen-mt-plus', 'qwen-mt-flash', 'qwen-mt-lite', 'qwen-mt-turbo'], 'qwen3.6-plus'],
+    ['gemini_model', ['gemini-2.5-flash'], 'gemini-3-flash-preview'],
+    ['summary_gemini_model', ['gemini-2.5-flash'], 'gemini-3-flash-preview'],
+    ['glm_model', ['glm-4-flash', 'glm-4.6'], 'glm-5.1'],
+    ['summary_glm_model', ['glm-4-flash', 'glm-4.6'], 'glm-5.1'],
+    ['kimi_model', ['moonshot-v1-32k'], 'kimi-k2.5'],
+    ['summary_kimi_model', ['moonshot-v1-32k'], 'kimi-k2.5'],
+    ['openrouter_model', ['nvidia/nemotron-3-super-120b-a12b:free'], 'openai/gpt-5.4-mini'],
+    ['summary_openrouter_model', ['nvidia/nemotron-3-super-120b-a12b:free'], 'openai/gpt-5.4-mini'],
+    ['claude_model', ['claude-haiku-4-5'], 'claude-sonnet-4-6'],
+    ['summary_claude_model', ['claude-haiku-4-5', 'claude-sonnet-4-6', 'claude-opus-4-6'], 'claude-opus-4-7']
+  ];
+  try {
+    const keys = migrations.map(([key]) => key);
+    const stored = await chrome.storage.local.get(keys);
+    const toSet = {};
+    migrations.forEach(([key, oldValues, nextValue]) => {
+      if (oldValues.includes(stored[key])) toSet[key] = nextValue;
+    });
+    if (Object.keys(toSet).length > 0) await chrome.storage.local.set(toSet);
+  } catch (e) {
+    console.warn('[Kin] Model default migration skipped:', e?.message || e);
+  }
+}
 
 // ============================================
 // Context Menu Handler
@@ -205,7 +236,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         'selectionTranslate',
         'sensitiveMask', 'disableReasoning', 'readerEnabled', 'readerTheme',
         'exportImageFormat', 'exportQuality',
-        'longArticleMultiImageExport', 'summaryCardPreview',
+        'longArticleMultiImageExport',
+        'summaryProvider', 'summaryMigrationShown',
         'alwaysTranslateUrls', 'neverTranslateUrls',
         'floatBallPosY'
       ];
@@ -286,9 +318,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case 'save_api_key': {
       const _pSave = msg.data?.provider;
       if (!PROVIDERS[_pSave]) { sendResponse({ error: 'Invalid provider' }); return; }
+      const _scopeSave = msg.data?.scope === 'summary' ? 'summary' : 'translate';
+      if (_scopeSave === 'summary' && PROVIDERS[_pSave].supportsSummary === false) {
+        sendResponse({ error: 'Provider does not support summary' });
+        return;
+      }
+      const _prefixSave = getProviderStoragePrefix(_pSave, _scopeSave);
       encryptApiKey(msg.data.key)
         .then(encrypted => {
-          chrome.storage.local.set({ [`${_pSave}_apiKey`]: encrypted }, () => sendResponse({ ok: true }));
+          chrome.storage.local.set({ [`${_prefixSave}_apiKey`]: encrypted }, () => sendResponse({ ok: true }));
         })
         .catch(err => sendResponse({ error: err.message }));
       return true;
@@ -297,10 +335,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case 'get_api_key': {
       const _pGet = msg.data?.provider;
       if (!PROVIDERS[_pGet]) { sendResponse({ key: '', error: 'Invalid provider' }); return; }
+      const _scopeGet = msg.data?.scope === 'summary' ? 'summary' : 'translate';
+      if (_scopeGet === 'summary' && PROVIDERS[_pGet].supportsSummary === false) {
+        sendResponse({ key: '', error: 'Provider does not support summary' });
+        return;
+      }
+      const _prefixGet = getProviderStoragePrefix(_pGet, _scopeGet);
       (async () => {
         try {
-          const data = await chrome.storage.local.get(`${_pGet}_apiKey`);
-          const encrypted = data[`${_pGet}_apiKey`];
+          const data = await chrome.storage.local.get(`${_prefixGet}_apiKey`);
+          const encrypted = data[`${_prefixGet}_apiKey`];
           if (!encrypted) { sendResponse({ key: '' }); return; }
           const key = await decryptApiKey(encrypted);
           sendResponse({ key });
@@ -466,23 +510,28 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
 // ============================================
 const NON_LLM_PROVIDERS = new Set(['google', 'microsoft', 'deepl']);
 
-async function handleSummary({ text, lang, contextHints }) {
+async function handleSummary({ text, lang, providerOverride, contextHints, configOverride }) {
   const safeText = String(text || '').trim();
   if (!safeText) throw new Error('文章正文为空');
 
-  const settings = await chrome.storage.local.get(['translationProvider', 'targetLang']);
-  const provider = settings.translationProvider || 'openai';
-  if (NON_LLM_PROVIDERS.has(provider)) {
-    throw new Error('当前翻译引擎不支持摘要生成，请在设置中切换为大模型引擎（OpenAI / Claude / Gemini 等）');
+  const settings = await chrome.storage.local.get(['summaryProvider', 'targetLang']);
+  const provider = providerOverride || settings.summaryProvider;
+  if (!provider) {
+    throw new Error('请先在设置的沉浸阅读页配置摘要模型');
   }
 
-  const targetLang = lang || null;
-  const langName = targetLang ? (LANG_NAMES[targetLang] || targetLang) : null;
-  const cfg = await loadProviderConfig(provider);
-  if (!cfg.apiKey) throw new Error('请先在设置中配置该引擎的 API Key');
-  if (!cfg.endpoint) throw new Error('请先在设置中配置该引擎的 Endpoint');
+  const meta = PROVIDERS[provider];
+  if (!meta || meta.supportsSummary === false || NON_LLM_PROVIDERS.has(provider)) {
+    throw new Error(`${providerDisplayName(provider)} 不支持摘要生成，请选择大模型引擎`);
+  }
 
-  const model = cfg.model || PROVIDERS[provider]?.model || '';
+  const targetLang = lang || settings.targetLang || null;
+  const langName = targetLang ? (LANG_NAMES[targetLang] || targetLang) : null;
+  const cfg = await loadProviderConfig(provider, configOverride || {}, { scope: 'summary' });
+  if (!cfg.apiKey) throw new Error('请先配置该摘要引擎的 API Key');
+  if (!cfg.endpoint) throw new Error('请先配置该摘要引擎的 Endpoint');
+
+  const model = cfg.model || meta.summaryModel || meta.model || '';
   const systemPrompt = buildSummarySystemPrompt(langName);
   const userPrompt = buildSummaryUserPrompt(safeText, contextHints);
 
@@ -526,6 +575,7 @@ async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPromp
     temperature: 0.4,
     max_tokens: 1500
   };
+  applyOpenAICompatibleModelOptions(provider, model, body);
 
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` };
   if (provider === 'openrouter') {
@@ -801,10 +851,15 @@ function buildTranslationCacheKey(meta, text) {
 // ============================================
 // Provider Config Loader (with key decryption)
 // ============================================
-async function loadProviderConfig(provider, override = {}) {
-  const keys = [`${provider}_apiKey`, `${provider}_model`, `${provider}_endpoint`];
+function getProviderStoragePrefix(provider, scope = 'translate') {
+  return scope === 'summary' ? `summary_${provider}` : provider;
+}
+
+async function loadProviderConfig(provider, override = {}, { scope = 'translate' } = {}) {
+  const prefix = getProviderStoragePrefix(provider, scope);
+  const keys = [`${prefix}_apiKey`, `${prefix}_model`, `${prefix}_endpoint`];
   const data = await chrome.storage.local.get(keys);
-  const rawKey = Object.prototype.hasOwnProperty.call(override, 'apiKey') ? (override.apiKey || '') : (data[`${provider}_apiKey`] || '');
+  const rawKey = Object.prototype.hasOwnProperty.call(override, 'apiKey') ? (override.apiKey || '') : (data[`${prefix}_apiKey`] || '');
   let apiKey = '';
   if (rawKey) {
     if (override.isPlaintext === true) {
@@ -815,8 +870,8 @@ async function loadProviderConfig(provider, override = {}) {
   }
   return {
     apiKey,
-    model: Object.prototype.hasOwnProperty.call(override, 'model') ? (override.model || '') : (data[`${provider}_model`] || ''),
-    endpoint: Object.prototype.hasOwnProperty.call(override, 'endpoint') ? (override.endpoint || '') : (data[`${provider}_endpoint`] || '')
+    model: Object.prototype.hasOwnProperty.call(override, 'model') ? (override.model || '') : (data[`${prefix}_model`] || ''),
+    endpoint: Object.prototype.hasOwnProperty.call(override, 'endpoint') ? (override.endpoint || '') : (data[`${prefix}_endpoint`] || '')
   };
 }
 
@@ -1245,6 +1300,17 @@ function supportsJsonMode(provider, model) {
   return false;
 }
 
+function applyOpenAICompatibleModelOptions(provider, model, requestBody) {
+  const m = String(model || '').toLowerCase();
+  if (provider === 'openai' && m.startsWith('gpt-5.4')) {
+    requestBody.reasoning_effort = 'none';
+  }
+  if (provider === 'kimi' && m.startsWith('kimi-k2')) {
+    delete requestBody.temperature;
+    requestBody.thinking = { type: 'disabled' };
+  }
+}
+
 async function openaiTranslate(texts, targetLang, langName, provider, configOverride, context, contentType, disableReasoning) {
   const cfg = await loadProviderConfig(provider, configOverride);
   if (!cfg.apiKey) throw new Error('Please configure API Key in settings');
@@ -1263,6 +1329,7 @@ async function openaiTranslate(texts, targetLang, langName, provider, configOver
     max_tokens: Math.max(4096, Math.min(16384, texts.reduce((sum, t) => sum + String(t).length, 0) * 4))
   };
   if (supportsJsonMode(provider, model)) requestBody.response_format = { type: 'json_object' };
+  applyOpenAICompatibleModelOptions(provider, model, requestBody);
 
   // Disable model reasoning for translation (faster, fewer tokens, less truncation)
   if (disableReasoning) {

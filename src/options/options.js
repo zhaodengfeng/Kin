@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   populateSourceLanguages();
   populateTargetLanguages();
   populateEngines();
+  populateSummaryEngines();
   populateThemes();
 
   await applySettings(settings);
@@ -64,6 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ========== Translation Tab ==========
   const optEngine = document.getElementById('optEngine');
   const providerConfig = document.getElementById('providerConfig');
+  const optSummaryEngine = document.getElementById('optSummaryEngine');
+  const summaryProviderConfig = document.getElementById('summaryProviderConfig');
   const engineHint = document.getElementById('engineHint'); // may be null in new UI
   const saveStatus = document.getElementById('saveStatus');
   const saveStatusText = document.getElementById('saveStatusText');
@@ -95,8 +98,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       : 'https://api-free.deepl.com/v2/translate';
   }
 
-  function getStoredKeys(provider) {
-    return [`${provider}_apiKey`, `${provider}_model`, `${provider}_endpoint`, `${provider}_plan`];
+  function supportsSummary(provider) {
+    const info = (typeof PROVIDERS !== 'undefined' ? PROVIDERS[provider] : null)
+      || (typeof ProviderRegistry !== 'undefined' ? ProviderRegistry.get(provider) : null);
+    return !!info && info.supportsSummary !== false;
+  }
+
+  function getProviderStoragePrefix(provider, scope = 'translate') {
+    return scope === 'summary' ? `summary_${provider}` : provider;
+  }
+
+  function getStoredKeys(provider, scope = 'translate') {
+    const prefix = getProviderStoragePrefix(provider, scope);
+    return [`${prefix}_apiKey`, `${prefix}_model`, `${prefix}_endpoint`, `${prefix}_plan`];
   }
 
   function escapeAttr(str) {
@@ -107,10 +121,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/>/g, '&gt;');
   }
 
-  function renderProviderConfig(provider, savedConfig) {
-    const _container = document.getElementById('providerConfig');
+  function renderProviderConfig(provider, savedConfig, { scope = 'translate', containerId = 'providerConfig' } = {}) {
+    const _container = document.getElementById(containerId);
     const info = getProviderInfo(provider);
     if (!info || !_container) return;
+    const idPrefix = scope === 'summary' ? 'summary_cfg_' : 'cfg_';
+    const modelList = scope === 'summary' ? (info.summaryModels || info.models || []) : (info.models || []);
+    const defaultModel = scope === 'summary' ? (info.summaryModel || info.model || '') : (info.model || '');
 
     if (info.type === 'free') {
       _container.innerHTML = `
@@ -126,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const savedApiKey = savedConfig?.apiKey || '';
-    const savedModel = savedConfig?.model || info.model || '';
+    const savedModel = savedConfig?.model || defaultModel || '';
     const savedEndpoint = savedConfig?.endpoint || info.endpoint || '';
     const savedPlan = savedConfig?.plan || getDeepLPlanFromEndpoint(savedEndpoint);
 
@@ -138,10 +155,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         <label>API Key${info.type === 'deepl' ? 's' : ''} <span class="required">*</span></label>
         <div class="input-wrap">
           ${info.type === 'deepl'
-            ? `<textarea class="input input-multiline input-masked" id="cfg_apiKey" rows="3" placeholder="每行一个 API Key">${escapeAttr(savedApiKey)}</textarea>`
-            : `<input type="password" class="input input-masked" id="cfg_apiKey" value="${escapeAttr(savedApiKey)}" placeholder="输入 API Key">`
+            ? `<textarea class="input input-multiline input-masked" id="${idPrefix}apiKey" rows="3" placeholder="每行一个 API Key">${escapeAttr(savedApiKey)}</textarea>`
+            : `<input type="password" class="input input-masked" id="${idPrefix}apiKey" value="${escapeAttr(savedApiKey)}" placeholder="输入 API Key">`
           }
-          <button type="button" class="toggle-visible" id="btnToggleKeyVisibility" title="显示/隐藏">
+          <button type="button" class="toggle-visible" id="${idPrefix}toggleKeyVisibility" title="显示/隐藏">
             ${eyeOpenSvg}
           </button>
         </div>
@@ -152,27 +169,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>`;
 
     if (info.type !== 'deepl') {
-      if (info.models && info.models.length > 0) {
-        const selectedModel = info.models.includes(savedModel) ? savedModel : (info.model || info.models[0] || '');
-        const customModel = info.models.includes(savedModel) ? '' : savedModel;
+      if (modelList.length > 0) {
+        const selectedModel = modelList.includes(savedModel) ? savedModel : (defaultModel || modelList[0] || '');
+        const customModel = modelList.includes(savedModel) ? '' : savedModel;
         fieldsHtml += `
           <div class="field">
             <label>预设模型</label>
-            <select class="input" id="cfg_model">
-              ${info.models.map(model => `<option value="${escapeAttr(model)}" ${model === selectedModel ? 'selected' : ''}>${escapeAttr(model)}</option>`).join('')}
+            <select class="input" id="${idPrefix}model">
+              ${modelList.map(model => `<option value="${escapeAttr(model)}" ${model === selectedModel ? 'selected' : ''}>${escapeAttr(model)}</option>`).join('')}
             </select>
             <p class="field-hint">选择一个预设模型，或在下方的自定义模型中覆盖</p>
           </div>
           <div class="field">
             <label>自定义模型名称</label>
-            <input type="text" class="input" id="cfg_model_custom" value="${escapeAttr(customModel)}" placeholder="可选：输入自定义模型名称">
+            <input type="text" class="input" id="${idPrefix}model_custom" value="${escapeAttr(customModel)}" placeholder="可选：输入自定义模型名称">
             <p class="field-hint">留空则使用预设模型。如果填写，该值将优先使用</p>
           </div>`;
       } else {
         fieldsHtml += `
           <div class="field">
             <label>模型名称</label>
-            <input type="text" class="input" id="cfg_model" value="${escapeAttr(savedModel)}" placeholder="输入模型名称">
+            <input type="text" class="input" id="${idPrefix}model" value="${escapeAttr(savedModel)}" placeholder="输入模型名称">
           </div>`;
       }
     }
@@ -181,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       fieldsHtml += `
         <div class="field">
           <label>API Plan</label>
-          <select class="input" id="cfg_deeplPlan">
+          <select class="input" id="${idPrefix}deeplPlan">
             <option value="free" ${savedPlan === 'free' ? 'selected' : ''}>Free API (api-free.deepl.com)</option>
             <option value="pro" ${savedPlan === 'pro' ? 'selected' : ''}>Pro API (api.deepl.com)</option>
           </select>
@@ -191,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       fieldsHtml += `
         <div class="field">
           <label>API Endpoint</label>
-          <input type="text" class="input" id="cfg_endpoint" value="${escapeAttr(savedEndpoint)}" placeholder="${escapeAttr(info.endpoint || '输入 API 端点')}">
+          <input type="text" class="input" id="${idPrefix}endpoint" value="${escapeAttr(savedEndpoint)}" placeholder="${escapeAttr(info.endpoint || '输入 API 端点')}">
           <p class="field-hint">自定义服务商必填</p>
         </div>`;
     }
@@ -199,8 +216,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     _container.innerHTML = fieldsHtml;
 
     if (info.type === 'deepl') {
-      const planEl = document.getElementById('cfg_deeplPlan');
-      const endpointEl = document.getElementById('cfg_endpoint');
+      const planEl = document.getElementById(`${idPrefix}deeplPlan`);
+      const endpointEl = document.getElementById(`${idPrefix}endpoint`);
       if (planEl && endpointEl) {
         let _prevPlan = planEl.value;
         planEl.addEventListener('change', () => {
@@ -220,8 +237,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Toggle API Key visibility
-    const toggleBtn = document.getElementById('btnToggleKeyVisibility');
-    const keyInput = document.getElementById('cfg_apiKey');
+    const toggleBtn = document.getElementById(`${idPrefix}toggleKeyVisibility`);
+    const keyInput = document.getElementById(`${idPrefix}apiKey`);
     if (toggleBtn && keyInput) {
       toggleBtn.addEventListener('click', () => {
         const isMasked = keyInput.classList.contains('input-masked');
@@ -240,16 +257,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function getDraftConfig() {
-    const provider = document.getElementById('optEngine').value;
+  function getDraftConfig(scope = 'translate') {
+    const isSummary = scope === 'summary';
+    const provider = document.getElementById(isSummary ? 'optSummaryEngine' : 'optEngine').value;
     const info = getProviderInfo(provider);
     const targetLang = document.getElementById('optTargetLang').value;
+    const idPrefix = isSummary ? 'summary_cfg_' : 'cfg_';
+    const defaultModel = isSummary ? (info.summaryModel || info.model || '') : (info.model || '');
 
-    const apiKeyEl = document.getElementById('cfg_apiKey');
-    const modelEl = document.getElementById('cfg_model');
-    const customModelEl = document.getElementById('cfg_model_custom');
-    const endpointEl = document.getElementById('cfg_endpoint');
-    const deeplPlanEl = document.getElementById('cfg_deeplPlan');
+    const apiKeyEl = document.getElementById(`${idPrefix}apiKey`);
+    const modelEl = document.getElementById(`${idPrefix}model`);
+    const customModelEl = document.getElementById(`${idPrefix}model_custom`);
+    const endpointEl = document.getElementById(`${idPrefix}endpoint`);
+    const deeplPlanEl = document.getElementById(`${idPrefix}deeplPlan`);
 
     const apiKey = apiKeyEl
       ? (info.type === 'deepl'
@@ -257,46 +277,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         : apiKeyEl.value.trim())
       : '';
     const customModel = customModelEl ? customModelEl.value.trim() : '';
-    const model = customModel || (modelEl ? modelEl.value.trim() : '') || info.model || '';
+    const model = customModel || (modelEl ? modelEl.value.trim() : '') || defaultModel || '';
     const deeplPlan = deeplPlanEl ? deeplPlanEl.value : getDeepLPlanFromEndpoint(endpointEl ? endpointEl.value : info.endpoint);
     const endpoint = info.type === 'deepl'
       ? getDeepLEndpointFromPlan(deeplPlan)
       : ((endpointEl ? endpointEl.value.trim() : '') || info.endpoint || '');
 
-    return { provider, providerName: info.name, providerType: info.type, targetLang, apiKey, model, endpoint, deeplPlan };
+    return { provider, providerName: info.name, providerType: info.type, targetLang, apiKey, model, endpoint, deeplPlan, scope };
   }
 
-  function setTestResult(type, message) {
-    const testResult = document.getElementById('testResult');
+  function setTestResult(type, message, elementId = 'testResult') {
+    const testResult = document.getElementById(elementId);
+    if (!testResult) return;
     testResult.className = 'test-result visible';
     if (type) testResult.classList.add(type);
     testResult.textContent = message;
   }
 
-  function clearTestResult() {
-    const testResult = document.getElementById('testResult');
+  function clearTestResult(elementId = 'testResult') {
+    const testResult = document.getElementById(elementId);
+    if (!testResult) return;
     testResult.className = 'test-result';
     testResult.textContent = '';
   }
 
-  async function loadAndRenderConfig(provider) {
-    const keys = getStoredKeys(provider);
-    if (provider === 'deepl') keys.push('deepl_apiKeys');
+  async function loadAndRenderConfig(provider, scope = 'translate') {
+    const keys = getStoredKeys(provider, scope);
+    const prefix = getProviderStoragePrefix(provider, scope);
+    if (scope === 'translate' && provider === 'deepl') keys.push('deepl_apiKeys');
 
     const data = await new Promise(resolve => chrome.storage.local.get(keys, resolve));
 
     let displayApiKey = '';
-    const encKey = data[`${provider}_apiKey`];
+    const encKey = data[`${prefix}_apiKey`];
     if (encKey) {
       try {
-        const resp = await chrome.runtime.sendMessage({ type: 'get_api_key', data: { provider } });
+        const resp = await chrome.runtime.sendMessage({ type: 'get_api_key', data: { provider, scope } });
         displayApiKey = resp?.key || '';
       } catch (e) {
         console.error('[Kin] Failed to decrypt API key:', e);
       }
     }
 
-    if (provider === 'deepl' && data.deepl_apiKeys && Array.isArray(data.deepl_apiKeys) && data.deepl_apiKeys.length > 0) {
+    if (scope === 'translate' && provider === 'deepl' && data.deepl_apiKeys && Array.isArray(data.deepl_apiKeys) && data.deepl_apiKeys.length > 0) {
       const existing = displayApiKey ? displayApiKey.split('\n').map(k => k.trim()).filter(Boolean) : [];
       const merged = new Set([...existing, ...data.deepl_apiKeys]);
       displayApiKey = Array.from(merged).join('\n');
@@ -304,12 +327,72 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderProviderConfig(provider, {
       apiKey: displayApiKey,
-      model: data[`${provider}_model`] || '',
-      endpoint: data[`${provider}_endpoint`] || '',
-      plan: data[`${provider}_plan`] || ''
+      model: data[`${prefix}_model`] || '',
+      endpoint: data[`${prefix}_endpoint`] || '',
+      plan: data[`${prefix}_plan`] || ''
+    }, {
+      scope,
+      containerId: scope === 'summary' ? 'summaryProviderConfig' : 'providerConfig'
     });
 
     ;
+  }
+
+  async function updateSummaryMigrationBanner() {
+    const banner = document.getElementById('summaryMigrationBanner');
+    if (!banner) return;
+
+    const data = await chrome.storage.local.get(['summaryProvider', 'summaryMigrationShown', 'translationProvider']);
+    const provider = data.translationProvider;
+    if (data.summaryProvider || data.summaryMigrationShown || !provider || !supportsSummary(provider)) {
+      banner.style.display = 'none';
+      return;
+    }
+
+    const providerPrefix = getProviderStoragePrefix(provider, 'translate');
+    const keyData = await chrome.storage.local.get(`${providerPrefix}_apiKey`);
+    banner.style.display = keyData[`${providerPrefix}_apiKey`] ? 'flex' : 'none';
+  }
+
+  async function migrateTranslationConfigToSummary() {
+    const data = await chrome.storage.local.get(['translationProvider']);
+    const provider = data.translationProvider;
+    if (!provider || !supportsSummary(provider)) {
+      showToast('当前翻译引擎不能用于摘要', 'error');
+      return;
+    }
+
+    const translatePrefix = getProviderStoragePrefix(provider, 'translate');
+    const summaryPrefix = getProviderStoragePrefix(provider, 'summary');
+    const info = getProviderInfo(provider);
+    const stored = await chrome.storage.local.get([
+      `${translatePrefix}_model`,
+      `${translatePrefix}_endpoint`
+    ]);
+    const keyResp = await chrome.runtime.sendMessage({
+      type: 'get_api_key',
+      data: { provider, scope: 'translate' }
+    });
+    if (!keyResp?.key) {
+      showToast('未读取到可复用的 API Key', 'error');
+      return;
+    }
+    await chrome.runtime.sendMessage({
+      type: 'save_api_key',
+      data: { provider, key: keyResp.key, scope: 'summary' }
+    });
+
+    await new Promise(resolve => chrome.storage.local.set({
+      summaryProvider: provider,
+      summaryMigrationShown: true,
+      [`${summaryPrefix}_model`]: info.summaryModel || stored[`${translatePrefix}_model`] || info.model || '',
+      [`${summaryPrefix}_endpoint`]: stored[`${translatePrefix}_endpoint`] || info.endpoint || ''
+    }, resolve));
+
+    optSummaryEngine.value = provider;
+    await loadAndRenderConfig(provider, 'summary');
+    await updateSummaryMigrationBanner();
+    showSaveStatus('已复用到摘要设置');
   }
 
   optEngine.addEventListener('change', async () => {
@@ -348,7 +431,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (keys.length > 0) {
           await chrome.runtime.sendMessage({
             type: 'save_api_key',
-            data: { provider: draft.provider, key: keys.join('\n') }
+            data: { provider: draft.provider, key: keys.join('\n'), scope: 'translate' }
           });
         }
         toSet[`${draft.provider}_apiKeys`] = keys.length > 1 ? keys : [];
@@ -358,7 +441,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (draft.apiKey) {
           await chrome.runtime.sendMessage({
             type: 'save_api_key',
-            data: { provider: draft.provider, key: draft.apiKey }
+            data: { provider: draft.provider, key: draft.apiKey, scope: 'translate' }
           });
         }
         toSet[`${draft.provider}_model`] = draft.model;
@@ -369,6 +452,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     await new Promise(resolve => chrome.storage.local.set(toSet, resolve));
     showSaveStatus('已保存');
     ;
+  });
+
+  optSummaryEngine.addEventListener('change', async () => {
+    const provider = optSummaryEngine.value;
+    clearTestResult('summaryTestResult');
+    await loadAndRenderConfig(provider, 'summary');
+    const banner = document.getElementById('summaryMigrationBanner');
+    if (banner) banner.style.display = 'none';
+    saveSettings({ summaryProvider: provider });
+  });
+
+  summaryProviderConfig.addEventListener('input', () => {
+    clearTestResult('summaryTestResult');
+  });
+  summaryProviderConfig.addEventListener('change', () => {
+    clearTestResult('summaryTestResult');
+  });
+
+  async function saveSummaryDraft() {
+    const draft = getDraftConfig('summary');
+    const info = getProviderInfo(draft.provider);
+    if (!supportsSummary(draft.provider)) {
+      showToast('该引擎不支持摘要生成', 'error');
+      return false;
+    }
+
+    const toSet = { summaryProvider: draft.provider };
+    if (info.type !== 'free') {
+      if (draft.apiKey) {
+        await chrome.runtime.sendMessage({
+          type: 'save_api_key',
+          data: { provider: draft.provider, key: draft.apiKey, scope: 'summary' }
+        });
+      }
+      const prefix = getProviderStoragePrefix(draft.provider, 'summary');
+      toSet[`${prefix}_model`] = draft.model;
+      toSet[`${prefix}_endpoint`] = draft.endpoint;
+    }
+
+    await new Promise(resolve => chrome.storage.local.set(toSet, resolve));
+    showSaveStatus('摘要设置已保存');
+    return true;
+  }
+
+  document.getElementById('btnSaveSummary').addEventListener('click', async () => {
+    await saveSummaryDraft();
+  });
+
+  document.getElementById('btnTestSummary').addEventListener('click', async () => {
+    const draft = getDraftConfig('summary');
+    const sampleText = document.getElementById('summaryTestInput').value.trim();
+
+    if (!sampleText) {
+      setTestResult('error', '请先输入一段文章片段。', 'summaryTestResult');
+      return;
+    }
+    if (!supportsSummary(draft.provider)) {
+      setTestResult('error', '该引擎不支持摘要生成。', 'summaryTestResult');
+      return;
+    }
+
+    const btn = document.getElementById('btnTestSummary');
+    btn.disabled = true;
+    setTestResult('pending', '正在使用当前表单设置测试摘要...', 'summaryTestResult');
+
+    try {
+      const resp = await chrome.runtime.sendMessage({
+        type: 'summary_generate',
+        data: {
+          text: sampleText,
+          lang: draft.targetLang,
+          providerOverride: draft.provider,
+          contextHints: { title: 'Kin summary configuration test' },
+          configOverride: {
+            apiKey: draft.apiKey,
+            model: draft.model,
+            endpoint: draft.endpoint,
+            isPlaintext: true
+          }
+        }
+      });
+
+      btn.disabled = false;
+
+      if (chrome.runtime.lastError) {
+        setTestResult('error', `测试失败: ${chrome.runtime.lastError.message}`, 'summaryTestResult');
+        return;
+      }
+      if (!resp) {
+        setTestResult('error', '摘要服务未响应。请检查网络连接或 API 配置。', 'summaryTestResult');
+        return;
+      }
+      if (resp?.error) {
+        setTestResult('error', resp.error, 'summaryTestResult');
+        return;
+      }
+      if (!resp?.raw) {
+        setTestResult('error', '摘要结果为空。请尝试其他模型或检查端点配置。', 'summaryTestResult');
+        return;
+      }
+
+      setTestResult('success', resp.raw, 'summaryTestResult');
+    } catch (e) {
+      btn.disabled = false;
+      setTestResult('error', `测试失败: ${e.message}`, 'summaryTestResult');
+    }
+  });
+
+  document.getElementById('btnMigrateSummary').addEventListener('click', migrateTranslationConfigToSummary);
+  document.getElementById('btnDismissMigrate').addEventListener('click', async () => {
+    await new Promise(resolve => chrome.storage.local.set({ summaryMigrationShown: true }, resolve));
+    updateSummaryMigrationBanner();
   });
 
   // Source / target languages
@@ -507,10 +702,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ longArticleMultiImageExport: this.checked });
   });
 
-  document.getElementById('optSummaryCardPreview').addEventListener('change', function() {
-    saveSettings({ summaryCardPreview: this.checked });
-  });
-
   // ========== Rules Tab ==========
   renderRules('alwaysTranslateUrls', settings.alwaysTranslateUrls || [], 'alwaysTranslateList');
   renderRules('neverTranslateUrls', settings.neverTranslateUrls || [], 'neverTranslateList');
@@ -589,6 +780,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  function populateSummaryEngines() {
+    const select = document.getElementById('optSummaryEngine');
+    if (!select) return;
+    select.innerHTML = '';
+    const providers = typeof ProviderRegistry !== 'undefined'
+      ? ProviderRegistry.summaryProviders()
+      : [];
+    providers.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      select.appendChild(opt);
+    });
+  }
+
   function populateModelSelect(provider) {
     const select = document.getElementById('optModel');
     select.innerHTML = '';
@@ -647,6 +853,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (btnSave) btnSave.style.display = isFree ? 'none' : '';
       await loadAndRenderConfig(s.translationProvider);
     }
+    const summaryProvider = s.summaryProvider && supportsSummary(s.summaryProvider)
+      ? s.summaryProvider
+      : document.getElementById('optSummaryEngine')?.value;
+    if (summaryProvider) {
+      document.getElementById('optSummaryEngine').value = summaryProvider;
+      await loadAndRenderConfig(summaryProvider, 'summary');
+    }
     if (s.sourceLang) document.getElementById('optSourceLang').value = s.sourceLang;
     if (s.targetLang) {
       document.getElementById('optTargetLang').value = s.targetLang;
@@ -680,11 +893,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.exportImageFormat) document.getElementById('optExportFormat').value = s.exportImageFormat;
     if (s.exportQuality) document.getElementById('optExportQuality').value = s.exportQuality;
     if (s.longArticleMultiImageExport !== undefined) document.getElementById('optMultiImage').checked = s.longArticleMultiImageExport;
-    document.getElementById('optSummaryCardPreview').checked = s.summaryCardPreview === true;
     if (s.translationTheme) {
       const item = document.querySelector(`.theme-item[data-theme="${s.translationTheme}"]`);
       if (item) { item.classList.add('active'); updateThemePreview(s.translationTheme); }
     }
+    await updateSummaryMigrationBanner();
   }
 
   let _saveTimer = null;
@@ -750,28 +963,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ========== Backup ==========
-  const BACKUP_KEYS = [
+  const BASE_BACKUP_KEYS = [
     'translationProvider', 'targetLang', 'sourceLang',
     'translationMode', 'translationTheme', 'translationStyle', 'customPrompt',
     'hoverTranslate', 'hoverTrigger',
     'selectionTranslate',
-    'sensitiveMask', 'readerEnabled', 'readerTheme',
+    'sensitiveMask', 'disableReasoning', 'readerEnabled', 'readerTheme',
     'exportImageFormat', 'exportQuality',
-    'longArticleMultiImageExport', 'summaryCardPreview',
+    'longArticleMultiImageExport',
+    'summaryProvider', 'summaryMigrationShown',
     'alwaysTranslateUrls', 'neverTranslateUrls',
     'floatBallPosY',
-    'openai_apiKey', 'openai_model', 'openai_endpoint',
-    'deepseek_apiKey', 'deepseek_model', 'deepseek_endpoint',
-    'qwen_apiKey', 'qwen_model', 'qwen_endpoint',
-    'gemini_apiKey', 'gemini_model', 'gemini_endpoint',
-    'glm_apiKey', 'glm_model', 'glm_endpoint',
-    'kimi_apiKey', 'kimi_model', 'kimi_endpoint',
-    'openrouter_apiKey', 'openrouter_model', 'openrouter_endpoint',
-    'claude_apiKey', 'claude_model', 'claude_endpoint',
-    'deepl_apiKey', 'deepl_apiKeys', 'deepl_plan', 'deepl_endpoint',
-    'custom_openai_apiKey', 'custom_openai_model', 'custom_openai_endpoint',
-    'custom_claude_apiKey', 'custom_claude_model', 'custom_claude_endpoint',
   ];
+  const BACKUP_KEYS = Array.from(new Set([
+    ...BASE_BACKUP_KEYS,
+    ...buildProviderBackupKeys(),
+    ...buildSummaryBackupKeys()
+  ]));
+
+  function buildProviderBackupKeys() {
+    const providers = typeof ProviderRegistry !== 'undefined' ? ProviderRegistry.list() : [];
+    const keys = [];
+    providers.forEach(p => {
+      keys.push(`${p.id}_apiKey`, `${p.id}_model`, `${p.id}_endpoint`);
+      if (p.id === 'deepl') keys.push('deepl_apiKeys', 'deepl_plan');
+    });
+    return keys;
+  }
+
+  function buildSummaryBackupKeys() {
+    const providers = typeof ProviderRegistry !== 'undefined' ? ProviderRegistry.summaryProviders() : [];
+    const keys = [];
+    providers.forEach(p => {
+      keys.push(`summary_${p.id}_apiKey`, `summary_${p.id}_model`, `summary_${p.id}_endpoint`);
+    });
+    return keys;
+  }
 
   // Magic header for v2 backups: "KIN\x02". v1 (legacy) has no header and uses 100k iterations.
   const BACKUP_MAGIC_V2 = [0x4B, 0x49, 0x4E, 0x02];

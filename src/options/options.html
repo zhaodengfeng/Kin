@@ -144,16 +144,18 @@
             </div>
             <div class="card">
               <div class="config-card">
-                <label class="toggle-row">
-                  <span class="toggle-label">
-                    <span>悬浮翻译</span>
-                    <span class="toggle-desc">鼠标悬停在段落后自动翻译</span>
-                  </span>
-                  <input type="checkbox" class="toggle-switch" id="optHoverTranslate">
-                </label>
-                <div class="sub-options" id="hoverOptions">
-                  <label class="sub-radio"><input type="radio" name="hoverTrigger" value="ctrl" checked> Ctrl/Cmd + 悬停</label>
-                  <label class="sub-radio"><input type="radio" name="hoverTrigger" value="direct"> 直接悬停</label>
+                <div class="toggle-group">
+                  <label class="toggle-row">
+                    <span class="toggle-label">
+                      <span>悬浮翻译</span>
+                      <span class="toggle-desc">鼠标悬停在段落后自动翻译</span>
+                    </span>
+                    <input type="checkbox" class="toggle-switch" id="optHoverTranslate">
+                  </label>
+                  <div class="sub-options" id="hoverOptions">
+                    <label class="sub-radio"><input type="radio" name="hoverTrigger" value="ctrl" checked> Ctrl/Cmd + 悬停</label>
+                    <label class="sub-radio"><input type="radio" name="hoverTrigger" value="direct"> 直接悬停</label>
+                  </div>
                 </div>
                 <label class="toggle-row">
                   <span class="toggle-label">
@@ -294,13 +296,47 @@
                   </span>
                   <input type="checkbox" class="toggle-switch" id="optMultiImage">
                 </label>
-                <label class="toggle-row">
-                  <span class="toggle-label">
-                    <span>信息卡片开启预览</span>
-                    <span class="toggle-desc">生成新闻摘要卡片前先弹出预览，可手动改写后再下载；关闭后点击按钮直接生成图片</span>
-                  </span>
-                  <input type="checkbox" class="toggle-switch" id="optSummaryCardPreview">
-                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" id="summaryModelSettings">
+            <div class="section-header">
+              <div>
+                <div class="section-label">摘要模型</div>
+                <div class="section-desc">用于生成摘要卡片，与翻译引擎独立配置</div>
+              </div>
+              <button class="btn-primary" id="btnSaveSummary">保存</button>
+            </div>
+            <div class="card">
+              <div class="config-card">
+                <div id="summaryMigrationBanner" class="migration-banner" style="display:none">
+                  <div>
+                    <strong>可复用现有翻译配置</strong>
+                    <p>检测到当前翻译引擎也能用于摘要，可一键复制到摘要配置。</p>
+                  </div>
+                  <div class="migration-actions">
+                    <button type="button" class="btn-primary" id="btnMigrateSummary">一键复用</button>
+                    <button type="button" class="btn-secondary" id="btnDismissMigrate">单独配置</button>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="field-label">摘要引擎</label>
+                  <select class="input" id="optSummaryEngine"></select>
+                </div>
+
+                <div id="summaryProviderConfig"></div>
+
+                <hr class="config-divider">
+
+                <div class="test-bar">
+                  <textarea class="input input-multiline" id="summaryTestInput" rows="4" spellcheck="false" placeholder="输入要测试摘要的文章片段">多家人工智能公司正在加快推出新一代模型，试图用更低的推理成本和更快的响应速度吸引企业客户。与早期更关注演示效果不同，近期采购方开始把稳定性、数据隔离、审计能力和预算可控性放在更高优先级。部分企业表示，只有当模型能够接入现有工单、客服、财务和知识库系统，并在错误率、权限管理和合规记录上达到内部标准时，才会扩大部署范围。
+
+行业分析人士认为，市场竞争正在从“谁的模型更聪明”转向“谁能把模型可靠地嵌入日常流程”。一些供应商开始提供更细的用量上限、私有化部署选项和模型路由工具，以帮助客户在成本和效果之间做平衡。不过，企业仍担心模型幻觉、敏感数据泄露以及长期锁定单一供应商的风险。预计未来几个季度，AI 产品的落地能力和运营治理将成为影响订单规模的关键因素。</textarea>
+                  <button class="btn-secondary" id="btnTestSummary">测试</button>
+                </div>
+                <div class="test-result" id="summaryTestResult"></div>
               </div>
             </div>
           </div>

@@ -1,7 +1,6 @@
 /* Kin - Summary Card module
  * Generates a shareable PNG card with AI-summarized news content + QR code.
  * All card layout uses INLINE styles — html2canvas cannot reliably load external CSS.
- * summary-card.css is used only for the preview Modal (on-screen only).
  */
 (function () {
   'use strict';
@@ -459,113 +458,6 @@
     return stage;
   }
 
-  // ─── Preview Modal ────────────────────────────────────────────────────────────
-  function openPreviewModal({ cardData, themeKey, onConfirm, onRegenerate }) {
-    const overlay = document.createElement('div');
-    overlay.className = 'kin-sc-modal';
-    overlay.innerHTML = `
-      <div class="kin-sc-modal-box">
-        <div class="kin-sc-modal-header">
-          <span>摘要卡片预览</span>
-          <button class="kin-sc-modal-close" aria-label="关闭">×</button>
-        </div>
-        <div class="kin-sc-modal-body">
-          <div class="kin-sc-modal-preview"></div>
-          <div class="kin-sc-modal-edit">
-            <div class="kin-sc-modal-field">
-              <label>呈现方式</label>
-              <div class="kin-sc-modal-types">
-                <label><input type="radio" name="kin-sc-type" value="paragraph" ${cardData.summary.type==='paragraph'?'checked':''}> 段落</label>
-                <label><input type="radio" name="kin-sc-type" value="list" ${cardData.summary.type==='list'?'checked':''}> 要点列表</label>
-              </div>
-            </div>
-            <div class="kin-sc-modal-field" data-mode="paragraph" ${cardData.summary.type!=='paragraph'?'hidden':''}>
-              <label>摘要内容</label>
-              <textarea class="kin-sc-modal-textarea" rows="6" placeholder="编辑摘要..."></textarea>
-            </div>
-            <div class="kin-sc-modal-field" data-mode="list" ${cardData.summary.type!=='list'?'hidden':''}>
-              <label>要点（每行一条）</label>
-              <textarea class="kin-sc-modal-list" rows="6" placeholder="每行一条..."></textarea>
-            </div>
-            <div class="kin-sc-modal-actions">
-              <button class="kin-sc-btn-secondary kin-sc-regen">重新生成</button>
-              <button class="kin-sc-btn-primary kin-sc-download">下载 PNG</button>
-            </div>
-            <div class="kin-sc-modal-status"></div>
-          </div>
-        </div>
-      </div>`;
-    document.documentElement.appendChild(overlay);
-
-    const previewBox = overlay.querySelector('.kin-sc-modal-preview');
-    const txtArea = overlay.querySelector('.kin-sc-modal-textarea');
-    const listArea = overlay.querySelector('.kin-sc-modal-list');
-    const status = overlay.querySelector('.kin-sc-modal-status');
-
-    txtArea.value = cardData.summary.type === 'paragraph' ? cardData.summary.content : '';
-    listArea.value = cardData.summary.type === 'list' ? cardData.summary.content.join('\n') : '';
-
-    function rebuildPreview() {
-      previewBox.innerHTML = '';
-      const el = buildCardElement(cardData, themeKey);
-      // Scale preview to fit modal column (~380px wide)
-      const scale = 350 / CARD_W;
-      el.style.transform = `scale(${scale})`;
-      el.style.transformOrigin = 'top left';
-      el.style.marginBottom = `-${Math.round(CARD_W * (1 - scale))}px`;
-      previewBox.appendChild(el);
-    }
-    rebuildPreview();
-
-    function syncFromInputs() {
-      const type = overlay.querySelector('input[name="kin-sc-type"]:checked').value;
-      cardData.summary = type === 'paragraph'
-        ? { type: 'paragraph', content: txtArea.value.trim() || '…', source: cardData.summary.source }
-        : { type: 'list', content: listArea.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,6) || ['…'], source: cardData.summary.source };
-      rebuildPreview();
-    }
-
-    overlay.querySelectorAll('input[name="kin-sc-type"]').forEach(r => {
-      r.addEventListener('change', () => {
-        const v = r.value;
-        overlay.querySelectorAll('[data-mode]').forEach(el => { el.hidden = el.dataset.mode !== v; });
-        syncFromInputs();
-      });
-    });
-
-    let syncTimer = null;
-    [txtArea, listArea].forEach(inp => inp.addEventListener('input', () => {
-      clearTimeout(syncTimer); syncTimer = setTimeout(syncFromInputs, 200);
-    }));
-
-    const close = () => overlay.remove();
-    overlay.querySelector('.kin-sc-modal-close').addEventListener('click', close);
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-
-    overlay.querySelector('.kin-sc-regen').addEventListener('click', async () => {
-      status.textContent = '正在重新生成...';
-      try {
-        const fresh = await onRegenerate();
-        cardData.summary = fresh.summary;
-        txtArea.value = fresh.summary.type === 'paragraph' ? fresh.summary.content : '';
-        listArea.value = fresh.summary.type === 'list' ? fresh.summary.content.join('\n') : '';
-        const radio = overlay.querySelector(`input[name="kin-sc-type"][value="${fresh.summary.type}"]`);
-        if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
-        else rebuildPreview();
-        status.textContent = '';
-      } catch (e) { status.textContent = '生成失败：' + (e?.message || e); }
-    });
-
-    overlay.querySelector('.kin-sc-download').addEventListener('click', async () => {
-      status.textContent = '正在导出...';
-      try {
-        await onConfirm(cardData);
-        status.textContent = '已下载';
-        setTimeout(close, 600);
-      } catch (e) { status.textContent = '导出失败：' + (e?.message || e); }
-    });
-  }
-
   // ─── Get full datetime from original page ─────────────────────────────────────
   function extractFullDate() {
     const selectors = ['time', '[itemprop="datePublished"]', '[class*="date"]', '[class*="time"]'];
@@ -711,19 +603,8 @@
   // ─── Public API ───────────────────────────────────────────────────────────────
   window.KinSummaryCard = {
     generate: async function (article, themeKey, opts) {
-      const settings = await new Promise(r => chrome.storage.local.get('summaryCardPreview', d => r(d)));
       const data = await buildCardData(article, opts);
-
-      if (settings?.summaryCardPreview === true) {
-        openPreviewModal({
-          cardData: data,
-          themeKey,
-          onRegenerate: () => buildCardData(article, opts),
-          onConfirm: (finalData) => exportCard(finalData, themeKey)
-        });
-      } else {
-        await exportCard(data, themeKey);
-      }
+      await exportCard(data, themeKey);
     }
   };
 })();
