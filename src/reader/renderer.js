@@ -249,6 +249,15 @@ const ReaderRenderer = {
             </svg>
             <span>PDF</span>
           </button>
+          <button class="kin-r-btn kin-r-btn-summary" title="生成摘要卡片">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2"/>
+              <line x1="7" y1="9" x2="17" y2="9"/>
+              <line x1="7" y1="13" x2="17" y2="13"/>
+              <line x1="7" y1="17" x2="13" y2="17"/>
+            </svg>
+            <span>摘要卡片</span>
+          </button>
           <button class="kin-r-btn kin-r-btn-close" title="Close (Esc)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
@@ -315,6 +324,7 @@ const ReaderRenderer = {
     this.overlay.querySelector('.kin-r-btn-translate').addEventListener('click', () => this.handleTranslateClick());
     this.overlay.querySelector('.kin-r-btn-screenshot').addEventListener('click', () => this.takeScreenshot());
     this.overlay.querySelector('.kin-r-btn-pdf').addEventListener('click', () => this.exportPDF());
+    this.overlay.querySelector('.kin-r-btn-summary').addEventListener('click', () => this.generateSummaryCard());
 
     // Theme switcher
     this.overlay.querySelector('.kin-r-theme-select').addEventListener('change', (e) => {
@@ -1430,6 +1440,26 @@ const ReaderRenderer = {
       this.showToast(`Screenshot exported as ${ext.toUpperCase()}`);
     } else {
       this.showToast(`Long article exported as ${total} readable ${ext.toUpperCase()} images`);
+    }
+  },
+
+  async generateSummaryCard() {
+    if (!this.overlay || !this.article) return;
+    const btn = this.overlay.querySelector('.kin-r-btn-summary');
+    if (btn?.classList.contains('kin-r-loading')) return;
+    btn?.classList.add('kin-r-loading');
+    try {
+      if (!window.KinSummaryCard) throw new Error('Summary card module not loaded');
+      const themeKey = this._currentTheme || 'default';
+      const translateMode = this.getTranslateMode();
+      const translated = this.translated === true;
+      await window.KinSummaryCard.generate(this.article, themeKey, { translated, translateMode });
+      this.showToast('摘要卡片已生成');
+    } catch (e) {
+      console.error('Kin summary card error:', e);
+      this.showToast('生成失败：' + (e?.message || e));
+    } finally {
+      btn?.classList.remove('kin-r-loading');
     }
   },
 

@@ -186,6 +186,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
       return true;
 
+    case 'summary_generate':
+      handleSummary(msg.data).then(sendResponse).catch(err => {
+        sendResponse({ error: err.userMessage || err.message });
+      });
+      return true;
+
     case 'get_tab_url':
       sendResponse({ url: sender.tab?.url || '' });
       return;
@@ -199,7 +205,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         'selectionTranslate',
         'sensitiveMask', 'disableReasoning', 'readerEnabled', 'readerTheme',
         'exportImageFormat', 'exportQuality',
-        'longArticleMultiImageExport',
+        'longArticleMultiImageExport', 'summaryCardPreview',
         'alwaysTranslateUrls', 'neverTranslateUrls',
         'floatBallPosY'
       ];
@@ -453,6 +459,132 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
     wrapped.userMessage = formatTranslationError(finalProvider, error);
     throw wrapped;
   }
+}
+
+// ============================================
+// Summary Card Generator (calls configured LLM with structured prompt)
+// ============================================
+const NON_LLM_PROVIDERS = new Set(['google', 'microsoft', 'deepl']);
+
+async function handleSummary({ text, lang, contextHints }) {
+  const safeText = String(text || '').trim();
+  if (!safeText) throw new Error('文章正文为空');
+
+  const settings = await chrome.storage.local.get(['translationProvider', 'targetLang']);
+  const provider = settings.translationProvider || 'openai';
+  if (NON_LLM_PROVIDERS.has(provider)) {
+    throw new Error('当前翻译引擎不支持摘要生成，请在设置中切换为大模型引擎（OpenAI / Claude / Gemini 等）');
+  }
+
+  const targetLang = lang || null;
+  const langName = targetLang ? (LANG_NAMES[targetLang] || targetLang) : null;
+  const cfg = await loadProviderConfig(provider);
+  if (!cfg.apiKey) throw new Error('请先在设置中配置该引擎的 API Key');
+  if (!cfg.endpoint) throw new Error('请先在设置中配置该引擎的 Endpoint');
+
+  const model = cfg.model || PROVIDERS[provider]?.model || '';
+  const systemPrompt = buildSummarySystemPrompt(langName);
+  const userPrompt = buildSummaryUserPrompt(safeText, contextHints);
+
+  if (provider === 'claude' || provider === 'custom_claude') {
+    return callClaudeSummary({ cfg, model, systemPrompt, userPrompt });
+  }
+  return callOpenAISummary({ cfg, model, provider, systemPrompt, userPrompt });
+}
+
+function buildSummarySystemPrompt(langName) {
+  const langLine = langName
+    ? `Output language MUST be: ${langName}.`
+    : 'Output in the SAME language as the article.';
+  return [
+    'You are a professional news editor.',
+    langLine,
+    'Summarize the article.',
+    'If the article covers ONE topic/event: write a detailed summary (200-400 chars) split into 2-3 short paragraphs for readability. Separate paragraphs with a blank line (double newline). Each paragraph should cover one aspect (background, key development, significance).',
+    'If the article is a digest with MULTIPLE independent topics: write 3-5 bullet points, each 30-80 chars. Start each line with "• ".',
+    'Output ONLY the summary text. No labels, no commentary, no formatting markers.',
+    'Do NOT start with phrases like "文章指出", "The article states", "据报道" or any meta-commentary. Start directly with the content.'
+  ].join('\n');
+}
+
+function buildSummaryUserPrompt(text, hints) {
+  const meta = [];
+  if (hints?.source) meta.push(`Source: ${String(hints.source).slice(0, 80)}`);
+  if (hints?.title) meta.push(`Title: ${String(hints.title).slice(0, 240)}`);
+  const metaBlock = meta.length ? meta.join('\n') + '\n\n' : '';
+  return `${metaBlock}Article body:\n"""\n${text}\n"""`;
+}
+
+async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPrompt }) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+  const body = {
+    model,
+    messages,
+    temperature: 0.4,
+    max_tokens: 1500
+  };
+
+  const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` };
+  if (provider === 'openrouter') {
+    headers['HTTP-Referer'] = 'https://github.com/zhaodengfeng/kin';
+    headers['X-Title'] = 'Kin';
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), LLM_FETCH_TIMEOUT_MS);
+  try {
+    const resp = await fetch(cfg.endpoint, { method: 'POST', headers, body: JSON.stringify(body), signal: controller.signal });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`API ${resp.status}: ${errText.slice(0, 200)}`);
+    }
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+    if (!raw.trim()) throw new Error('LLM 返回为空');
+    return { raw };
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error(`${providerDisplayName(provider)} 请求超时`);
+    throw err;
+  } finally { clearTimeout(timeoutId); }
+}
+
+async function callClaudeSummary({ cfg, model, systemPrompt, userPrompt }) {
+  const body = {
+    model,
+    max_tokens: 1500,
+    temperature: 0.4,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
+  };
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), LLM_FETCH_TIMEOUT_MS);
+  try {
+    const resp = await fetch(cfg.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Claude API ${resp.status}: ${errText.slice(0, 200)}`);
+    }
+    const data = await resp.json();
+    const raw = (data.content?.[0]?.text || '').trim();
+    if (!raw) throw new Error('Claude 返回为空');
+    return { raw };
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('Claude 请求超时');
+    throw err;
+  } finally { clearTimeout(timeoutId); }
 }
 
 async function translateProvider({ texts, targetLang, langName, provider, configOverride, promptContext, contentType, disableReasoning }) {

@@ -507,6 +507,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveSettings({ longArticleMultiImageExport: this.checked });
   });
 
+  document.getElementById('optSummaryCardPreview').addEventListener('change', function() {
+    saveSettings({ summaryCardPreview: this.checked });
+  });
+
   // ========== Rules Tab ==========
   renderRules('alwaysTranslateUrls', settings.alwaysTranslateUrls || [], 'alwaysTranslateList');
   renderRules('neverTranslateUrls', settings.neverTranslateUrls || [], 'neverTranslateList');
@@ -676,6 +680,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (s.exportImageFormat) document.getElementById('optExportFormat').value = s.exportImageFormat;
     if (s.exportQuality) document.getElementById('optExportQuality').value = s.exportQuality;
     if (s.longArticleMultiImageExport !== undefined) document.getElementById('optMultiImage').checked = s.longArticleMultiImageExport;
+    document.getElementById('optSummaryCardPreview').checked = s.summaryCardPreview === true;
     if (s.translationTheme) {
       const item = document.querySelector(`.theme-item[data-theme="${s.translationTheme}"]`);
       if (item) { item.classList.add('active'); updateThemePreview(s.translationTheme); }
@@ -752,7 +757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     'selectionTranslate',
     'sensitiveMask', 'readerEnabled', 'readerTheme',
     'exportImageFormat', 'exportQuality',
-    'longArticleMultiImageExport',
+    'longArticleMultiImageExport', 'summaryCardPreview',
     'alwaysTranslateUrls', 'neverTranslateUrls',
     'floatBallPosY',
     'openai_apiKey', 'openai_model', 'openai_endpoint',
@@ -901,16 +906,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return d.innerHTML;
   }
 
-  // P2-8: Throttled "saved" toast driven by storage.onChanged for generic settings
-  let _savedToastTimer = null;
-  const _savedToastSkipKeys = new Set(['history', 'translationCache', 'deeplKeyIndex']);
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local') return;
-    const keys = Object.keys(changes).filter(k => !_savedToastSkipKeys.has(k));
-    if (!keys.length) return;
-    if (_savedToastTimer) clearTimeout(_savedToastTimer);
-    _savedToastTimer = setTimeout(() => { showToast('已保存', 'success'); _savedToastTimer = null; }, 400);
-  });
+  // Storage change listener removed — save feedback is shown via the "已保存" button state only
 
   function showToast(msg, type = 'info') {
     const existing = document.querySelector('.kin-options-toast');

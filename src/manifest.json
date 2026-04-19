@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Kin - Translate & Read",
-  "version": "26.4.20",
-  "version_name": "26.4.20",
+  "version": "26.4.20.44",
+  "version_name": "26.4.20b44",
   "description": "Beyond Word. Into Meaning. — Elegant translation & reader for the web.",
   "permissions": [
     "storage",
@@ -85,12 +85,15 @@
         "styles/selection.css",
         "styles/content.css",
         "styles/sidebar.css",
-        "styles/reader.css"
+        "styles/reader.css",
+        "styles/summary-card.css"
       ],
       "js": [
         "lib/dompurify.min.js",
+        "lib/qrcode.min.js",
         "content/toast.js",
         "content/masker.js",
+        "reader/summary-card.js",
         "reader/renderer.js",
         "content/translator.js",
         "content/hover.js",

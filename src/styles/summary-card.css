@@ -1,0 +1,324 @@
+/* Kin Summary Card — Styles for the news summary share-card and its preview modal.
+ * Card uses inline color styles via JS theme; this file owns layout, typography, spacing.
+ */
+
+/* ============== Card Base ============== */
+.kin-sc-card {
+  width: 640px;
+  font-family: 'DM Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(28, 25, 23, 0.10), 0 4px 8px rgba(28, 25, 23, 0.06);
+  box-sizing: border-box;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+.kin-sc-card *, .kin-sc-card *::before, .kin-sc-card *::after { box-sizing: border-box; }
+
+/* ============== Header ============== */
+.kin-sc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 32px;
+  color: #FFFFFF;
+}
+.kin-sc-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.kin-sc-logo { flex: 0 0 auto; }
+.kin-sc-brand-text { display: flex; flex-direction: column; gap: 2px; }
+.kin-sc-brand-text strong {
+  font-family: 'DM Serif Display', 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: #FFFFFF;
+  letter-spacing: 0.01em;
+}
+.kin-sc-brand-text em {
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.78);
+  text-transform: uppercase;
+}
+.kin-sc-slogan {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.02em;
+}
+
+/* ============== Meta Bar ============== */
+.kin-sc-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 32px;
+  font-size: 12px;
+}
+.kin-sc-source-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.kin-sc-date {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============== Title Block ============== */
+.kin-sc-title-block {
+  display: flex;
+  align-items: stretch;
+  padding: 28px 32px;
+  gap: 16px;
+}
+.kin-sc-title-bar {
+  flex: 0 0 4px;
+  border-radius: 2px;
+  align-self: stretch;
+}
+.kin-sc-title {
+  margin: 0;
+  font-family: 'DM Serif Display', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============== Summary ============== */
+.kin-sc-summary {
+  padding: 24px 32px 28px;
+}
+.kin-sc-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.kin-sc-summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.kin-sc-ai-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.kin-sc-body { font-size: 16px; line-height: 1.78; }
+.kin-sc-paragraph {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.85;
+  text-align: justify;
+  letter-spacing: 0.01em;
+}
+.kin-sc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kin-sc-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 16px;
+  line-height: 1.75;
+}
+.kin-sc-list li:last-child { margin-bottom: 0; }
+.kin-sc-num {
+  flex: 0 0 auto;
+  min-width: 28px;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+.kin-sc-li-text { flex: 1 1 auto; }
+
+/* ============== Footer ============== */
+.kin-sc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  gap: 24px;
+}
+.kin-sc-footer-text { display: flex; flex-direction: column; gap: 6px; }
+.kin-sc-footer-line1 {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.kin-sc-footer-line2 {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.kin-sc-qr {
+  flex: 0 0 auto;
+  padding: 6px;
+  border-radius: 8px;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kin-sc-qr svg { display: block; width: 100%; height: 100%; }
+
+/* ============== Preview Modal ============== */
+.kin-sc-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 16, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', 'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+  animation: kin-sc-fade 0.2s ease-out;
+}
+@keyframes kin-sc-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.kin-sc-modal-box {
+  background: #FFFFFF;
+  width: min(960px, 92vw);
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.kin-sc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #EAE7E2;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1C1917;
+}
+.kin-sc-modal-close {
+  background: transparent;
+  border: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: #6B6560;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.kin-sc-modal-close:hover { background: #F2F0ED; color: #1C1917; }
+
+.kin-sc-modal-body {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  padding: 24px;
+  overflow: auto;
+}
+.kin-sc-modal-preview {
+  background: #F2F0ED;
+  border-radius: 10px;
+  padding: 16px;
+  min-height: 480px;
+  overflow: hidden;
+}
+.kin-sc-modal-preview .kin-sc-card { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+.kin-sc-modal-edit { display: flex; flex-direction: column; gap: 14px; }
+.kin-sc-modal-field { display: flex; flex-direction: column; gap: 6px; }
+.kin-sc-modal-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B6560;
+  letter-spacing: 0.04em;
+}
+.kin-sc-modal-types { display: flex; gap: 16px; padding-top: 4px; }
+.kin-sc-modal-types label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 500; color: #1C1917;
+  cursor: pointer;
+}
+.kin-sc-modal-textarea, .kin-sc-modal-list {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #DDD9D4;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1C1917;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  background: #FAF9F7;
+}
+.kin-sc-modal-textarea:focus, .kin-sc-modal-list:focus {
+  border-color: #D97559;
+  background: #FFFFFF;
+}
+
+.kin-sc-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+.kin-sc-btn-primary, .kin-sc-btn-secondary {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+  transition: all 160ms ease-out;
+  font-family: inherit;
+}
+.kin-sc-btn-primary {
+  background: #D97559;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(217, 117, 89, 0.30);
+}
+.kin-sc-btn-primary:hover { background: #C86748; transform: translateY(-1px); }
+.kin-sc-btn-secondary {
+  background: transparent;
+  color: #D97559;
+  border: 1px solid #D97559;
+}
+.kin-sc-btn-secondary:hover { background: #FBF0EB; }
+
+.kin-sc-modal-status {
+  font-size: 12px;
+  color: #6B6560;
+  min-height: 16px;
+}
+
+/* Reader toolbar button — visual style */
+.kin-r-btn-summary svg { width: 16px; height: 16px; }
+
+/* Responsive: collapse modal to single column on narrow viewports */
+@media (max-width: 720px) {
+  .kin-sc-modal-body { grid-template-columns: 1fr; }
+  .kin-sc-modal-preview { min-height: 320px; }
+}
