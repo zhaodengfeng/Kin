@@ -1418,7 +1418,6 @@ const ReaderRenderer = {
   async _exportLongScreenshotAsTiles({ clone, theme, size, mime, ext, quality, btn, cuts }) {
     const total = cuts.length - 1;
     const filenameStem = this._reserveExportFilenameStem(ext, total);
-    let firstBlob = null;
     for (let i = 0; i < cuts.length - 1; i++) {
       const y = cuts[i];
       const height = cuts[i + 1] - y;
@@ -1431,7 +1430,6 @@ const ReaderRenderer = {
         const blob = await this._canvasToBlob(flat, mime, quality);
         if (!blob) throw new Error('Screenshot export failed');
         this._downloadBlob(blob, this._buildExportFilename(filenameStem, ext, i + 1, total));
-        if (i === 0) firstBlob = blob;
       } finally {
         this._releaseCanvas(canvas);
         this._releaseCanvas(flat);
@@ -1443,7 +1441,6 @@ const ReaderRenderer = {
     } else {
       this.showToast(`Long article exported as ${total} readable ${ext.toUpperCase()} images`);
     }
-    try { if (firstBlob) await navigator.clipboard.write([new ClipboardItem({ [mime]: firstBlob })]); } catch {}
   },
 
   async generateSummaryCard() {
