@@ -432,9 +432,18 @@
   }
 
   function safeFilename(title) {
-    const t = String(title || 'kin-summary')
+    const t = String(title || 'kin-card')
       .replace(/[\\/:*?"<>|\n\r\t]+/g,' ').replace(/\s+/g,' ').trim().slice(0, 40);
-    return `kin-summary-${t || 'card'}.png`;
+    return `kin-${t || 'card'}.png`;
+  }
+
+  async function copyCanvasToClipboard(canvas) {
+    try {
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      if (!blob) return false;
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      return true;
+    } catch { return false; }
   }
 
   function mountOffscreen(cardEl) {
@@ -689,10 +698,11 @@
     const cardEl = buildCardElement(cardData, themeKey);
     const stage = mountOffscreen(cardEl);
     try {
-      // Let layout settle
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       const canvas = await renderCardToCanvas(cardEl);
+      const copied = await copyCanvasToClipboard(canvas);
       downloadCanvasAsPNG(canvas, safeFilename(cardData.title));
+      if (copied) console.log('[Kin Summary] image copied to clipboard');
     } finally {
       stage.remove();
     }
