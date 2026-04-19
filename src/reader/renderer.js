@@ -792,6 +792,15 @@ const ReaderRenderer = {
         ? this.sanitizeTitleLikeTranslation(translation, el.dataset.original)
         : String(translation || '').trim();
       if (!normalizedTranslation) return;
+      if (
+        isTitleLike &&
+        this._normalizeTranslationCompareText(normalizedTranslation) === this._normalizeTranslationCompareText(el.dataset.original || '')
+      ) {
+        el.textContent = el.dataset.original || '';
+        el.classList.remove('kin-r-translating');
+        el.classList.add('kin-r-title-like');
+        return;
+      }
       el.innerHTML = `<span class="kin-r-original">${this.escapeHtml(el.dataset.original)}</span><span class="kin-r-translation">${this.escapeHtml(normalizedTranslation)}</span>`;
       el.classList.remove('kin-r-translating');
       el.classList.add('kin-r-translated');

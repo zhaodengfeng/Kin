@@ -15,8 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnQuickTranslate = document.getElementById('btnQuickTranslate');
   const quickResult = document.getElementById('quickResult');
   const historySection = document.getElementById('historySection');
+  const popupVersion = document.getElementById('popupVersion');
 
   let pageState = 'idle'; // idle | translating | translated
+
+  const manifest = chrome.runtime.getManifest();
+  if (popupVersion && manifest) {
+    popupVersion.textContent = manifest.version_name || `v${manifest.version}`;
+  }
 
   // P2-7: toggle mode-card disabled state in sync with pageState
   function syncModeCardState() {

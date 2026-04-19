@@ -68,6 +68,17 @@ body {
   letter-spacing: 0.4px;
 }
 
+.popup-version {
+  font-size: 10px;
+  color: var(--kin-text-tertiary, #9E9891);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.popup-version:not(:empty)::before {
+  content: '· ';
+}
+
 .popup-settings {
   display: flex;
   align-items: center;
