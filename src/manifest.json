@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Kin - Translate & Read",
-  "version": "26.4.20.47",
-  "version_name": "26.4.20b47",
+  "version": "26.4.20.48",
+  "version_name": "26.4.20b48",
   "description": "Beyond Word. Into Meaning. — Elegant translation & reader for the web.",
   "permissions": [
     "storage",

@@ -11,12 +11,41 @@ class FTAdapter extends BaseAdapter {
   }
 
   getTitle() {
-    const selectors = ['[class*="headline"]', 'h1', '[data-trackable="headline"]'];
+    const selectors = [
+      '#o-topper h1',
+      'h1.o-topper__headline',
+      'h1 [class*="headline__text"]',
+      'article h1',
+      'main h1',
+      'h1',
+      '[data-trackable="headline"]',
+      '[class*="headline"]'
+    ];
     for (const sel of selectors) {
       const el = document.querySelector(sel);
-      if (el && el.innerText.trim().length > 5) return el.innerText.trim();
+      const text = this._cleanTitleText(el?.innerText || el?.textContent || '');
+      if (el && text.length > 5 && this._isValidTitleElement(el)) return text;
     }
-    return document.title;
+    const metaTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content')
+      || document.querySelector('meta[name="twitter:title"]')?.getAttribute('content')
+      || '';
+    return this._cleanTitleText(metaTitle || document.title);
+  }
+
+  _cleanTitleText(text) {
+    return String(text || '')
+      .replace(/^\s*currently\s+reading\s*:\s*/i, '')
+      .replace(/\s*\|\s*Financial Times\s*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  _isValidTitleElement(el) {
+    if (!el) return false;
+    if (el.closest('.package__content-menu, .package__content-item, .onward-journey, nav, header, footer, aside')) {
+      return false;
+    }
+    return true;
   }
 
   getAuthor() {
