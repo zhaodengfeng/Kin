@@ -549,8 +549,10 @@ function buildSummarySystemPrompt(langName) {
     'You are a professional news editor.',
     langLine,
     'Summarize the article.',
-    'If the article covers ONE topic/event: write a detailed summary (200-400 chars) split into 2-3 short paragraphs for readability. Separate paragraphs with a blank line (double newline). Each paragraph should cover one aspect (background, key development, significance).',
-    'If the article is a digest with MULTIPLE independent topics: write 3-5 bullet points, each 30-80 chars. Start each line with "• ".',
+    'Hard length rules: the total output must be 180-320 Chinese characters or 90-170 English words. Never exceed 360 Chinese characters or 190 English words.',
+    'If the article covers ONE topic/event: write 2-3 short paragraphs. Each paragraph must be 40-120 Chinese characters or 20-60 English words. Separate paragraphs with a blank line.',
+    'If the article is a digest with MULTIPLE independent topics: write 3-5 bullet points. Each bullet must be 30-70 Chinese characters or 15-35 English words. Start each line with "• ".',
+    'Do not include more than 3 paragraphs or more than 5 bullets.',
     'Output ONLY the summary text. No labels, no commentary, no formatting markers.',
     'Do NOT start with phrases like "文章指出", "The article states", "据报道" or any meta-commentary. Start directly with the content.'
   ].join('\n');
@@ -573,7 +575,7 @@ async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPromp
     model,
     messages,
     temperature: 0.4,
-    max_tokens: 1500
+    max_tokens: 700
   };
   applyOpenAICompatibleModelOptions(provider, model, body);
 
@@ -604,7 +606,7 @@ async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPromp
 async function callClaudeSummary({ cfg, model, systemPrompt, userPrompt }) {
   const body = {
     model,
-    max_tokens: 1500,
+    max_tokens: 700,
     temperature: 0.4,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]

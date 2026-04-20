@@ -121,6 +121,69 @@
     return { type: 'paragraph', content: '（无可用内容）', source: 'extract' };
   }
 
+  const SUMMARY_LIMITS = {
+    paragraphChars: 360,
+    paragraphChunkChars: 120,
+    listItems: 5,
+    listItemChars: 70
+  };
+
+  function trimToSentence(text, maxChars) {
+    const s = String(text || '').replace(/\s+/g, ' ').trim();
+    if (s.length <= maxChars) return s;
+    const clipped = s.slice(0, maxChars + 1);
+    const cutMarks = ['。', '！', '？', '.', '!', '?', '；', ';', '，', ','];
+    let cut = -1;
+    cutMarks.forEach(mark => {
+      const idx = clipped.lastIndexOf(mark);
+      if (idx >= Math.floor(maxChars * 0.58)) cut = Math.max(cut, idx + 1);
+    });
+    return (cut > 0 ? clipped.slice(0, cut) : clipped.slice(0, maxChars)).trim().replace(/[，,;；:：–—-]$/, '') + '…';
+  }
+
+  function splitSummaryParagraphs(text) {
+    const normalized = String(text || '').replace(/\r\n/g, '\n').trim();
+    let paragraphs = normalized.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    if (paragraphs.length <= 1) {
+      paragraphs = normalized.split(/\n/).map(s => s.trim()).filter(Boolean);
+    }
+    if (paragraphs.length <= 1 && normalized.length > SUMMARY_LIMITS.paragraphChunkChars) {
+      const chunks = [];
+      let rest = normalized;
+      while (rest.length > SUMMARY_LIMITS.paragraphChunkChars && chunks.length < 3) {
+        const window = rest.slice(0, SUMMARY_LIMITS.paragraphChunkChars + 20);
+        const candidates = ['。', '！', '？', '.', '!', '?', '；', ';'];
+        let cut = -1;
+        candidates.forEach(mark => {
+          const idx = window.lastIndexOf(mark);
+          if (idx >= SUMMARY_LIMITS.paragraphChunkChars * 0.5) cut = Math.max(cut, idx + 1);
+        });
+        if (cut < 0) cut = SUMMARY_LIMITS.paragraphChunkChars;
+        chunks.push(rest.slice(0, cut).trim());
+        rest = rest.slice(cut).trim();
+      }
+      if (rest) chunks.push(rest);
+      paragraphs = chunks;
+    }
+    return paragraphs.slice(0, 3);
+  }
+
+  function enforceSummaryLimits(summary) {
+    if (!summary) return summary;
+    if (summary.type === 'list') {
+      const items = (Array.isArray(summary.content) ? summary.content : [])
+        .map(item => trimToSentence(item, SUMMARY_LIMITS.listItemChars))
+        .filter(Boolean)
+        .slice(0, SUMMARY_LIMITS.listItems);
+      return { ...summary, content: items.length ? items : ['摘要内容不可用。'] };
+    }
+    const content = trimToSentence(summary.content, SUMMARY_LIMITS.paragraphChars);
+    const paragraphs = splitSummaryParagraphs(content)
+      .map(p => trimToSentence(p, SUMMARY_LIMITS.paragraphChunkChars))
+      .filter(Boolean);
+    return { ...summary, type: 'paragraph', content: paragraphs.join('\n\n') || '摘要内容不可用。' };
+  }
+
   async function callSummaryLLM(payload) {
     return new Promise(resolve => {
       chrome.runtime.sendMessage({ type: 'summary_generate', data: payload }, resp => {
@@ -282,31 +345,7 @@
 
     // Summary body
     if (data.summary.type === 'paragraph') {
-      let paragraphs = data.summary.content.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
-      if (paragraphs.length <= 1) {
-        paragraphs = data.summary.content.split(/\n/).map(s => s.trim()).filter(Boolean);
-      }
-      if (paragraphs.length <= 1 && data.summary.content.length > 150) {
-        const text = data.summary.content;
-        const result = [];
-        let start = 0;
-        while (start < text.length) {
-          let end = Math.min(start + 180, text.length);
-          if (end < text.length) {
-            const searchRange = text.slice(start, end);
-            const lastPeriod = Math.max(
-              searchRange.lastIndexOf('。'), searchRange.lastIndexOf('！'),
-              searchRange.lastIndexOf('？'), searchRange.lastIndexOf('.'),
-              searchRange.lastIndexOf('!')
-            );
-            if (lastPeriod > 60) end = start + lastPeriod + 1;
-          }
-          const chunk = text.slice(start, end).trim();
-          if (chunk) result.push(chunk);
-          start = end;
-        }
-        if (result.length > 1) paragraphs = result;
-      }
+      const paragraphs = splitSummaryParagraphs(data.summary.content);
       paragraphs.forEach((text, i) => {
         const p = el('p',
           `margin:0 0 ${i < paragraphs.length - 1 ? '6px' : '0'};font-family:${FONT_BODY};font-size:14px;font-weight:300;line-height:1.7;color:${T.text};` +
@@ -318,7 +357,7 @@
       });
     } else {
       const ol = el('ol', 'margin:0;padding:0;list-style:none;');
-      data.summary.content.forEach((item, i) => {
+      data.summary.content.slice(0, SUMMARY_LIMITS.listItems).forEach((item, i) => {
         const li = el('li', 'display:flex;align-items:baseline;gap:8px;margin-bottom:8px;');
         const num = el('span',
           `flex:0 0 22px;font-family:${FONT_SERIF};font-size:16px;font-weight:700;` +
@@ -559,9 +598,9 @@
         const bulletLines = lines.filter(l => /^[•\-\*]\s/.test(l) || /^\d+[.)]\s/.test(l));
         if (bulletLines.length >= 3) {
           const items = bulletLines.map(l => l.replace(/^[•\-\*]\s*/, '').replace(/^\d+[.)]\s*/, '').trim()).filter(Boolean);
-          summary = { type: 'list', content: items.slice(0, 6), source: 'ai' };
+          summary = enforceSummaryLimits({ type: 'list', content: items, source: 'ai' });
         } else {
-          summary = { type: 'paragraph', content: cleaned.replace(/[•\-\*]\s/g, '').replace(/\n{2,}/g, '\n').trim(), source: 'ai' };
+          summary = enforceSummaryLimits({ type: 'paragraph', content: cleaned.replace(/[•\-\*]\s/g, '').replace(/\n{2,}/g, '\n').trim(), source: 'ai' });
         }
         console.log('[Kin Summary] parsed as', summary.type, 'len:', summary.type === 'paragraph' ? summary.content.length : summary.content.length + ' items');
       }
@@ -569,8 +608,9 @@
       console.warn('[Kin Summary] AI failed:', e.message);
     }
     if (!summary) {
-      summary = { type: 'paragraph', content: textForLLM.slice(0, 400), source: 'extract' };
+      summary = enforceSummaryLimits({ type: 'paragraph', content: textForLLM.slice(0, 400), source: 'extract' });
     }
+    summary = enforceSummaryLimits(summary);
 
     // Format date: prefer full datetime from page DOM, fallback to article.date
     let dateText = extractFullDate();
