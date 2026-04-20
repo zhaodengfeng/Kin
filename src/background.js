@@ -549,9 +549,9 @@ function buildSummarySystemPrompt(langName) {
     'You are a professional news editor.',
     langLine,
     'Summarize the article.',
-    'Hard length rules: the total output must be 180-320 Chinese characters or 90-170 English words. Never exceed 360 Chinese characters or 190 English words.',
-    'If the article covers ONE topic/event: write 2-3 short paragraphs. Each paragraph must be 40-120 Chinese characters or 20-60 English words. Separate paragraphs with a blank line.',
-    'If the article is a digest with MULTIPLE independent topics: write 3-5 bullet points. Each bullet must be 30-70 Chinese characters or 15-35 English words. Start each line with "• ".',
+    'Write to a fixed card budget: target 320-460 Chinese characters or 140-230 English words. Absolute maximum: 520 Chinese characters or 260 English words.',
+    'If the article covers ONE topic/event: write 2-3 compact paragraphs. Each paragraph should be 90-190 Chinese characters or 45-95 English words. Separate paragraphs with a blank line.',
+    'If the article is a digest with MULTIPLE independent topics: write 3-5 bullet points. Each bullet should be 45-110 Chinese characters or 22-55 English words. Start each line with "• ".',
     'Do not include more than 3 paragraphs or more than 5 bullets.',
     'Output ONLY the summary text. No labels, no commentary, no formatting markers.',
     'Do NOT start with phrases like "文章指出", "The article states", "据报道" or any meta-commentary. Start directly with the content.'
@@ -575,7 +575,7 @@ async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPromp
     model,
     messages,
     temperature: 0.4,
-    max_tokens: 700
+    max_tokens: 900
   };
   applyOpenAICompatibleModelOptions(provider, model, body);
 
@@ -606,7 +606,7 @@ async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPromp
 async function callClaudeSummary({ cfg, model, systemPrompt, userPrompt }) {
   const body = {
     model,
-    max_tokens: 700,
+    max_tokens: 900,
     temperature: 0.4,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]

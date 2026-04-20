@@ -122,10 +122,11 @@
   }
 
   const SUMMARY_LIMITS = {
-    paragraphChars: 360,
-    paragraphChunkChars: 120,
+    paragraphChars: 520,
+    paragraphPreferredChunkChars: 220,
+    paragraphMaxChunks: 3,
     listItems: 5,
-    listItemChars: 70
+    listItemChars: 110
   };
 
   function trimToSentence(text, maxChars) {
@@ -147,25 +148,25 @@
     if (paragraphs.length <= 1) {
       paragraphs = normalized.split(/\n/).map(s => s.trim()).filter(Boolean);
     }
-    if (paragraphs.length <= 1 && normalized.length > SUMMARY_LIMITS.paragraphChunkChars) {
+    if (paragraphs.length <= 1 && normalized.length > SUMMARY_LIMITS.paragraphPreferredChunkChars) {
       const chunks = [];
       let rest = normalized;
-      while (rest.length > SUMMARY_LIMITS.paragraphChunkChars && chunks.length < 3) {
-        const window = rest.slice(0, SUMMARY_LIMITS.paragraphChunkChars + 20);
+      while (rest.length > SUMMARY_LIMITS.paragraphPreferredChunkChars && chunks.length < SUMMARY_LIMITS.paragraphMaxChunks - 1) {
+        const window = rest.slice(0, SUMMARY_LIMITS.paragraphPreferredChunkChars + 60);
         const candidates = ['。', '！', '？', '.', '!', '?', '；', ';'];
         let cut = -1;
         candidates.forEach(mark => {
           const idx = window.lastIndexOf(mark);
-          if (idx >= SUMMARY_LIMITS.paragraphChunkChars * 0.5) cut = Math.max(cut, idx + 1);
+          if (idx >= SUMMARY_LIMITS.paragraphPreferredChunkChars * 0.45) cut = Math.max(cut, idx + 1);
         });
-        if (cut < 0) cut = SUMMARY_LIMITS.paragraphChunkChars;
+        if (cut < 0) cut = SUMMARY_LIMITS.paragraphPreferredChunkChars;
         chunks.push(rest.slice(0, cut).trim());
         rest = rest.slice(cut).trim();
       }
       if (rest) chunks.push(rest);
       paragraphs = chunks;
     }
-    return paragraphs.slice(0, 3);
+    return paragraphs.slice(0, SUMMARY_LIMITS.paragraphMaxChunks);
   }
 
   function enforceSummaryLimits(summary) {
@@ -179,7 +180,6 @@
     }
     const content = trimToSentence(summary.content, SUMMARY_LIMITS.paragraphChars);
     const paragraphs = splitSummaryParagraphs(content)
-      .map(p => trimToSentence(p, SUMMARY_LIMITS.paragraphChunkChars))
       .filter(Boolean);
     return { ...summary, type: 'paragraph', content: paragraphs.join('\n\n') || '摘要内容不可用。' };
   }

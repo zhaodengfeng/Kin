@@ -258,12 +258,17 @@
         return;
 
       case 'toggle_translate':
-        togglePageTranslation().then(() => sendResponse({ ok: true }));
+        togglePageTranslation()
+          .then(result => sendResponse(result || { ok: true }))
+          .catch(err => sendResponse({ ok: false, error: err?.message || '翻译失败' }));
         return true;
 
       case 'toggle_mode':
-        toggleTranslationMode();
-        sendResponse({ ok: true });
+        sendResponse(toggleTranslationMode());
+        return;
+
+      case 'set_mode':
+        sendResponse(setTranslationMode(msg.mode === 'translation' ? 'translation' : 'dual'));
         return;
 
       case 'toggle_hover':
@@ -275,16 +280,16 @@
         return;
 
       case 'open_reader':
-        if (currentAdapter) openReader();
-        else KinToast.warning('当前页面不支持阅读模式');
-        sendResponse({ ok: true });
-        return;
+        openReader()
+          .then(result => sendResponse(result || { ok: true }))
+          .catch(err => sendResponse({ ok: false, error: err?.message || '阅读模式打开失败' }));
+        return true;
     }
   }
 
   // ========== Page Translation ==========
   async function togglePageTranslation() {
-    if (typeof KinTranslator === 'undefined') return;
+    if (typeof KinTranslator === 'undefined') return { ok: false, error: '翻译模块未加载' };
 
     if (pageTranslated) {
       KinTranslator.restore();
@@ -293,11 +298,12 @@
         KinFloatBall.setTranslating(false);
         KinFloatBall.setTranslated(false);
       }
+      return { ok: true, action: 'restored', pageTranslated: false, translating: false };
     } else {
       // If on a supported news site and reader mode is enabled, open reader instead of inline page translation
       if (currentAdapter && readerEnabled) {
-        openReader();
-        return;
+        const result = await openReader();
+        return result?.ok === false ? result : { ok: true, action: 'reader_opened', pageTranslated: false, translating: false };
       }
 
       translating = true;
@@ -306,30 +312,41 @@
         await KinTranslator.translatePage();
         pageTranslated = true;
         if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslated(true);
+        return { ok: true, action: 'translated', pageTranslated: true, translating: false };
       } catch (e) {
         KinToast.error('翻译失败: ' + (e.message || '未知错误'));
+        return { ok: false, error: e.message || '翻译失败', pageTranslated: false, translating: false };
+      } finally {
+        translating = false;
+        if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslating(false);
       }
-      translating = false;
-      if (typeof KinFloatBall !== 'undefined') KinFloatBall.setTranslating(false);
     }
   }
 
   // ========== Translation Mode Toggle ==========
   function toggleTranslationMode() {
-    currentMode = currentMode === 'dual' ? 'translation' : 'dual';
+    return setTranslationMode(currentMode === 'dual' ? 'translation' : 'dual');
+  }
+
+  function setTranslationMode(mode) {
+    currentMode = mode === 'translation' ? 'translation' : 'dual';
     document.body.dataset.kinState = currentMode === 'dual' ? 'dual' : 'translation';
     KinToast.info(currentMode === 'dual' ? '双语对照模式' : '仅显示译文');
     chrome.runtime.sendMessage({
       type: 'save_settings',
       data: { translationMode: currentMode }
     }).catch(() => {});
+    return { ok: true, mode: currentMode };
   }
 
   // ========== Reader ==========
   async function openReader() {
-    if (!currentAdapter) return;
-    if (typeof ReaderRenderer === 'undefined') return;
-    if (ReaderRenderer.active) return;
+    if (!currentAdapter) {
+      if (typeof KinToast !== 'undefined') KinToast.warning('当前页面不支持阅读模式');
+      return { ok: false, error: '当前页面不支持阅读模式' };
+    }
+    if (typeof ReaderRenderer === 'undefined') return { ok: false, error: '阅读器模块未加载' };
+    if (ReaderRenderer.active) return { ok: true, action: 'reader_already_open' };
 
     // Stale overlay cleanup
     const staleOverlay = document.getElementById('kin-reader');
@@ -343,12 +360,12 @@
       paragraphs = currentAdapter.getParagraphs();
     } catch (e) {
       if (typeof KinToast !== 'undefined') KinToast.error('Failed to extract article: ' + e.message);
-      return;
+      return { ok: false, error: e.message || '提取文章失败' };
     }
 
     if (!paragraphs || paragraphs.length === 0) {
       if (typeof KinToast !== 'undefined') KinToast.warning('Failed to extract article content');
-      return;
+      return { ok: false, error: '未提取到文章内容' };
     }
 
     try {
@@ -363,8 +380,10 @@
         featuredImage: currentAdapter.getFeaturedImage(),
         paragraphs: paragraphs,
       });
+      return { ok: true, action: 'reader_opened' };
     } catch (e) {
       if (typeof KinToast !== 'undefined') KinToast.error('Reader failed: ' + e.message);
+      return { ok: false, error: e.message || '阅读模式打开失败' };
     }
   }
 

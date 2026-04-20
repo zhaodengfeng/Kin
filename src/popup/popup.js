@@ -18,10 +18,66 @@ document.addEventListener('DOMContentLoaded', async () => {
   const popupVersion = document.getElementById('popupVersion');
 
   let pageState = 'idle'; // idle | translating | translated
+  let tab = null;
+  const MESSAGE_TIMEOUT_MS = 2500;
+  const DEFAULT_PROVIDERS = [
+    { id: 'google', name: 'Google Translate', type: 'free' },
+    { id: 'microsoft', name: 'Microsoft Translator', type: 'free' }
+  ];
 
   const manifest = chrome.runtime.getManifest();
   if (popupVersion && manifest) {
     popupVersion.textContent = manifest.version_name || `v${manifest.version}`;
+  }
+
+  function withMessageTimeout(run, fallback, timeoutMs) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(value);
+      };
+      const timer = setTimeout(() => finish(fallback), timeoutMs || MESSAGE_TIMEOUT_MS);
+      try {
+        run(finish);
+      } catch (e) {
+        finish(fallback);
+      }
+    });
+  }
+
+  function runtimeMessage(message, fallback, timeoutMs) {
+    return withMessageTimeout((finish) => {
+      chrome.runtime.sendMessage(message, (resp) => {
+        if (chrome.runtime.lastError) {
+          console.warn('[Kin Popup] runtime message failed:', chrome.runtime.lastError.message);
+          finish(fallback);
+          return;
+        }
+        finish(resp == null ? fallback : resp);
+      });
+    }, fallback, timeoutMs);
+  }
+
+  function tabMessage(tabId, message, options) {
+    const fallback = options?.fallback;
+    const shouldReject = options?.reject !== false;
+    return withMessageTimeout((finish) => {
+      chrome.tabs.sendMessage(tabId, message, (resp) => {
+        if (chrome.runtime.lastError) {
+          const error = new Error(chrome.runtime.lastError.message);
+          finish(shouldReject ? { __kinError: error } : fallback);
+          return;
+        }
+        finish(resp == null ? fallback : resp);
+      });
+    }, shouldReject ? { __kinError: new Error('请求超时') } : fallback, options?.timeoutMs || MESSAGE_TIMEOUT_MS)
+      .then((resp) => {
+        if (resp?.__kinError) throw resp.__kinError;
+        return resp;
+      });
   }
 
   // P2-7: toggle mode-card disabled state in sync with pageState
@@ -33,37 +89,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Populate dropdowns
   populateLanguages();
-  await populateEngines();
-
-  // Get current tab
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab) return;
-
-  // P2-5: Friendly message for restricted URLs where content scripts cannot run
-  const restrictedPrefixes = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'brave://', 'view-source:', 'https://chrome.google.com/webstore', 'https://chromewebstore.google.com'];
-  const isRestricted = typeof tab.url === 'string' && restrictedPrefixes.some(p => tab.url.startsWith(p));
-  if (isRestricted) {
-    btnTranslate.disabled = true;
-    btnTranslateText.textContent = '当前页面不支持翻译';
-    setStatus('error', '浏览器内部页面无法注入脚本');
-    if (btnReader) btnReader.style.display = 'none';
-  }
-
-  // Load saved settings
-  const settings = await getSettings();
-  applySettings(settings);
-
-  // Ping content script
-  const response = isRestricted ? null : await pingContentScript(tab.id);
-  if (response) updateUI(response);
-
-  // Load history for news sites
-  if (response?.isArticle) loadHistory();
+  syncModeCardState();
+  initPopup();
 
   // ========== Event Listeners ==========
 
   // Main translate button
   btnTranslate.addEventListener('click', async () => {
+    const tabId = tab?.id;
+    if (!tabId) {
+      setStatus('translating', '正在连接当前页面...');
+      return;
+    }
     if (pageState === 'idle') {
       pageState = 'translating';
       btnTranslateText.textContent = '翻译中...';
@@ -71,24 +108,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       setStatus('translating', '正在翻译...');
       syncModeCardState();
       try {
-        await chrome.tabs.sendMessage(tab.id, { type: 'toggle_translate' });
+        const resp = await tabMessage(tabId, { type: 'toggle_translate' });
+        if (resp?.ok === false) throw new Error(resp.error || '翻译失败');
+        if (resp?.action === 'reader_opened' || resp?.action === 'reader_already_open') {
+          pageState = 'idle';
+          btnTranslateText.textContent = '翻译此页面';
+          btnTranslate.disabled = false;
+          setStatus('translated', '已打开沉浸阅读');
+          syncModeCardState();
+          return;
+        }
       } catch(e) {
         pageState = 'idle';
         btnTranslateText.textContent = '翻译此页面';
         btnTranslate.disabled = false;
-        setStatus('error', '无法连接到此页面');
+        setStatus('error', e.message || '无法连接到此页面');
         return;
       }
-      pollTranslationState(tab.id);
+      pollTranslationState(tabId);
     } else if (pageState === 'translated') {
       pageState = 'idle';
       btnTranslateText.textContent = '翻译此页面';
       setStatus('idle', '准备就绪');
       syncModeCardState();
       try {
-        await chrome.tabs.sendMessage(tab.id, { type: 'toggle_translate' });
+        const resp = await tabMessage(tabId, { type: 'toggle_translate' });
+        if (resp?.ok === false) throw new Error(resp.error || '恢复原文失败');
       } catch(e) {
         pageState = 'idle';
+        setStatus('error', e.message || '恢复原文失败');
       }
     }
   });
@@ -106,10 +154,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     quickResult.textContent = '翻译中...';
     quickResult.className = 'quick-result';
     try {
-      const resp = await chrome.runtime.sendMessage({
+      const resp = await runtimeMessage({
         type: 'translate',
         data: { texts: [text], to: targetLang.value || 'zh-CN' }
-      });
+      }, { error: '翻译请求超时' }, 15000);
       if (resp?.translations?.[0]) {
         quickResult.textContent = resp.translations[0];
       } else if (resp?.error) {
@@ -123,9 +171,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Reader button
-  btnReader?.addEventListener('click', () => {
-    chrome.tabs.sendMessage(tab.id, { type: 'open_reader' });
-    window.close();
+  btnReader?.addEventListener('click', async () => {
+    const tabId = tab?.id;
+    if (!tabId) {
+      setStatus('translating', '正在连接当前页面...');
+      return;
+    }
+    try {
+      const resp = await tabMessage(tabId, { type: 'open_reader' });
+      if (resp?.ok === false) throw new Error(resp.error || '阅读模式打开失败');
+      window.close();
+    } catch (e) {
+      setStatus('error', e.message || '阅读模式打开失败');
+    }
   });
 
   // Settings button
@@ -150,20 +208,75 @@ document.addEventListener('DOMContentLoaded', async () => {
   engineSelect.addEventListener('change', () => saveSettings({ translationProvider: engineSelect.value }));
 
   // Mode toggle
-  btnDual.addEventListener('click', () => {
-    chrome.tabs.sendMessage(tab.id, { type: 'toggle_mode' });
-    btnDual.classList.add('active');
-    btnTransOnly.classList.remove('active');
-    saveSettings({ translationMode: 'dual' });
+  btnDual.addEventListener('click', async () => {
+    if (pageState !== 'translated') return;
+    const tabId = tab?.id;
+    if (!tabId) return;
+    try {
+      const resp = await tabMessage(tabId, { type: 'set_mode', mode: 'dual' });
+      if (resp?.ok === false) throw new Error(resp.error || '切换显示模式失败');
+      btnDual.classList.add('active');
+      btnTransOnly.classList.remove('active');
+      saveSettings({ translationMode: 'dual' });
+    } catch (e) {
+      setStatus('error', e.message || '切换显示模式失败');
+    }
   });
-  btnTransOnly.addEventListener('click', () => {
-    chrome.tabs.sendMessage(tab.id, { type: 'toggle_mode' });
-    btnTransOnly.classList.add('active');
-    btnDual.classList.remove('active');
-    saveSettings({ translationMode: 'translation' });
+  btnTransOnly.addEventListener('click', async () => {
+    if (pageState !== 'translated') return;
+    const tabId = tab?.id;
+    if (!tabId) return;
+    try {
+      const resp = await tabMessage(tabId, { type: 'set_mode', mode: 'translation' });
+      if (resp?.ok === false) throw new Error(resp.error || '切换显示模式失败');
+      btnTransOnly.classList.add('active');
+      btnDual.classList.remove('active');
+      saveSettings({ translationMode: 'translation' });
+    } catch (e) {
+      setStatus('error', e.message || '切换显示模式失败');
+    }
   });
 
   // ========== Functions ==========
+
+  async function initPopup() {
+    try {
+      await populateEngines();
+
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      tab = tabs?.[0] || null;
+      if (!tab) {
+        btnTranslate.disabled = true;
+        setStatus('error', '未找到当前标签页');
+        return;
+      }
+
+      // P2-5: Friendly message for restricted URLs where content scripts cannot run
+      const restrictedPrefixes = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'brave://', 'view-source:', 'https://chrome.google.com/webstore', 'https://chromewebstore.google.com'];
+      const isRestricted = typeof tab.url === 'string' && restrictedPrefixes.some(p => tab.url.startsWith(p));
+      if (isRestricted) {
+        btnTranslate.disabled = true;
+        btnTranslateText.textContent = '当前页面不支持翻译';
+        setStatus('error', '浏览器内部页面无法注入脚本');
+        if (btnReader) btnReader.style.display = 'none';
+      }
+
+      // Load saved settings
+      const settings = await getSettings();
+      applySettings(settings);
+
+      // Ping content script
+      const response = isRestricted ? null : await pingContentScript(tab.id);
+      if (response) updateUI(response);
+      else syncModeCardState();
+
+      // Load history for news sites
+      if (response?.isArticle) loadHistory();
+    } catch (e) {
+      console.warn('[Kin Popup] init failed:', e.message);
+      setStatus('error', '弹窗初始化失败');
+    }
+  }
 
   function setStatus(state, text) {
     statusText.textContent = text;
@@ -189,13 +302,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function populateEngines() {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: 'get_available_providers' }, (resp) => {
+    return runtimeMessage({ type: 'get_available_providers' }, { providers: DEFAULT_PROVIDERS }, 1600)
+      .then((resp) => {
         const freeGroup = document.getElementById('freeOptgroup');
         const apiGroup = document.getElementById('apiOptgroup');
         const providers = resp?.providers || (typeof ProviderRegistry !== 'undefined'
           ? ProviderRegistry.freeProviders()
-          : [{ id: 'google', name: 'Google Translate', type: 'free' }, { id: 'microsoft', name: 'Microsoft Translator', type: 'free' }]);
+          : DEFAULT_PROVIDERS);
         freeGroup.innerHTML = '';
         apiGroup.innerHTML = '';
         let hasApi = false;
@@ -208,15 +321,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Hide the API optgroup label if no configured providers
         const apiLabel = apiGroup.closest('select')?.querySelectorAll('optgroup')[1];
         if (apiGroup) apiGroup.style.display = hasApi ? '' : 'none';
-        resolve();
       });
-    });
   }
 
   async function getSettings() {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: 'get_settings' }, (data) => resolve(data || {}));
-    });
+    return runtimeMessage({ type: 'get_settings' }, {}, 1600);
   }
 
   function applySettings(s) {
@@ -233,12 +342,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function saveSettings(data) {
-    chrome.runtime.sendMessage({ type: 'save_settings', data });
+    runtimeMessage({ type: 'save_settings', data }, { ok: false }, 1600);
   }
 
   async function pingContentScript(tabId) {
     try {
-      return await chrome.tabs.sendMessage(tabId, { type: 'ping' });
+      return await tabMessage(tabId, { type: 'ping' }, { fallback: null, reject: false, timeoutMs: 1200 });
     } catch { return null; }
   }
 
@@ -263,7 +372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const interval = setInterval(async () => {
       attempts++;
       try {
-        const resp = await chrome.tabs.sendMessage(tabId, { type: 'ping' });
+        const resp = await tabMessage(tabId, { type: 'ping' }, { fallback: null, reject: false, timeoutMs: 1200 });
         if (resp?.pageTranslated || !resp?.translating) {
           pageState = resp?.pageTranslated ? 'translated' : 'idle';
           btnTranslateText.textContent = resp?.pageTranslated ? '显示原文' : '翻译此页面';
