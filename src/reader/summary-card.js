@@ -122,24 +122,13 @@
   }
 
   const SUMMARY_LIMITS = {
-    paragraphChars: 520,
     paragraphPreferredChunkChars: 220,
     paragraphMaxChunks: 3,
-    listItems: 5,
-    listItemChars: 110
+    listItems: 5
   };
 
-  function trimToSentence(text, maxChars) {
-    const s = String(text || '').replace(/\s+/g, ' ').trim();
-    if (s.length <= maxChars) return s;
-    const clipped = s.slice(0, maxChars + 1);
-    const cutMarks = ['。', '！', '？', '.', '!', '?', '；', ';', '，', ','];
-    let cut = -1;
-    cutMarks.forEach(mark => {
-      const idx = clipped.lastIndexOf(mark);
-      if (idx >= Math.floor(maxChars * 0.58)) cut = Math.max(cut, idx + 1);
-    });
-    return (cut > 0 ? clipped.slice(0, cut) : clipped.slice(0, maxChars)).trim().replace(/[，,;；:：–—-]$/, '') + '…';
+  function normalizeSummaryText(text) {
+    return String(text || '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
   }
 
   function splitSummaryParagraphs(text) {
@@ -173,12 +162,12 @@
     if (!summary) return summary;
     if (summary.type === 'list') {
       const items = (Array.isArray(summary.content) ? summary.content : [])
-        .map(item => trimToSentence(item, SUMMARY_LIMITS.listItemChars))
+        .map(item => normalizeSummaryText(item))
         .filter(Boolean)
         .slice(0, SUMMARY_LIMITS.listItems);
       return { ...summary, content: items.length ? items : ['摘要内容不可用。'] };
     }
-    const content = trimToSentence(summary.content, SUMMARY_LIMITS.paragraphChars);
+    const content = normalizeSummaryText(summary.content);
     const paragraphs = splitSummaryParagraphs(content)
       .filter(Boolean);
     return { ...summary, type: 'paragraph', content: paragraphs.join('\n\n') || '摘要内容不可用。' };
@@ -447,13 +436,18 @@
     if (!window.html2canvas) throw new Error('html2canvas 未就绪');
     // Force layout recalc before capture
     void cardEl.offsetWidth;
+    const captureHeight = Math.ceil(Math.max(cardEl.offsetHeight, cardEl.scrollHeight, cardEl.getBoundingClientRect().height));
     return window.html2canvas(cardEl, {
       backgroundColor: null,
       scale: 3,
       useCORS: true,
       logging: false,
       width: CARD_W,
-      height: Math.max(cardEl.offsetHeight, cardEl.scrollHeight)
+      height: captureHeight,
+      windowWidth: CARD_W,
+      windowHeight: captureHeight,
+      scrollX: 0,
+      scrollY: 0
     });
   }
 

@@ -509,6 +509,16 @@ async function handleTranslate({ texts, from, to, providerOverride, configOverri
 // Summary Card Generator (calls configured LLM with structured prompt)
 // ============================================
 const NON_LLM_PROVIDERS = new Set(['google', 'microsoft', 'deepl']);
+const SUMMARY_BUDGET = {
+  zhTargetMin: 320,
+  zhTargetMax: 460,
+  zhHardMin: 260,
+  zhHardMax: 560,
+  enTargetMin: 140,
+  enTargetMax: 230,
+  enHardMin: 110,
+  enHardMax: 280
+};
 
 async function handleSummary({ text, lang, providerOverride, contextHints, configOverride }) {
   const safeText = String(text || '').trim();
@@ -534,11 +544,16 @@ async function handleSummary({ text, lang, providerOverride, contextHints, confi
   const model = cfg.model || meta.summaryModel || meta.model || '';
   const systemPrompt = buildSummarySystemPrompt(langName);
   const userPrompt = buildSummaryUserPrompt(safeText, contextHints);
+  const callSummary = provider === 'claude' || provider === 'custom_claude'
+    ? (prompt) => callClaudeSummary({ cfg, model, systemPrompt, userPrompt: prompt })
+    : (prompt) => callOpenAISummary({ cfg, model, provider, systemPrompt, userPrompt: prompt });
 
-  if (provider === 'claude' || provider === 'custom_claude') {
-    return callClaudeSummary({ cfg, model, systemPrompt, userPrompt });
-  }
-  return callOpenAISummary({ cfg, model, provider, systemPrompt, userPrompt });
+  const first = await callSummary(userPrompt);
+  const assessment = assessSummaryBudget(first.raw);
+  if (!assessment.needsRewrite) return { ...first, budget: assessment };
+
+  const revised = await callSummary(buildSummaryRevisionPrompt(first.raw, langName, assessment));
+  return { ...revised, budget: assessSummaryBudget(revised.raw), revised: true };
 }
 
 function buildSummarySystemPrompt(langName) {
@@ -549,7 +564,7 @@ function buildSummarySystemPrompt(langName) {
     'You are a professional news editor.',
     langLine,
     'Summarize the article.',
-    'Write to a fixed card budget: target 320-460 Chinese characters or 140-230 English words. Absolute maximum: 520 Chinese characters or 260 English words.',
+    `Write to a fixed card budget: target ${SUMMARY_BUDGET.zhTargetMin}-${SUMMARY_BUDGET.zhTargetMax} Chinese characters or ${SUMMARY_BUDGET.enTargetMin}-${SUMMARY_BUDGET.enTargetMax} English words. Absolute maximum: ${SUMMARY_BUDGET.zhHardMax} Chinese characters or ${SUMMARY_BUDGET.enHardMax} English words.`,
     'If the article covers ONE topic/event: write 2-3 compact paragraphs. Each paragraph should be 90-190 Chinese characters or 45-95 English words. Separate paragraphs with a blank line.',
     'If the article is a digest with MULTIPLE independent topics: write 3-5 bullet points. Each bullet should be 45-110 Chinese characters or 22-55 English words. Start each line with "• ".',
     'Do not include more than 3 paragraphs or more than 5 bullets.',
@@ -564,6 +579,53 @@ function buildSummaryUserPrompt(text, hints) {
   if (hints?.title) meta.push(`Title: ${String(hints.title).slice(0, 240)}`);
   const metaBlock = meta.length ? meta.join('\n') + '\n\n' : '';
   return `${metaBlock}Article body:\n"""\n${text}\n"""`;
+}
+
+function countCjkChars(text) {
+  const matches = String(text || '').match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g);
+  return matches ? matches.length : 0;
+}
+
+function countWords(text) {
+  const matches = String(text || '').replace(/[•\n\r]/g, ' ').match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g);
+  return matches ? matches.length : 0;
+}
+
+function assessSummaryBudget(raw) {
+  const text = String(raw || '').trim();
+  const cjkChars = countCjkChars(text);
+  const words = countWords(text);
+  const useCjk = cjkChars >= Math.max(20, words * 0.35);
+  const count = useCjk ? cjkChars : words;
+  const hardMin = useCjk ? SUMMARY_BUDGET.zhHardMin : SUMMARY_BUDGET.enHardMin;
+  const hardMax = useCjk ? SUMMARY_BUDGET.zhHardMax : SUMMARY_BUDGET.enHardMax;
+  return {
+    kind: useCjk ? 'cjk' : 'words',
+    count,
+    tooShort: count > 0 && count < hardMin,
+    tooLong: count > hardMax,
+    needsRewrite: count > 0 && (count < hardMin || count > hardMax)
+  };
+}
+
+function buildSummaryRevisionPrompt(raw, langName, assessment) {
+  const langLine = langName ? `Output language MUST be: ${langName}.` : 'Keep the original output language.';
+  const unit = assessment.kind === 'cjk' ? 'Chinese characters' : 'English words';
+  const target = assessment.kind === 'cjk'
+    ? `${SUMMARY_BUDGET.zhTargetMin}-${SUMMARY_BUDGET.zhTargetMax} Chinese characters`
+    : `${SUMMARY_BUDGET.enTargetMin}-${SUMMARY_BUDGET.enTargetMax} English words`;
+  return [
+    langLine,
+    `Rewrite the summary below to fit the card budget. It is currently ${assessment.count} ${unit}.`,
+    `Target length: ${target}.`,
+    'Keep the important facts, cause/effect, stakes, and conclusion. Do not add labels or commentary.',
+    'Use 2-3 short paragraphs for one main story, or 3-5 bullets for a digest.',
+    '',
+    'Summary to rewrite:',
+    '"""',
+    String(raw || '').trim(),
+    '"""'
+  ].join('\n');
 }
 
 async function callOpenAISummary({ cfg, model, provider, systemPrompt, userPrompt }) {
